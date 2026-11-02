@@ -139,3 +139,11 @@ This change adds a launcher-owned data model for appearance profiles and importe
 - Corrected PNG decoded-buffer sizing to handle the optional size returned by `output_buffer_size()`; moved the test-only `PathBuf` import into the test module.
 - Commits: `3de10f78d00c7583f079d582fb194a09aacb237a` and `9b4135df830cb664d0fe3a8d476bbc46178dd5a5`.
 - These are compile/validation corrections only. Native compilation remains **pending** until a fresh manual four-ABI workflow run passes. No APK or device verification is claimed.
+
+
+## Native Android CI verification after compile fixes (2026-11-02)
+- [Android source checks #66](https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/41405537016) completed successfully on commit `09cb65890102fbac97edde9a8e2dd258e1524be6`.
+- The source job and all four native Rust check jobs passed: `arm64-v8a`, `armeabi-v7a`, `x86_64`, and `x86`.
+- This supersedes the pending native-compilation status recorded above: the corrected source now passes the configured Android Rust type-check for all four targets.
+- **Still not verified:** APK build/sign/install, SAF import on device, skin-library persistence on device, touch/layout behaviour, preview rendering on device, and live in-game skin application. The native workflow explicitly checks Rust code without building an APK.
+- Next stage: audit the current Android `LaunchRequest` and renderer skin selection path before proposing S3-A runtime integration. Keep authentication, UUID/player identity, worlds and protocol semantics unchanged.
