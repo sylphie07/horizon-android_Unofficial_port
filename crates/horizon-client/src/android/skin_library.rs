@@ -26,7 +26,6 @@ pub struct SkinRecord {
     pub id: String,
     pub name: String,
     pub file: String,
-    pub model: SkinModel,
     pub width: u32,
     pub height: u32,
 }
@@ -36,6 +35,8 @@ pub struct AppearanceProfile {
     pub id: String,
     pub name: String,
     pub selected_skin: Option<String>,
+    #[serde(default)]
+    pub model: SkinModel,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -55,6 +56,7 @@ impl Default for SkinLibrary {
                 id: "default".into(),
                 name: "Default".into(),
                 selected_skin: None,
+                model: SkinModel::Classic,
             }],
             skins: Vec::new(),
         }
@@ -170,14 +172,12 @@ impl SkinLibrary {
             id: id.clone(),
             name: clean_name(display_name),
             file: file_name,
-            model,
             width,
             height,
         };
         let previous = self.clone();
         if let Some(existing) = self.skins.iter_mut().find(|skin| skin.id == id) {
             existing.name = record.name.clone();
-            existing.model = record.model;
             existing.width = record.width;
             existing.height = record.height;
         } else {
@@ -185,6 +185,7 @@ impl SkinLibrary {
         }
         let profile = self.active_profile_mut()?;
         profile.selected_skin = Some(id);
+        profile.model = model;
         if let Err(error) = self.save(home) {
             *self = previous;
             if created {
@@ -230,6 +231,7 @@ impl SkinLibrary {
             id,
             name: name.trim().to_owned(),
             selected_skin: None,
+            model: SkinModel::Classic,
         });
         Ok(())
     }
@@ -238,6 +240,18 @@ impl SkinLibrary {
         let profile = self.profiles.iter().find(|p| p.id == self.active_profile)?;
         let id = profile.selected_skin.as_deref()?;
         self.skins.iter().find(|skin| skin.id == id)
+    }
+
+    pub fn active_model(&self) -> Option<SkinModel> {
+        self.profiles
+            .iter()
+            .find(|profile| profile.id == self.active_profile)
+            .map(|profile| profile.model)
+    }
+
+    pub fn set_active_model(&mut self, model: SkinModel) -> Result<(), String> {
+        self.active_profile_mut()?.model = model;
+        Ok(())
     }
 
     fn active_profile_mut(&mut self) -> Result<&mut AppearanceProfile, String> {
@@ -402,7 +416,7 @@ mod tests {
                 .import_png(&path, "My Skin.png", &png(width, height), SkinModel::Slim)
                 .unwrap();
             assert_eq!((record.width, record.height), (width, height));
-            assert_eq!(record.model, SkinModel::Slim);
+            assert_eq!(library.active_model(), Some(SkinModel::Slim));
             assert_eq!(library.active_skin(), Some(&record));
             let loaded = SkinLibrary::load(&path).unwrap();
             assert_eq!(loaded.active_skin(), Some(&record));
@@ -441,15 +455,17 @@ mod tests {
             .unwrap();
         library.add_profile("builder".into(), "Builder".into()).unwrap();
         library.select_skin("builder", Some(&second.id)).unwrap();
+        library.set_active_model(SkinModel::Slim).unwrap();
         library.select_skin("default", Some(&first.id)).unwrap();
+        library.set_active_model(SkinModel::Classic).unwrap();
         library.set_active_profile("builder").unwrap();
         library.save(&path).unwrap();
         let loaded = SkinLibrary::load(&path).unwrap();
         assert_eq!(loaded.active_skin().unwrap().id, second.id);
-        assert_eq!(
-            loaded.profiles.iter().find(|p| p.id == "default").unwrap().selected_skin.as_deref(),
-            Some(first.id.as_str())
-        );
+        assert_eq!(loaded.active_model(), Some(SkinModel::Slim));
+        let default = loaded.profiles.iter().find(|p| p.id == "default").unwrap();
+        assert_eq!(default.selected_skin.as_deref(), Some(first.id.as_str()));
+        assert_eq!(default.model, SkinModel::Classic);
         let _ = fs::remove_dir_all(path);
     }
 
