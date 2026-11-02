@@ -846,6 +846,9 @@ impl Launcher {
                 crate::catalog::skin_library::SkinModel::Slim => "Slim",
             };
             ui.text(Face::Regular, 16.0, 32.0, 190.0, color::MUTED, &format!("Appearance profile: {profile}"));
+            if let Some(error) = &self.catalog.skin_library_error {
+                ui.text(Face::Regular, 14.0, 32.0, 210.0, color::MUTED, &ui.fit_text(Face::Regular, 14.0, &format!("Library is read-only: {error}"), w - 64.0));
+            }
             button(&mut ui, &mut self.targets, [32.0, 218.0, (w - 80.0) * 0.5, 42.0], "Next profile", Action::NextAppearanceProfile, false);
             button(&mut ui, &mut self.targets, [w * 0.5 + 8.0, 218.0, (w - 80.0) * 0.5, 42.0], "New profile", Action::NewAppearanceProfile, false);
             button(&mut ui, &mut self.targets, [32.0, 270.0, (w - 80.0) * 0.5, 42.0], "Import PNG skin", Action::ImportSkin, true);
