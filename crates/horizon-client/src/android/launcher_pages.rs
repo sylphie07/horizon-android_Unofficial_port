@@ -1226,14 +1226,16 @@ impl Launcher {
                 );
             }
         }
-        button(
-            &mut ui,
-            &mut self.targets,
-            [w - 142.0, h - 52.0, 110.0, 32.0],
-            "GitHub",
-            Action::Repository,
-            false,
-        );
+        if !(page == Page::SkinStudio && compact) {
+            button(
+                &mut ui,
+                &mut self.targets,
+                [w - 142.0, h - 52.0, 110.0, 32.0],
+                "GitHub",
+                Action::Repository,
+                false,
+            );
+        }
         if self.login.visible {
             self.list_targets.clear();
             self.list_view = None;
