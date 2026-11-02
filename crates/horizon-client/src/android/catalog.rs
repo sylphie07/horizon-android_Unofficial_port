@@ -233,7 +233,7 @@ impl Catalog {
             page: Page::Play,
             query: String::new(),
             results: vec![],
-            status: String::new(),
+            status: skin_library_error.as_ref().map_or_else(String::new, |error| format!("Skin library unavailable: {error}")),
             offset: 0,
             scroll: 0.0,
             config,
