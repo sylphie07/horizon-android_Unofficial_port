@@ -367,6 +367,8 @@ impl Launcher {
                 offline_name: self.catalog.config.name.clone(),
                 server: self.catalog.config.server.clone(),
                 control_socket: (!crate::PUBLIC_BUILD).then(|| self.home.join("control.json")),
+                skin_file: self.catalog.skin_library.active_skin().map(|skin| self.home.join("skins").join(&skin.file)),
+                skin_slim: matches!(self.catalog.skin_library.active_model(), Some(crate::skin_library::SkinModel::Slim)),
                 extra_arguments,
                 open_gl: self.catalog.config.renderer == crate::catalog::RendererMode::OpenGl,
                 gpu_batching: self.catalog.config.renderer == crate::catalog::RendererMode::Vulkan,
