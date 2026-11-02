@@ -254,7 +254,7 @@ impl Launcher {
             32.0,
             if w < 700.0 { 12.0 } else { 28.0 },
             color::TEXT,
-            &format!("Horizon Android {}", crate::backend::VERSION),
+            &format!("Sylphra Launcher {}", crate::backend::VERSION),
         );
         button(
             &mut ui,
@@ -307,7 +307,7 @@ impl Launcher {
                 top,
                 color::TEXT,
                 if installing {
-                    "Getting your game ready"
+                    "Preparing Sylphra for your game"
                 } else if installed {
                     "Ready to play"
                 } else {
@@ -392,7 +392,7 @@ impl Launcher {
                         "{} / {} control files verified",
                         progress.done, progress.total
                     ),
-                    _ => "Please keep Horizon open. Downloaded files are kept for retry.".into(),
+                    _ => "Please keep Sylphra open. Downloaded files are kept for retry.".into(),
                 };
                 ui.text(
                     Face::Regular,
