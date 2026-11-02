@@ -867,14 +867,8 @@ impl Launcher {
                 if y + line_height < top || y > bottom {
                     continue;
                 }
-                ui.text(
-                    Face::Regular,
-                    16.0,
-                    32.0,
-                    y,
-                    color::TEXT,
-                    &ui.fit_text(Face::Regular, 16.0, line, w - 64.0),
-                );
+                let text = ui.fit_text(Face::Regular, 16.0, line, w - 64.0);
+                ui.text(Face::Regular, 16.0, 32.0, y, color::TEXT, &text);
             }
             button(
                 &mut ui,
@@ -1278,13 +1272,14 @@ impl Launcher {
                 "license information and project details.",
             ];
             for (i, line) in notice.iter().enumerate() {
+                let text = ui.fit_text(Face::Regular, 16.0, line, width - 40.0);
                 ui.text(
                     Face::Regular,
                     16.0,
                     x + 20.0,
                     y + 76.0 + i as f32 * 25.0,
                     color::TEXT,
-                    &ui.fit_text(Face::Regular, 16.0, line, width - 40.0),
+                    &text,
                 );
             }
             button(
@@ -1615,6 +1610,7 @@ impl Launcher {
             }
             Some(Action::LoginLink) => self.login.open_link(),
             Some(Action::Page(page)) => {
+                self.about_visible = false;
                 self.catalog.editing = None;
                 if crate::platform::active() {
                     crate::platform::hide();
