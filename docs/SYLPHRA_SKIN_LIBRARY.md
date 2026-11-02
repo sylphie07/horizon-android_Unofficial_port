@@ -92,3 +92,23 @@ This change adds a launcher-owned data model for appearance profiles and importe
 - Selected-skin text is constrained to avoid overlapping the default-skin action.
 - Applied in fork code commits `ba97c6bed133215430c220c28aeab2c99d03e17b`, `9836de2fe324d6fd38a3c0d2cb994ad7414dad24`, and `34bb922192b987abfd5d0ef0fbc166c4b38fc4ac`.
 - This is source-level layout work only. Touch targets, scrolling and visibility remain unverified on a physical Android device.
+
+
+## S2 — Shared 3D player preview (2026-11-02)
+
+**Code tip reviewed:** `8ff34736168299c30de8ae007a069cb7c6aec036`.
+
+### Applied
+- Added `crates/horizon-client/src/mobs/preview.rs` with the cached player model type, a reusable `PlayerPreview` object, inventory-equivalent entity lighting, and depth-sorted GUI quads.
+- Moved the inventory preview's quad conversion/lighting helpers into the shared module. The existing in-game inventory preview now calls those shared helpers, preserving its prior rendering path.
+- The launcher loads the baked player model and animation definitions lazily from the prepared version resources. Missing model data is not negatively cached, so the launcher can retry after the first game-resource installation.
+- Skin Studio uses the reserved `horizon/skin0` atlas slot for the selected skin, normalizes legacy 64×32 images through the existing skin processor, patches the atlas, and renders the avatar in a depth/scissor-tested HUD viewport.
+- Pointer movement rotates the preview's body and head; the selected appearance profile controls the Classic/Slim arm model.
+- Added a Catalog cache for normalized skin pixels. It rejects symlink/non-regular files and checks the 1 MiB size limit before reading.
+
+### Verification
+- Source workflow run #55, ID `41397954496`, completed successfully on code commit `8ff34736168299c30de8ae007a069cb7c6aec036`.
+- Passed: `git diff --check`, public-tree history validation, Android Python unit tests, diagnostics tests, performance tests, content tests, and workflow-export consistency.
+- Native Android ABI job was skipped because it requires manual workflow dispatch. No Rust compilation, Rust unit-test run, APK build, install, physical-device preview or gameplay test is verified.
+- No authentication, player UUID, network protocol, world data or multiplayer skin visibility behaviour was changed.
+- The selected skin is still a launcher preview/selection only; the Android game LaunchRequest and live renderer do not yet consume it.
