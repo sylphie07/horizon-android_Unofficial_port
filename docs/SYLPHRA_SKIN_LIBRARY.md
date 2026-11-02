@@ -131,3 +131,11 @@ This change adds a launcher-owned data model for appearance profiles and importe
 - **Not yet verified:** Rust formatting, compilation, native ABI checks, APK build, installation, or physical-device behaviour. The failing workflow has not been rerun.
 - **Next:** run the Android source checks against commit `d052fdfaa50332f0c9ca7e4fca6228b8d9c1f882`; inspect any new compiler error before proceeding with S3-A.
 
+
+
+## Native Android compile corrections (2026-11-02)
+- Run #61 (`41404037242`) passed the source job but exposed three Rust compile errors in every native ABI job.
+- Corrected the armor-stand preview helper path to the shared `horizon_client::mobs::preview` module.
+- Corrected PNG decoded-buffer sizing to handle the optional size returned by `output_buffer_size()`; moved the test-only `PathBuf` import into the test module.
+- Commits: `3de10f78d00c7583f079d582fb194a09aacb237a` and `9b4135df830cb664d0fe3a8d476bbc46178dd5a5`.
+- These are compile/validation corrections only. Native compilation remains **pending** until a fresh manual four-ABI workflow run passes. No APK or device verification is claimed.
