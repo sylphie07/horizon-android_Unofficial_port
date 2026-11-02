@@ -320,29 +320,31 @@ impl Launcher {
             );
             ui.rounded(20.0, 160.0, 4.0, 42.0, 2.0, color::ACCENT);
             let top = 160.0;
+            // Keep the hero readable on narrow phones and in landscape-sized windows.
+            let content_x = 32.0;
+            let title_size = if compact { 25.0 } else { 32.0 };
+            let subtitle_size = if compact { 14.0 } else { 17.0 };
             ui.text(
                 Face::Medium,
-                32.0,
-                32.0,
+                title_size,
+                content_x,
                 top,
                 color::TEXT,
                 if installing {
-                    "Preparing Sylphra for your game"
+                    if compact { "Preparing Sylphra" } else { "Preparing Sylphra for your game" }
                 } else if installed {
                     "Ready to play"
+                } else if compact {
+                    "Your Java worlds"
                 } else {
-                    if compact {
-                        "Your Java worlds"
-                    } else {
-                        "Your Java worlds, on Android"
-                    }
+                    "Your Java worlds, on Android"
                 },
             );
             ui.text(
                 Face::Regular,
-                17.0,
-                32.0,
-                top + 47.0,
+                subtitle_size,
+                content_x,
+                top + if compact { 40.0 } else { 47.0 },
                 color::MUTED,
                 &format!("Minecraft 26.3  /  Profile {}", self.catalog.config.profile),
             );
@@ -424,11 +426,17 @@ impl Launcher {
                 );
             } else {
                 let rows = if installed {
-                    [
-                        "01  Open a world or join a Java server",
-                        "02  Touch setup: Options > Controls",
-                        "03  Find packs and .hmod in the tabs",
-                    ]
+                    if compact {
+                        ["01  Open a world or Java server", "02  Set up touch controls", "03  Browse packs and mods"]
+                    } else {
+                        [
+                            "01  Open a world or join a Java server",
+                            "02  Touch setup: Options > Controls",
+                            "03  Find packs and .hmod in the tabs",
+                        ]
+                    }
+                } else if compact {
+                    ["01  Download game resources", "02  Verify files on this phone", "03  Play offline or sign in online"]
                 } else {
                     [
                         "01  Download resources from Mojang",
@@ -436,12 +444,15 @@ impl Launcher {
                         "03  Play offline or sign in for servers",
                     ]
                 };
-                for (index, line) in rows.iter().enumerate() {
+                let row_size = if compact { 14.0 } else { 17.0 };
+                let row_gap = if compact { 32.0 } else { 42.0 };
+                let row_limit = if h < 440.0 { 2 } else { rows.len() };
+                for (index, line) in rows.iter().take(row_limit).enumerate() {
                     ui.text(
                         Face::Regular,
-                        17.0,
-                        32.0,
-                        top + 100.0 + index as f32 * 42.0,
+                        row_size,
+                        content_x,
+                        top + if compact { 88.0 } else { 100.0 } + index as f32 * row_gap,
                         color::MUTED,
                         line,
                     );
@@ -457,10 +468,11 @@ impl Launcher {
                     progress.stage.label(),
                 );
             } else {
+                let play_width = (w - 64.0).clamp(0.0, 320.0);
                 button(
                     &mut ui,
                     &mut self.targets,
-                    [32.0, h - 100.0, 320.0, 60.0],
+                    [32.0, h - 100.0, play_width, 60.0],
                     if installed {
                         "Play"
                     } else if self.error.is_some() {
