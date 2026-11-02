@@ -215,3 +215,11 @@ Next: complete the runtime consumer and local-player-only appearance override, t
 - Source checks and all four Android native Rust target checks passed: `armeabi-v7a`, `x86`, `arm64-v8a`, and `x86_64`.
 - This verifies configured Rust checking after the S3-A2 module-path correction. It does not build or verify an APK, nor does it establish in-game/device rendering.
 - Device validation still needs to cover selected skin visibility, Classic/Slim model, no-custom-skin fallback, and that remote players retain their server-provided skins. Multiplayer skin sharing is not implemented/verified.
+
+
+## S3-A3 — local skin atlas residency correction (2026-11-02)
+
+- Audit found that `sylphra/local_skin` was not included in the keys passed through the atlas LRU "recently shown" path in `drawn_skin()`.
+- Added the Sylphra key to the runtime atlas-slot predicate and a focused unit test covering downloaded, offline, Sylphra and default skin identifiers.
+- Applied in code commit `af1084bab9cba03684e3002eac7b27c2cda3895d` on branch `android`.
+- CI is pending. No compilation, test, APK or physical-device verification is claimed for this correction yet.
