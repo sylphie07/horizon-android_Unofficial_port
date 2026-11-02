@@ -5082,6 +5082,13 @@ impl Game<'_> {
             false
         }
     }
+/// Runtime atlas entries must be marked recently shown so the LRU slot
+/// allocator does not evict a texture that is still rendered.
+fn uses_runtime_skin_slot(skin: &str) -> bool {
+    skin.starts_with("skins/")
+        || matches!(skin, "horizon/offline_skin" | "sylphra/local_skin")
+}
+
     /// A player's skin and model as drawn: the downloaded skin once it is in
     /// the atlas, until then the profile's default (`DefaultPlayerSkin.get`),
     /// as `PlayerInfo.getSkin` gives before the texture has loaded.
@@ -5090,8 +5097,7 @@ impl Game<'_> {
         uuid: u128,
         (skin, slim): (String, bool),
     ) -> (String, bool) {
-        if (skin.starts_with("skins/") || skin == "horizon/offline_skin") && !self.again_skin(&skin)
-        {
+        if uses_runtime_skin_slot(&skin) && !self.again_skin(&skin) {
             let skin = horizon_client::tab_list::default_skin(uuid);
             return (skin.to_owned(), skin.contains("/slim/"));
         }
@@ -9707,6 +9713,14 @@ fn client_millis() -> u64 {
 #[cfg(test)]
 mod tests {
     use super::synced_local_use;
+
+    #[test]
+    fn runtime_skin_atlas_entries_are_marked_as_shown() {
+        assert!(super::uses_runtime_skin_slot("skins/remote"));
+        assert!(super::uses_runtime_skin_slot("horizon/offline_skin"));
+        assert!(super::uses_runtime_skin_slot("sylphra/local_skin"));
+        assert!(!super::uses_runtime_skin_slot("minecraft/default"));
+    }
 
     #[test]
     fn the_server_stopping_the_use_lowers_the_shield() {
