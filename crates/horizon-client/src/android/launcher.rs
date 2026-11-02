@@ -43,6 +43,7 @@ pub(super) struct Launcher {
     worker: Option<mpsc::Receiver<std::result::Result<(), String>>>,
     error: Option<String>,
     catalog: Catalog,
+    skin_preview: Option<horizon_client::mobs::preview::PlayerPreview>,
     targets: Vec<([f32; 4], pages::Action)>,
     list_targets: Vec<([f32; 4], pages::Action)>,
     list_view: Option<[f32; 3]>,
@@ -103,6 +104,7 @@ impl Launcher {
             worker: None,
             error: None,
             catalog,
+            skin_preview: None,
             targets: vec![],
             list_targets: vec![],
             list_view: None,
@@ -153,6 +155,7 @@ impl Launcher {
         self.controller_repeat = None;
         self.catalog.config.input_host = horizon_client::android_runtime::input_mode();
         self.catalog.refresh(&self.home);
+        self.skin_preview = None;
         self.login.refresh_status();
         crate::diagnostics::heartbeat("returned_to_launcher", || serde_json::json!({}));
         self.catalog.page = Page::Play;
