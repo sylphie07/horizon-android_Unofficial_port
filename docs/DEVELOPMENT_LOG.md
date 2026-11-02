@@ -200,3 +200,16 @@
 **Verification status:** applied to branch `android`; no CI result yet for this correction. Rust formatting, unit tests, source checks and the four-ABI native matrix remain pending. APK/device rendering and multiplayer sharing remain separate unverified gates.
 
 **Next:** run Android source checks with `native_checks=true`; inspect source and all four ABI jobs before further implementation.
+
+
+## 2026-11-02 — S3-A3 CI #92 failure and scope correction
+
+**Observed run:** [Android source checks #92](https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/41415493658), workflow_dispatch on branch `android`, commit `d48a31accf9ea9e1fabdda4efea5832ddb150b06`.
+
+- Source job passed.
+- All four native jobs failed at the same Rust error E0425: `uses_runtime_skin_slot` was not found at the unqualified call in `Game::drawn_skin`.
+- Root cause confirmed by source inspection: the helper had been inserted inside `impl Game<'_>`, while the call and unit test treated it as a module-level function.
+- Correction applied: moved `uses_runtime_skin_slot()` to module scope before `impl Game<'_>`; its call and focused unit test remain module-level references.
+- Fix commit: `c968683b6c2f7751beead71976cbd0c025c5fb9f`.
+- **Verification status:** code correction applied, not yet validated by CI. No APK/device verification is claimed.
+- **Next:** rerun Android source checks with `native_checks=true` and inspect source plus all four native jobs.
