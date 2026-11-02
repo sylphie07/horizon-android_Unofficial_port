@@ -38,3 +38,10 @@
 - The `native` matrix was skipped because this run was push-triggered. Its workflow condition requires manual `workflow_dispatch` with `native_checks=true`.
 - Therefore the source workflow and mirror are validated by CI, but the Android SDK setup action and Rust checks have not yet run in the native matrix. No Rust compilation, APK or device result is claimed.
 - Next: manually dispatch `Android source checks` on branch `android` with `native_checks=true`, then inspect all four ABI jobs.
+
+
+## 2026-11-02 — Follow-up source CI run
+- Follow-up run `41390791154` on branch `android` completed successfully.
+- Job `source` passed every step, including Python Android tests and workflow mirror validation.
+- Job `native` was skipped again because the run was push-triggered rather than a manual dispatch with `native_checks=true`.
+- This is a second source-only CI pass; it does not validate SDK setup or Rust compilation. Native matrix remains the next required check.
