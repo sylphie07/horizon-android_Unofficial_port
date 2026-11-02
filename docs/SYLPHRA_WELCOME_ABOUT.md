@@ -1,7 +1,8 @@
 # Sylphra first-run notice and About page
 
-**Implementation branch:** `android`  
-**Source base:** `f9ed3fd5bd906b40622356c96250fb5741f181f3`  
+**Implementation branch:** `android`
+
+**Source base:** `f9ed3fd5bd906b40622356c96250fb5741f181f3`
 **Implementation status:** source changes applied; automated and device verification pending.
 
 ## Scope
