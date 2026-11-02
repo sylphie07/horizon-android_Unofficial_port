@@ -33,8 +33,6 @@ impl RendererMode {
     }
 }
 
-#[derive(Clone, Default, Serialize, Deserialize)]
-#[serde(default)]
 pub const WELCOME_NOTICE_REVISION: u32 = 1;
 
 #[derive(Clone, Default, Serialize, Deserialize)]
@@ -676,29 +674,6 @@ impl Catalog {
         self.refresh(home);
     }
     
-#[cfg(test)]
-mod tests {
-    use super::Config;
-
-    #[test]
-    fn old_config_defaults_welcome_acknowledgement_to_zero() {
-        let config: Config = serde_json::from_str(r#"{"name":"Existing player"}"#).unwrap();
-        assert_eq!(config.welcome_ack_revision, 0);
-        assert_eq!(config.name, "Existing player");
-    }
-
-    #[test]
-    fn welcome_acknowledgement_round_trips() {
-        let config = Config {
-            welcome_ack_revision: super::WELCOME_NOTICE_REVISION,
-            ..Default::default()
-        };
-        let encoded = serde_json::to_string(&config).unwrap();
-        let decoded: Config = serde_json::from_str(&encoded).unwrap();
-        assert_eq!(decoded.welcome_ack_revision, super::WELCOME_NOTICE_REVISION);
-    }
-}
-
 pub fn edit(&mut self, out: horizon_client::osk::Output, home: &Path) {
         use horizon_client::osk::Output;
         let field = match self.editing {
@@ -736,3 +711,27 @@ pub fn edit(&mut self, out: horizon_client::osk::Output, home: &Path) {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Config;
+
+    #[test]
+    fn old_config_defaults_welcome_acknowledgement_to_zero() {
+        let config: Config = serde_json::from_str(r#"{"name":"Existing player"}"#).unwrap();
+        assert_eq!(config.welcome_ack_revision, 0);
+        assert_eq!(config.name, "Existing player");
+    }
+
+    #[test]
+    fn welcome_acknowledgement_round_trips() {
+        let config = Config {
+            welcome_ack_revision: super::WELCOME_NOTICE_REVISION,
+            ..Default::default()
+        };
+        let encoded = serde_json::to_string(&config).unwrap();
+        let decoded: Config = serde_json::from_str(&encoded).unwrap();
+        assert_eq!(decoded.welcome_ack_revision, super::WELCOME_NOTICE_REVISION);
+    }
+}
+
