@@ -170,3 +170,21 @@ Pass an optional, validated app-private skin path and the profile's Classic/Slim
 - APK and physical-device rendering remain separate, unverified gates.
 
 This entry records an audit and a proposal only. No source implementation or tests were changed/executed in this step.
+
+
+## S3-A1 — LaunchRequest transport (2026-11-02; partial implementation)
+
+### Applied
+- `LaunchRequest` carries an optional skin path and Classic/Slim model selection. It emits dedicated command-line arguments only when a skin is selected.
+- The Android launcher snapshots the active appearance profile's selected image path and model into that request.
+- The game parser stores the arguments in per-launch `Options` fields and rejects model values other than `classic` or `slim`.
+- Added launch argument tests for selected-skin transport and the no-selection compatibility path.
+
+**Commits:** `40b21226b8a24cb1f974f6044e0421e9accc2af8`, `bc68e674dfdb34dba310e7f25589307c0b1bd5a1`, `ba041e4c49a89fa1ddcdacbf7c8c5e00c9b88cba`, formatting follow-up `7c600084c0f48155daac7a05925177d8d1c91bcb`.
+
+### Not yet implemented or verified
+- The game options currently carry the selection but the renderer does not consume it yet; no in-game custom skin application is claimed.
+- Safe PNG file validation/decoding, per-session normalized texture creation, and local-player-only precedence are pending.
+- No rustfmt, compilation, test execution, CI, APK or device verification has occurred for this implementation yet.
+
+Next: complete the runtime consumer and local-player-only appearance override, then validate the source and four Android ABI checks.
