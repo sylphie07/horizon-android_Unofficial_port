@@ -110,8 +110,8 @@ impl PlayerPreview {
     /// skin is an atlas texture name and the profile's Classic/Slim choice.
     pub fn draw(
         &self,
-        batch: &mut horizon_client::hud::HudBatch,
-        atlas: &horizon_client::hud::HudAtlas,
+        batch: &mut crate::hud::HudBatch,
+        atlas: &crate::hud::HudAtlas,
         rect: [f32; 4],
         cursor: [f32; 2],
         skin: Option<(&str, bool)>,
@@ -176,14 +176,14 @@ pub fn entity_in_ui_shade(normal: glam::Vec3) -> f32 {
 /// Transform and shade the player model's quads for the GUI's depth pipeline.
 /// This is shared with the in-game inventory preview.
 pub fn player_preview_quads(
-    mut verts: Vec<horizon_client::mesher::Vertex>,
+    mut verts: Vec<crate::mesher::Vertex>,
     gui: glam::Mat4,
     fire: Option<(f32, f32)>,
-    sprites: &HashMap<String, horizon_client::hud::Rect>,
+    sprites: &HashMap<String, crate::hud::Rect>,
 ) -> Vec<(f32, [[f32; 3]; 4], [[f32; 2]; 4], u32)> {
     let flame_start = verts.len();
     if let Some((width, height)) = fire {
-        horizon_client::fire_render::flames(
+        crate::fire_render::flames(
             [0.0; 3],
             width,
             height,
