@@ -54,3 +54,6 @@ When the notice materially changes, increment `WELCOME_NOTICE_REVISION` so the u
 - Do not weaken sign-in, ownership, multiplayer, or session rules.
 - Do not alter the Mojang installer, endpoint allowlist, metadata/hash verification, research lock, or downloaded game files.
 - Do not substitute Horizon artwork for the Sylphra launcher icon.
+
+## CI correction — Android SDK setup
+The native CI matrix run 41389486056 failed before Rust checking because `sdkmanager` was not on PATH (`command not found`). The source validation job passed. The active workflow and packaged source-check workflow now both install Android command-line tools first using `android-actions/setup-android` pinned to `9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407`. The mirrored files were checked for exact content equality. This correction is applied but has not yet been validated by a new workflow run.
