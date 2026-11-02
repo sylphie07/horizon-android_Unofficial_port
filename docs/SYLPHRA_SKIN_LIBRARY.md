@@ -112,3 +112,22 @@ This change adds a launcher-owned data model for appearance profiles and importe
 - Native Android ABI job was skipped because it requires manual workflow dispatch. No Rust compilation, Rust unit-test run, APK build, install, physical-device preview or gameplay test is verified.
 - No authentication, player UUID, network protocol, world data or multiplayer skin visibility behaviour was changed.
 - The selected skin is still a launcher preview/selection only; the Android game LaunchRequest and live renderer do not yet consume it.
+
+## Native Android CI failure and correction (2026-11-02)
+
+### Failure observed
+- Workflow run: [Android source checks #57](https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/41400684974).
+- Tested commit: `29affd3f0fbde425220114eebac3f499b65de6e5`.
+- The `source` job passed. All four native ABI jobs failed at the Rust `cargo check -p horizon-android` step.
+- All four failures shared the same five Rust E0433 errors in `crates/horizon-client/src/mobs/preview.rs`: references to `horizon_client::hud::HudBatch`, `horizon_client::hud::HudAtlas`, `horizon_client::mesher::Vertex`, `horizon_client::hud::Rect`, and `horizon_client::fire_render::flames` could not resolve from inside the `horizon-client` crate.
+- This was a crate-local path issue, not four separate ABI-specific failures.
+
+### Applied correction
+- In commit `d052fdfaa50332f0c9ca7e4fca6228b8d9c1f882` on branch `android`, replaced those five `horizon_client::` paths with `crate::` paths in `crates/horizon-client/src/mobs/preview.rs`.
+- No renderer behaviour, skin data, authentication, network protocol, player identity, world data, or Android ABI configuration was changed.
+
+### Verification status
+- **Applied:** source correction committed to branch `android`.
+- **Not yet verified:** Rust formatting, compilation, native ABI checks, APK build, installation, or physical-device behaviour. The failing workflow has not been rerun.
+- **Next:** run the Android source checks against commit `d052fdfaa50332f0c9ca7e4fca6228b8d9c1f882`; inspect any new compiler error before proceeding with S3-A.
+
