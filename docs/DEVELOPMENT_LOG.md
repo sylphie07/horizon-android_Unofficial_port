@@ -187,3 +187,16 @@
 - The common E0433 module-path failure from run #83 was corrected in `crates/horizon-client/src/android/launcher.rs` by referencing `crate::catalog::skin_library::SkinModel`; this run verifies the corrected source passes the configured Rust checks across all four Android targets.
 - **Verification boundary:** this workflow checks Rust code but does not build an APK. APK build/sign/install, local skin rendering, Classic/Slim appearance, fallback behaviour, and unchanged remote-player appearance remain unverified on a physical device. Multiplayer skin sharing remains future work.
 - **Next:** proceed with a narrowly scoped S3-A3 audit for runtime texture lifecycle and local-player rendering correctness before any further code changes. Preserve account/session identity, UUIDs, worlds, remote-player textures, and network protocol.
+
+
+## 2026-11-02 — S3-A3 atlas residency correction (CI pending)
+
+**Audit finding:** the selected local skin is stored under the atlas key `sylphra/local_skin`, but `drawn_skin()` only marked downloaded `skins/*` and `horizon/offline_skin` entries as recently shown. The local custom skin could therefore be treated as least-recently-used while still being rendered, making its atlas slot vulnerable to eviction under pressure.
+
+**Correction applied:** `crates/horizon-client/src/game/remote.rs` now centralizes the runtime-atlas key check in `uses_runtime_skin_slot()` and includes `sylphra/local_skin`. Added a unit test covering downloaded, offline, Sylphra and ordinary default-skin keys. No account, UUID, network, world or remote-player skin resolution logic was changed.
+
+**Code commit:** `af1084bab9cba03684e3002eac7b27c2cda3895d`.
+
+**Verification status:** applied to branch `android`; no CI result yet for this correction. Rust formatting, unit tests, source checks and the four-ABI native matrix remain pending. APK/device rendering and multiplayer sharing remain separate unverified gates.
+
+**Next:** run Android source checks with `native_checks=true`; inspect source and all four ABI jobs before further implementation.
