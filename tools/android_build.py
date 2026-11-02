@@ -253,7 +253,7 @@ def main():
     run([*signer, 'verify', '--verbose', apk])
     if args.release_candidate:
         import sys
-        run([sys.executable, ROOT / 'tools/check_android_release.py', apk, '--aapt2', tools / ('aapt2' + suffix), *(['--public'] if args.public else [])], cwd=ROOT)
+        run([sys.executable, ROOT / 'tools/check_android_release.py', apk, '--aapt2', tools / ('aapt2' + suffix), '--app-id', args.app_id or 'dev.horizon.android', *(['--public'] if args.public else [])], cwd=ROOT)
     print(f'APK: {apk}', flush=True)
 
 
