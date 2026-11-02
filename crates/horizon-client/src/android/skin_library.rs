@@ -4,7 +4,7 @@ use sha2::{Digest, Sha256};
 use std::{
     fs::{self, OpenOptions},
     io::{Cursor, Write},
-    path::{Path, PathBuf},
+    path::Path,
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -356,7 +356,9 @@ fn validate_png(bytes: &[u8]) -> Result<(u32, u32), String> {
     if !matches!((width, height), (64, 64) | (64, 32)) {
         return Err("Skin PNG must be 64×64 or legacy 64×32".into());
     }
-    let output_size = reader.output_buffer_size();
+    let Some(output_size) = reader.output_buffer_size() else {
+        return Err("Unable to determine decoded skin image size".into());
+    };
     if output_size > 64 * 64 * 4 {
         return Err("Skin PNG expands beyond the supported image size".into());
     }
@@ -370,7 +372,7 @@ fn validate_png(bytes: &[u8]) -> Result<(u32, u32), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::Cursor;
+    use std::{io::Cursor, path::PathBuf};
 
     fn home() -> PathBuf {
         let stamp = SystemTime::now()
