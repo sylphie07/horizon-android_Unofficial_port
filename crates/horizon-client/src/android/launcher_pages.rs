@@ -8,6 +8,13 @@ use winit::{
 #[derive(Clone, Copy, PartialEq)]
 pub(super) enum Action {
     Page(Page),
+    SkinStudio,
+    ImportSkin,
+    SelectSkin(usize),
+    DefaultSkin,
+    ToggleSkinModel,
+    NextAppearanceProfile,
+    NewAppearanceProfile,
     About,
     BackAbout,
     SylphraRepository,
@@ -824,6 +831,44 @@ impl Launcher {
                     );
                 }
             }
+        } else if page == Page::SkinStudio {
+            ui.text(Face::Medium, 24.0, 32.0, 156.0, color::TEXT, "Skin Studio");
+            let profile = self.catalog.skin_library.profiles
+                .iter()
+                .find(|p| p.id == self.catalog.skin_library.active_profile)
+                .map(|p| p.name.clone())
+                .unwrap_or_else(|| "Default".into());
+            let selected = self.catalog.skin_library.active_skin()
+                .map(|skin| skin.name.clone())
+                .unwrap_or_else(|| "Minecraft default".into());
+            let model = match self.catalog.skin_library.active_model().unwrap_or_default() {
+                crate::catalog::skin_library::SkinModel::Classic => "Classic",
+                crate::catalog::skin_library::SkinModel::Slim => "Slim",
+            };
+            ui.text(Face::Regular, 16.0, 32.0, 190.0, color::MUTED, &format!("Appearance profile: {profile}"));
+            button(&mut ui, &mut self.targets, [32.0, 218.0, (w - 80.0) * 0.5, 42.0], "Next profile", Action::NextAppearanceProfile, false);
+            button(&mut ui, &mut self.targets, [w * 0.5 + 8.0, 218.0, (w - 80.0) * 0.5, 42.0], "New profile", Action::NewAppearanceProfile, false);
+            button(&mut ui, &mut self.targets, [32.0, 270.0, (w - 80.0) * 0.5, 42.0], "Import PNG skin", Action::ImportSkin, true);
+            button(&mut ui, &mut self.targets, [w * 0.5 + 8.0, 270.0, (w - 80.0) * 0.5, 42.0], &format!("Model: {model}"), Action::ToggleSkinModel, false);
+            ui.text(Face::Regular, 15.0, 32.0, 328.0, color::MUTED, &format!("Selected: {selected}"));
+            button(&mut ui, &mut self.targets, [32.0, 352.0, w - 64.0, 38.0], "Use Minecraft default skin", Action::DefaultSkin, false);
+            let top = 410.0;
+            let bottom = h - 110.0;
+            let row_height = 64.0;
+            let count = self.catalog.skin_library.skins.len();
+            let maximum = (count as f32 * row_height - (bottom - top)).max(0.0);
+            self.catalog.scroll = self.catalog.scroll.clamp(0.0, maximum);
+            self.list_view = Some([top, bottom, maximum]);
+            if count == 0 {
+                ui.text(Face::Regular, 16.0, 32.0, top + 16.0, color::MUTED, "No imported skins yet. Choose Import PNG skin.");
+            }
+            for (i, skin) in self.catalog.skin_library.skins.iter().enumerate() {
+                let y = top + i as f32 * row_height - self.catalog.scroll;
+                self.list_targets.push(([32.0, y, w - 64.0, 56.0], Action::SelectSkin(i)));
+                if y < top || y + 56.0 > bottom { continue; }
+                let active = self.catalog.skin_library.active_skin().is_some_and(|current| current.id == skin.id);
+                button(&mut ui, &mut self.targets, [32.0, y, w - 64.0, 56.0], &format!("{}{}  ({}×{})", if active { "✓ " } else { "" }, skin.name, skin.width, skin.height), Action::SelectSkin(i), active);
+            }
         } else if self.about_visible {
             ui.text(
                 Face::Medium,
@@ -907,11 +952,11 @@ impl Launcher {
             self.catalog.scroll = self
                 .catalog
                 .scroll
-                .clamp(0.0, (20.0 * row_height - (h - 130.0 - 195.0)).max(0.0));
+                .clamp(0.0, (21.0 * row_height - (h - 130.0 - 195.0)).max(0.0));
             self.list_view = Some([
                 195.0,
                 h - 130.0,
-                (20.0 * row_height - (h - 130.0 - 195.0)).max(0.0),
+                (21.0 * row_height - (h - 130.0 - 195.0)).max(0.0),
             ]);
             for (i, (title, value, action)) in [
                 ("Rendering", c.renderer.label().to_owned(), Action::Renderer),
@@ -1027,6 +1072,11 @@ impl Launcher {
                         c.server.clone()
                     },
                     Action::Field("server"),
+                ),
+                (
+                    "Skin Studio",
+                    "Import and manage player skins".into(),
+                    Action::SkinStudio,
                 ),
                 (
                     "About Sylphra",
