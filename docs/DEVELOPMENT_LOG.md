@@ -269,3 +269,6 @@
 **Not yet verified:** the new workflow has not completed a build; no APK artifact exists yet; no installation or device rendering has been tested. Resource preparation, native compilation, Gradle packaging, APK audit, icon appearance, and in-game skin behavior remain pending.
 
 **Next:** run the new workflow manually on branch `android`. If it succeeds, download the artifact and install it as a separate test app, then verify the launcher icon and local Classic/Slim skin rendering.
+
+
+**Pre-build review correction:** after the source CI passed, reviewed the build script's exact artifact naming logic. With `--app-name "Sylphra Launcher"` and `--public`, the output is `sylphra-launcher-android-public.apk` (the `public` suffix takes precedence over `release`). Corrected the workflow upload path accordingly in commit `c911898d71a621939595d0759e76358ab659b450` before dispatch. This prevents an artifact-upload path mismatch; the workflow still needs to be run and the APK built.
