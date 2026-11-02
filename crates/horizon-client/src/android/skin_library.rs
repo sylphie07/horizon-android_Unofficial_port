@@ -175,7 +175,12 @@ impl SkinLibrary {
             height,
         };
         let previous = self.clone();
-        if !self.skins.iter().any(|skin| skin.id == id) {
+        if let Some(existing) = self.skins.iter_mut().find(|skin| skin.id == id) {
+            existing.name = record.name.clone();
+            existing.model = record.model;
+            existing.width = record.width;
+            existing.height = record.height;
+        } else {
             self.skins.push(record.clone());
         }
         let profile = self.active_profile_mut()?;
@@ -362,15 +367,18 @@ mod tests {
     }
 
     fn png(width: u32, height: u32) -> Vec<u8> {
+        png_with(width, height, [255, 255, 255, 255])
+    }
+
+    fn png_with(width: u32, height: u32, pixel: [u8; 4]) -> Vec<u8> {
         let mut bytes = Vec::new();
         {
             let mut encoder = png::Encoder::new(Cursor::new(&mut bytes), width, height);
             encoder.set_color(png::ColorType::Rgba);
             encoder.set_depth(png::BitDepth::Eight);
             let mut writer = encoder.write_header().unwrap();
-            writer
-                .write_image_data(&vec![255; width as usize * height as usize * 4])
-                .unwrap();
+            let pixels: Vec<u8> = (0..width * height).flat_map(|_| pixel).collect();
+            writer.write_image_data(&pixels).unwrap();
         }
         bytes
     }
@@ -424,7 +432,12 @@ mod tests {
             .import_png(&path, "one.png", &png(64, 64), SkinModel::Classic)
             .unwrap();
         let second = library
-            .import_png(&path, "two.png", &png(64, 64), SkinModel::Slim)
+            .import_png(
+                &path,
+                "two.png",
+                &png_with(64, 64, [0, 0, 0, 255]),
+                SkinModel::Slim,
+            )
             .unwrap();
         library.add_profile("builder".into(), "Builder".into()).unwrap();
         library.select_skin("builder", Some(&second.id)).unwrap();
