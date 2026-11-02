@@ -293,6 +293,7 @@ impl Launcher {
         }
         let compact = w < 700.0;
         let page = self.catalog.page;
+        let skin_studio_compact = page == Page::SkinStudio && h < 560.0;
         if page == Page::Play {
             use horizon_client::official_install::InstallStage;
             let installed = horizon_client::official_install::ready(&self.home);
@@ -1202,7 +1203,7 @@ impl Launcher {
                 false,
             );
         }
-        if !(page == Page::SkinStudio && compact) {
+        if !skin_studio_compact {
             let status = self.error.as_deref().unwrap_or(&self.catalog.status);
             for (i, line) in status
                 .chars()
