@@ -868,9 +868,14 @@ impl Launcher {
             button(&mut ui, &mut self.targets, [40.0 + half, profile_buttons_y, half, 42.0], "New", Action::NewAppearanceProfile, false);
             button(&mut ui, &mut self.targets, [32.0, import_y, half, 42.0], "Import PNG", Action::ImportSkin, true);
             button(&mut ui, &mut self.targets, [40.0 + half, import_y, half, 42.0], model, Action::ToggleSkinModel, false);
-            let selected_text = ui.fit_text(Face::Regular, 15.0, &format!("Selected: {selected}"), control_width);
+            let selected_width = if studio_compact { control_width * 0.52 } else { control_width };
+            let selected_text = ui.fit_text(Face::Regular, 15.0, &format!("Selected: {selected}"), selected_width);
             ui.text(Face::Regular, 15.0, 32.0, selected_y, color::MUTED, &selected_text);
-            button(&mut ui, &mut self.targets, [32.0, default_y, control_width, 34.0], "Default skin", Action::DefaultSkin, false);
+            if studio_compact {
+                button(&mut ui, &mut self.targets, [32.0 + control_width * 0.55, default_y, control_width * 0.45, 34.0], "Default", Action::DefaultSkin, false);
+            } else {
+                button(&mut ui, &mut self.targets, [32.0, default_y, control_width, 34.0], "Default skin", Action::DefaultSkin, false);
+            }
 
             if has_preview_panel {
                 let preview_rect = [
