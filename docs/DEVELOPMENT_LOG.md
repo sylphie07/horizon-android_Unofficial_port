@@ -254,3 +254,18 @@
 **Branding state:** app label defaults to `Sylphra Launcher` in Gradle and `tools/android_build.py`; the manifest continues to point to `@drawable/launcher_icon`.
 
 **Next:** prepare an arm64-v8a test APK workflow. Before installation, verify its application ID and signing continuity so it cannot unintentionally replace or conflict with an existing Sylphra/Horizon installation. No APK has been built or published yet.
+
+
+## 2026-11-02 — CI branding validation and arm64 test APK workflow
+
+**Preflight:** verified authorized branch `android`, HEAD before this change `5306577086eb62c0d9c0a0419ce7746396dd3f38`, and inspected existing Android build scripts, Gradle configuration, manifest, resource preparation, signing and current workflow.
+
+**CI result confirmed:** run [`41421058011`](https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/41421058011) completed successfully on commit `5306577086eb62c0d9c0a0419ce7746396dd3f38`. The source job passed all steps. The native matrix was skipped (this was a push run), so this result validates source checks only; the previous manual run `41417195641` had already passed all four native ABI checks.
+
+**Applied:** added `.github/workflows/sylphra-test-apk.yml` in commit `680757b73184412847cea7314d6d0a3e217ade6e`. It is manually dispatched and builds only `arm64-v8a`, prepares the pinned engine tables using the existing `tools/android_prepare.py`, invokes the existing APK build and public release-candidate audit, and uploads a seven-day Actions artifact. It does not create a GitHub Release or publish to a store.
+
+**Installation isolation:** the test APK uses application ID `dev.sylphra.android.test`, distinct from the upstream default `dev.horizon.android`, and the visible label `Sylphra Launcher`. A dedicated development signing key is preserved in an Actions cache under the test-only key `sylphra-test-signing-v1` so subsequent test builds can update the same test installation. This is not a production signing key.
+
+**Not yet verified:** the new workflow has not completed a build; no APK artifact exists yet; no installation or device rendering has been tested. Resource preparation, native compilation, Gradle packaging, APK audit, icon appearance, and in-game skin behavior remain pending.
+
+**Next:** run the new workflow manually on branch `android`. If it succeeds, download the artifact and install it as a separate test app, then verify the launcher icon and local Classic/Slim skin rendering.
