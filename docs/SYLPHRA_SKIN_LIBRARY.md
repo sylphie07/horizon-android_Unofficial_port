@@ -230,3 +230,13 @@ Next: complete the runtime consumer and local-player-only appearance override, t
 - CI #92 source checks passed, but all four native target jobs failed with E0425 because `uses_runtime_skin_slot()` was inside `impl Game<'_>` while called as a free function.
 - Moved the helper to module scope in fix commit `c968683b6c2f7751beead71976cbd0c025c5fb9f`.
 - This is an applied source correction only; native CI and device rendering remain pending.
+
+
+## S3-A3 native Android CI verification (2026-11-02)
+
+- [Android source checks #96](https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/41417195641), run ID `41417195641`, completed with overall conclusion `success` on branch `android`, tested commit `e129c983f7c062624bd1b87490f18224487cb86e`.
+- Source checks passed, including whitespace validation, public-tree history, Android Python tests, diagnostics, performance, content, and workflow-export consistency.
+- All four native Android targets passed the Rust check: `arm64-v8a`, `armeabi-v7a`, `x86_64`, and `x86`.
+- This validates the S3-A3 helper-scope correction and the configured native Rust checks. It does not build an APK or verify actual atlas residency/rendering on-device.
+- S3-A3 code fix: `c968683b6c2f7751beead71976cbd0c025c5fb9f`; documentation correction recorded in the development log. The CI tested the docs tip `e129c983f7c062624bd1b87490f18224487cb86e`.
+- **Next:** audit S3-A4 texture lifecycle and atlas eviction/re-upload behaviour, then plan APK/device validation. Multiplayer skin sharing remains a separate future feature and is not verified.
