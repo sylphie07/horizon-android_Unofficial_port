@@ -12,11 +12,13 @@ static PLAYER_TYPES: Mutex<Vec<(PathBuf, Option<Arc<MobType>>)>> = Mutex::new(Ve
 /// The player model type for each engine-data root, loaded once.
 pub fn player_type(root: &Path) -> Option<Arc<MobType>> {
     let mut cache = PLAYER_TYPES.lock().unwrap_or_else(|e| e.into_inner());
-    if let Some((_, kind)) = cache.iter().find(|(cached, _)| cached == root) {
-        return kind.clone();
+    if let Some((_, Some(kind))) = cache.iter().find(|(cached, _)| cached == root) {
+        return Some(kind.clone());
     }
     let kind = load_player_type(root);
-    cache.push((root.to_owned(), kind.clone()));
+    if let Some(kind) = &kind {
+        cache.push((root.to_owned(), Some(kind.clone())));
+    }
     kind
 }
 
