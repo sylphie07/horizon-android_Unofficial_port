@@ -223,3 +223,10 @@ Next: complete the runtime consumer and local-player-only appearance override, t
 - Added the Sylphra key to the runtime atlas-slot predicate and a focused unit test covering downloaded, offline, Sylphra and default skin identifiers.
 - Applied in code commit `af1084bab9cba03684e3002eac7b27c2cda3895d` on branch `android`.
 - CI is pending. No compilation, test, APK or physical-device verification is claimed for this correction yet.
+
+
+### S3-A3 CI #92 correction
+
+- CI #92 source checks passed, but all four native target jobs failed with E0425 because `uses_runtime_skin_slot()` was inside `impl Game<'_>` while called as a free function.
+- Moved the helper to module scope in fix commit `c968683b6c2f7751beead71976cbd0c025c5fb9f`.
+- This is an applied source correction only; native CI and device rendering remain pending.
