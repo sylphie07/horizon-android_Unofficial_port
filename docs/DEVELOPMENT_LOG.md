@@ -317,3 +317,14 @@
 **Verification status:** source edits applied. No compile, Rust formatting, unit tests, CI, new APK or post-change device test has yet been performed. The previously installed APK still contains the earlier header and progress wording until a new test artifact is built and installed.
 
 **Next:** run source CI and all four native Android checks; if green, rebuild the isolated arm64 test APK. Then inspect remaining user-visible strings in context and handle them in separate, low-risk branding passes.
+
+
+## 2026-11-02 — First Sylphra UI branding pass: CI verified
+
+**CI run:** [41471566047](https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/41471566047), event `workflow_dispatch`, branch `android`, commit `04a4966f0c37eb453429b536ac6b34f4c867bb4b`, conclusion `success`.
+
+**Verified jobs:** source checks and all four native Android check targets (`arm64-v8a`, `armeabi-v7a`, `x86_64`, `x86`) passed. Source steps included `git diff --check`, public-tree history audit, Android Python unit tests, diagnostics, performance, content tests and workflow export consistency. Each native job completed Android toolchain setup and Rust Android `--check` successfully.
+
+**Scope limit:** these jobs validate source and native target compilation checks; they do not produce an APK. The first branding UI changes are CI-verified, but still require a fresh isolated arm64 APK build and a device check.
+
+**Next:** dispatch `Sylphra Launcher test APK` on branch `android`; inspect the run and artifact before asking the user to install. After device confirmation, continue the next user-visible branding pass without changing engine or launcher behavior.
