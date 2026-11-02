@@ -65,3 +65,21 @@
 - Each native job successfully completed Android SDK command-line setup, NDK/build-tools installation, and `Check Android Rust code without building an APK`.
 - This verifies the SDK setup correction and the configured Rust checks for all four Android targets. It does **not** mean an APK was built, installed, inspected, signed, or tested on a device.
 - The prior pending native-matrix verification is resolved. Remaining gates: actual APK build, package/manifest/SAF inspection, Sylphra-specific signing setup, icon integration, side-by-side install/data isolation, and device validation.
+
+
+## 2026-11-02 — Native Android CI compile fixes
+**Observed run:** [Android source checks #61](https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/41404037242), commit `e7f3ad1c420c18ec2dd801191e4a734e7058de77`, branch `android`.
+- The `source` job passed all source checks and Python tests.
+- All four native ABI jobs failed at `cargo check -p horizon-android` with the same three compile errors: an outdated `super::perspective::player_preview_quads` path in `armor_stands.rs`, and two incorrect uses of `Option<usize>` returned by `png::Reader::output_buffer_size()` in `skin_library.rs`.
+- `PathBuf` was also imported in production scope but used only by the test module (warning, not a build blocker).
+
+**Corrections applied on branch `android`:**
+- `crates/horizon-client/src/game/armor_stands.rs`: call the shared helper through `horizon_client::mobs::preview::player_preview_quads`.
+- `crates/horizon-client/src/android/skin_library.rs`: handle `None` from `output_buffer_size()` with a descriptive validation error before comparing/allocating; move `PathBuf` into the test module imports.
+- No skin rendering semantics, profile data, authentication, player identity, network protocol, world data, or ABI configuration were changed.
+
+**Commits:** armor preview path `3de10f78d00c7583f079d582fb194a09aacb237a`; PNG size handling/import scope `9b4135df830cb664d0fe3a8d476bbc46178dd5a5`.
+
+**Verification:** changes are committed. The source workflow's checks passed on the preceding commit, but the corrected Rust code has not yet been rechecked by the native ABI matrix. No Rust compilation, APK build, installation, or device result is claimed.
+
+**Next:** manually dispatch `Android source checks` on branch `android` with `native_checks=true`; inspect all four ABI results before proceeding with the next skin-preview stage.
