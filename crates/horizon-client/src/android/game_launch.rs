@@ -9,6 +9,9 @@ pub(crate) struct LaunchRequest {
     pub offline_name: String,
     pub server: String,
     pub control_socket: Option<PathBuf>,
+    /// Optional Sylphra skin selected for this game session.
+    pub skin_file: Option<PathBuf>,
+    pub skin_slim: bool,
     pub extra_arguments: Vec<String>,
     pub open_gl: bool,
     pub gpu_batching: bool,
@@ -37,6 +40,13 @@ impl LaunchRequest {
         }
         if !self.server.is_empty() {
             args.extend(["--server".into(), self.server.clone()]);
+        }
+        if let Some(skin) = &self.skin_file {
+            args.extend(["--sylphra-skin".into(), skin.to_string_lossy().into_owned()]);
+            args.extend([
+                "--sylphra-skin-model".into(),
+                if self.skin_slim { "slim" } else { "classic" }.into(),
+            ]);
         }
         args.extend(self.extra_arguments.iter().cloned());
         args
@@ -72,6 +82,8 @@ mod tests {
             offline_name: "Offline".into(),
             server: "example.test".into(),
             control_socket: None,
+            skin_file: None,
+            skin_slim: false,
             extra_arguments: vec![],
             open_gl: false,
             gpu_batching: false,
@@ -87,6 +99,20 @@ mod tests {
             args.windows(2)
                 .any(|a| a == ["--session-file", "private/session.json"])
         );
+    }
+    #[test]
+    fn selected_skin_is_passed_as_separate_arguments() {
+        let mut r = request();
+        r.skin_file = Some("private skins/custom.png".into());
+        r.skin_slim = true;
+        let args = r.arguments();
+        assert!(args.windows(2).any(|a| a == ["--sylphra-skin", "private skins/custom.png"]));
+        assert!(args.windows(2).any(|a| a == ["--sylphra-skin-model", "slim"]));
+    }
+    #[test]
+    fn no_selected_skin_keeps_launch_arguments_unchanged() {
+        let args = request().arguments();
+        assert!(!args.iter().any(|a| a == "--sylphra-skin" || a == "--sylphra-skin-model"));
     }
     #[test]
     fn paths_are_arguments_not_shell_text_and_snapshot_is_independent() {
