@@ -1705,6 +1705,13 @@ impl Launcher {
                 self.catalog.page = Page::SkinStudio;
                 self.catalog.scroll = 0.0;
                 self.catalog.reload_skin_library(&self.home);
+                if self.skin_preview.is_none() {
+                    let root = self
+                        .home
+                        .join(".local/horizon-client")
+                        .join(horizon_core::VANILLA_VERSION);
+                    self.skin_preview = horizon_client::mobs::preview::PlayerPreview::load(&root);
+                }
             }
             Some(Action::ImportSkin) => {
                 crate::platform::hide();
