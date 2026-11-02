@@ -1,5 +1,7 @@
 //! Mobile launcher state. Browser operations reuse the desktop backend unchanged.
 use crate::browser::{self, Kind, Project, Query, Source, installed::Installed};
+#[path = "skin_library.rs"]
+pub mod skin_library;
 use serde::{Deserialize, Serialize};
 use std::{
     path::{Path, PathBuf},
@@ -197,6 +199,8 @@ pub struct Catalog {
     pub offset: usize,
     pub scroll: f32,
     pub config: Config,
+    pub skin_library: skin_library::SkinLibrary,
+    pub skin_library_error: Option<String>,
     pub editing: Option<&'static str>,
     pub render_scale_text: String,
     worker: Option<mpsc::Receiver<Result<Reply, String>>>,
@@ -213,6 +217,10 @@ pub struct LocalItem {
 impl Catalog {
     pub fn new(home: &Path) -> Self {
         let config = Config::load(home);
+        let (skin_library, skin_library_error) = match skin_library::SkinLibrary::load(home) {
+            Ok(library) => (library, None),
+            Err(error) => (skin_library::SkinLibrary::default(), Some(error)),
+        };
         let mut result = Self {
             local: vec![],
             bundled_enabled: Default::default(),
@@ -229,6 +237,8 @@ impl Catalog {
             offset: 0,
             scroll: 0.0,
             config,
+            skin_library,
+            skin_library_error,
             editing: None,
             render_scale_text: String::new(),
             worker: None,
