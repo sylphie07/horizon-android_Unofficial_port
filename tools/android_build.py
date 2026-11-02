@@ -40,6 +40,20 @@ def gradle_app_id_args(app_id):
     """Return the Gradle property override, leaving the upstream default untouched."""
     return ['-PappId=' + app_id] if app_id else None
 
+
+def gradle_app_name_args(app_name):
+    """Return an optional manifest label override for a derived distribution."""
+    return ['-PappName=' + app_name] if app_name else None
+
+
+def apk_output_name(app_name, public=False, release_candidate=False):
+    """Keep upstream artifact names by default; name explicitly branded builds separately."""
+    if not app_name:
+        return 'horizon-android-public.apk' if public else 'horizon-android-release.apk' if release_candidate else 'horizon-android.apk'
+    slug = '-'.join(app_name.lower().split())
+    suffix = 'public' if public else 'release' if release_candidate else 'dev'
+    return f'{slug}-android-{suffix}.apk'
+
 def latest(directory):
     return max(directory.iterdir(), key=lambda p: tuple(int(v) for v in p.name.split('.')))
 
@@ -118,6 +132,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--abi', choices=TARGETS, default='arm64-v8a')
     parser.add_argument('--app-id', type=validate_android_app_id, help='Override the Android applicationId; the default remains dev.horizon.android')
+    parser.add_argument('--app-name', help='Override the Android launcher label and APK output prefix; the default remains Horizon Android')
     parser.add_argument('--sdk', type=Path, default=os.environ.get('ANDROID_HOME') or Path(os.environ.get('LOCALAPPDATA', str(Path.home()))) / 'Android/Sdk')
     parser.add_argument('--java-home', type=Path, default=os.environ.get('JAVA_HOME') or 'C:/Program Files/Android/Android Studio/jbr')
     parser.add_argument('--skip-rust', action='store_true')
@@ -229,9 +244,9 @@ def main():
         gradle = candidates[0]
     environment['ANDROID_HOME'] = str(args.sdk)
     variant = 'release' if args.release_candidate else 'debug'
-    gradle_command = [gradle, '--no-daemon', '-p', ROOT / 'packaging/android', '-Pabi=' + args.abi, '-PminSdk=' + str(min_sdk), *(gradle_app_id_args(args.app_id) or []), 'assemble' + variant.title()]
+    gradle_command = [gradle, '--no-daemon', '-p', ROOT / 'packaging/android', '-Pabi=' + args.abi, '-PminSdk=' + str(min_sdk), *(gradle_app_id_args(args.app_id) or []), *(gradle_app_name_args(args.app_name) or []), 'assemble' + variant.title()]
     run(gradle_command, cwd=ROOT, env=environment)
-    apk = output / ('horizon-android-public.apk' if args.public else 'horizon-android-release.apk' if args.release_candidate else 'horizon-android.apk')
+    apk = output / apk_output_name(args.app_name, args.public, args.release_candidate)
     shutil.copyfile(ROOT / f'.local/android/gradle-build/outputs/apk/{variant}/HorizonAndroid-{variant}.apk', apk)
     # Invoke the signing JAR directly so Windows does not need a batch-file shell.
     signer = [args.java_home / 'bin' / ('java' + suffix), '-jar', tools / 'lib/apksigner.jar']

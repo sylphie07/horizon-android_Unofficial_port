@@ -122,3 +122,12 @@ Fetch and review `upstream/main` before a release. Merge reviewed stable history
 resolve Android module paths and bridges, update `docs/android-upstream.json`,
 and run Android checks before pushing. Keep experimental feature clusters and
 upstream deployment changes separate from routine Android fixes.
+
+
+## Derived launcher branding
+
+A derived distribution can set a separate visible app label and APK filename without changing Horizon's defaults:
+
+    python tools/android_build.py --abi arm64-v8a --public --app-id dev.sylphra.android --app-name Sylphra
+
+This produces the Sylphra Android label and .local/android/apk/arm64-v8a/sylphra-android-public.apk. Omitting --app-name preserves the original Horizon label and artifact names. The launcher icon remains a separate resource and must be supplied by the derived project; do not silently reuse or replace upstream artwork.
