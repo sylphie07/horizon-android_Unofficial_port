@@ -8,6 +8,10 @@ use winit::{
 #[derive(Clone, Copy, PartialEq)]
 pub(super) enum Action {
     Page(Page),
+    About,
+    BackAbout,
+    SylphraRepository,
+    ContinueWelcome,
     Play,
     Search,
     ShaderSource(crate::shader_catalog::Origin),
@@ -820,6 +824,74 @@ impl Launcher {
                     );
                 }
             }
+        } else if self.about_visible {
+            ui.text(
+                Face::Medium,
+                24.0,
+                32.0,
+                156.0,
+                color::TEXT,
+                "About Sylphra",
+            );
+            let lines = [
+                "Sylphra is an independent, unofficial",
+                "Android launcher based on Horizon Android.",
+                "It is not affiliated with, sponsored by,",
+                "endorsed by, or maintained by the Horizon",
+                "PC creators or the original Android port",
+                "author.",
+                "",
+                "Original project attribution and required",
+                "license notices are retained. Each",
+                "component remains governed by its own",
+                "license. See LICENSE and",
+                "THIRD_PARTY_NOTICES in the project.",
+                "",
+                "If a rights holder raises a concrete rights",
+                "or licensing concern, contact us. We will",
+                "review it and take appropriate action,",
+                "including removal where warranted.",
+                "",
+                "The original creators are welcome to review",
+                "the project or collaborate. If they join,",
+                "we will gladly credit them as collaborators.",
+            ];
+            let line_height = if compact { 32.0 } else { 30.0 };
+            let top = 194.0;
+            let bottom = h - 172.0;
+            let maximum = (lines.len() as f32 * line_height - (bottom - top)).max(0.0);
+            self.catalog.scroll = self.catalog.scroll.clamp(0.0, maximum);
+            self.list_view = Some([top, bottom, maximum]);
+            for (i, line) in lines.iter().enumerate() {
+                let y = top + i as f32 * line_height - self.catalog.scroll;
+                if y + line_height < top || y > bottom {
+                    continue;
+                }
+                ui.text(
+                    Face::Regular,
+                    16.0,
+                    32.0,
+                    y,
+                    color::TEXT,
+                    &ui.fit_text(Face::Regular, 16.0, line, w - 64.0),
+                );
+            }
+            button(
+                &mut ui,
+                &mut self.targets,
+                [32.0, h - 114.0, w * 0.5 - 38.0, 42.0],
+                "Back",
+                Action::BackAbout,
+                false,
+            );
+            button(
+                &mut ui,
+                &mut self.targets,
+                [w * 0.5 + 6.0, h - 114.0, w * 0.5 - 38.0, 42.0],
+                "Sylphra GitHub",
+                Action::SylphraRepository,
+                true,
+            );
         } else {
             let c = &self.catalog.config;
             ui.text(
@@ -834,11 +906,11 @@ impl Launcher {
             self.catalog.scroll = self
                 .catalog
                 .scroll
-                .clamp(0.0, (18.0 * row_height - (h - 130.0 - 195.0)).max(0.0));
+                .clamp(0.0, (19.0 * row_height - (h - 130.0 - 195.0)).max(0.0));
             self.list_view = Some([
                 195.0,
                 h - 130.0,
-                (18.0 * row_height - (h - 130.0 - 195.0)).max(0.0),
+                (19.0 * row_height - (h - 130.0 - 195.0)).max(0.0),
             ]);
             for (i, (title, value, action)) in [
                 ("Rendering", c.renderer.label().to_owned(), Action::Renderer),
@@ -954,6 +1026,11 @@ impl Launcher {
                         c.server.clone()
                     },
                     Action::Field("server"),
+                ),
+                (
+                    "About Sylphra",
+                    "Project, attribution and licenses".into(),
+                    Action::About,
                 ),
             ]
             .into_iter()
@@ -1180,6 +1257,46 @@ impl Launcher {
                 false,
             );
         }
+        if self.welcome_visible {
+            self.targets.clear();
+            self.list_targets.clear();
+            self.list_view = None;
+            ui.rounded(0.0, 0.0, w, h, 0.0, horizon_client::hud::rgba(0, 0, 0, 190));
+            let width = (w - 32.0).min(440.0);
+            let height = (h - 24.0).min(330.0);
+            let x = (w - width) * 0.5;
+            let y = (h - height) * 0.5;
+            ui.rounded(x, y, width, height, 8.0, color::RAISED);
+            ui.text(Face::Medium, 24.0, x + 20.0, y + 24.0, color::TEXT, "Welcome to Sylphra");
+            let notice = [
+                "Sylphra is an independent, unofficial",
+                "Android launcher based on Horizon Android.",
+                "It is not affiliated with or endorsed by",
+                "the Horizon project creators.",
+                "",
+                "Open About Sylphra for full attribution,",
+                "license information and project details.",
+            ];
+            for (i, line) in notice.iter().enumerate() {
+                ui.text(
+                    Face::Regular,
+                    16.0,
+                    x + 20.0,
+                    y + 76.0 + i as f32 * 25.0,
+                    color::TEXT,
+                    &ui.fit_text(Face::Regular, 16.0, line, width - 40.0),
+                );
+            }
+            button(
+                &mut ui,
+                &mut self.targets,
+                [x + 20.0, y + height - 64.0, width - 40.0, 44.0],
+                "Continue",
+                Action::ContinueWelcome,
+                true,
+            );
+            self.pending_focus = Some(Action::ContinueWelcome);
+        }
         if let Some(action) = self.pending_focus.take() {
             self.focus = self.targets.iter().position(|(_, a)| *a == action);
         }
@@ -1261,6 +1378,27 @@ impl Launcher {
                 (*x..*x + *w).contains(&p[0]) && (*y..*y + *h).contains(&p[1])
             })
             .map(|(_, a)| *a);
+        if self.welcome_visible {
+            if action == Some(Action::ContinueWelcome) {
+                let previous = self.catalog.config.welcome_ack_revision;
+                self.catalog.config.welcome_ack_revision =
+                    crate::catalog::WELCOME_NOTICE_REVISION;
+                match self.catalog.config.save(&self.home) {
+                    Ok(()) => {
+                        self.welcome_visible = false;
+                        self.catalog.status = "Welcome to Sylphra.".into();
+                        self.targets.clear();
+                        self.list_targets.clear();
+                        self.focus = None;
+                    }
+                    Err(error) => {
+                        self.catalog.config.welcome_ack_revision = previous;
+                        self.fail(error);
+                    }
+                }
+            }
+            return Ok(());
+        }
         if self.catalog.busy() || crate::documents::busy() {
             return Ok(());
         }
@@ -1420,6 +1558,23 @@ impl Launcher {
                 self.catalog.remove_local(&self.home);
                 self.chooser = None;
             }
+            Some(Action::About) => {
+                self.about_visible = true;
+                self.catalog.scroll = 0.0;
+            }
+            Some(Action::BackAbout) => {
+                self.about_visible = false;
+                self.catalog.scroll = 0.0;
+            }
+            Some(Action::SylphraRepository) => {
+                self.catalog.status = if crate::platform::open_url("https://github.com/sylphie07/Sylphra-Android") {
+                    "Sylphra repository opened in browser."
+                } else {
+                    "No browser available to open the Sylphra repository."
+                }
+                .into();
+            }
+            Some(Action::ContinueWelcome) => {}
             Some(Action::Repository) => {
                 self.catalog.status = if crate::platform::open_repository() {
                     "Repository opened in browser."
