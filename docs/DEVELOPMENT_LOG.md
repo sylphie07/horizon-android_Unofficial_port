@@ -272,3 +272,19 @@
 
 
 **Pre-build review correction:** after the source CI passed, reviewed the build script's exact artifact naming logic. With `--app-name "Sylphra Launcher"` and `--public`, the output is `sylphra-launcher-android-public.apk` (the `public` suffix takes precedence over `release`). Corrected the workflow upload path accordingly in commit `c911898d71a621939595d0759e76358ab659b450` before dispatch. This prevents an artifact-upload path mismatch; the workflow still needs to be run and the APK built.
+
+
+## 2026-11-02 — First Sylphra arm64 APK build failure and audit fix
+
+**Build run:** [`41423563328`](https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/41423563328), commit `2487fdd36ec53904761865fb64034a200fe744a0`, failed in `Build and audit isolated arm64 test APK`.
+
+**Verified from job log:** engine preparation succeeded; Rust/Gradle compilation reached `packageRelease`; the APK was signed successfully. The release audit then rejected the custom test application ID with `ValueError: Unexpected Android package identity`. The audit script had a hard-coded expectation for `dev.horizon.android`, while the test workflow intentionally uses `dev.sylphra.android.test`. This was a verifier configuration mismatch, not a Rust compile, Gradle package, icon, or skin-runtime failure. Artifact upload was skipped because the audit exited non-zero.
+
+**Applied fixes (not yet CI-verified):**
+- `tools/check_android_release.py`: added validated `--app-id`, defaulting to upstream `dev.horizon.android`, and compare the APK manifest against that expected ID.
+- `tools/android_build.py`: pass the effective configured application ID into the release audit, retaining the upstream default when no override is supplied.
+- `tests/test_android_release_audit.py`: added regression coverage proving the isolated Sylphra ID passes and a mismatched package ID remains rejected.
+
+**Commits:** `be270bbbc20adc89808442c136b538f17b966729`, `110cccc78a6fbfdbe52586d230d4f0fabacd0a73`, `375a660585e18f95fc40961984e7a85945f00a6e`.
+
+**Next:** wait for source CI on the updated branch. If green, rerun the manual `Sylphra Launcher test APK` workflow. The previous APK is not considered deliverable because it did not pass the release audit and was not uploaded.
