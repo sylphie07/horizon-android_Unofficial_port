@@ -299,3 +299,21 @@
 **Applied:** corrected the regex to use a single escaped dot in the raw regex string, preserving strict validation of dotted Android package IDs. Commit: `118bb2139aa537e6d973e9eb80b5371de702c6de`.
 
 **Verification status:** fix applied; source CI has been triggered by the commit and is pending. The release audit regression test has not yet passed in CI. Do not rerun the APK workflow until source CI is green.
+
+
+## 2026-11-02 — Sylphra internal launcher branding, first UI pass
+
+**Preflight:** verified repository `sylphie07/horizon-android_Unofficial_port`, authorized branch `android`, branch HEAD before this change `0fb3978454e63cb6b953c230a02b5a920f386893`, and the latest commit message (`docs: record package ID regex test failure`). Inspected the existing Sylphra skin-library and welcome/About documentation plus the Android launcher page renderer. No changes were made to `main`.
+
+**Device feedback:** the user installed the isolated Sylphra test APK. They confirmed the launcher opens and behaves like the original Horizon launcher. Screenshots confirm the Android app label and custom icon are visible; the in-app header still said `Horizon Android 0.7.7` and the install progress heading still used Horizon-era wording. This is a user-reported device check, not an automated test result.
+
+**Applied in code commit `207ccccc1b6359bcaab0ba8955d9d5d94926af92`:**
+- `crates/horizon-client/src/android/launcher_pages.rs`: changed the main in-app title to `Sylphra Launcher {version}`.
+- Changed the initial game preparation heading to `Preparing Sylphra for your game`.
+- Changed the retry hint to refer to keeping Sylphra open.
+
+**Intentionally preserved:** internal Horizon-derived source/catalog names, attribution and disclosure, original Horizon repository link, actual app-private storage directory names, game installation paths, engine, download verification, authentication, profiles, worlds, shaders, mods and skin runtime. These are not blindly renamed because some are source identifiers, provenance, compatibility paths or real filesystem locations.
+
+**Verification status:** source edits applied. No compile, Rust formatting, unit tests, CI, new APK or post-change device test has yet been performed. The previously installed APK still contains the earlier header and progress wording until a new test artifact is built and installed.
+
+**Next:** run source CI and all four native Android checks; if green, rebuild the isolated arm64 test APK. Then inspect remaining user-visible strings in context and handle them in separate, low-risk branding passes.
