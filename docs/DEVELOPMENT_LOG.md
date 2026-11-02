@@ -354,3 +354,16 @@
 **Design inspection:** reviewed `docs/design-system.md`, `crates/horizon-theme/src/lib.rs`, and Android `launcher_pages.rs`. The documented Blocks visual language is already implemented in the shared Horizon launcher/theme ecosystem, but shared theme tokens are consumed outside the Android launcher and must not be globally recolored for Sylphra. The Android page renderer currently uses the shared dark palette and a compact custom layout. A safe visual redesign must therefore be isolated to Android launcher rendering, not shared theme tokens or game overlays.
 
 **Next:** manually dispatch `Android source checks` on branch `android` with `native_checks=true` to validate all four Android ABIs, then implement the first isolated visual pass on the Android Play/home page. Keep the change limited to launcher drawing/layout and avoid account, installation, engine, catalog, profile, world, and storage behavior.
+
+## 2026-11-02 — Sylphra Play page visual pass 1 (CI pending)
+
+**Preflight:** verified branch `android`, HEAD `33ec383d461a6f3c735740d6b41201d81c6630f5`, and reviewed `docs/design-system.md`, this development log, `crates/horizon-theme/src/lib.rs`, and Android `launcher_pages.rs`. The manual Android source-check run #124 on that exact HEAD completed successfully: source plus all four native ABI jobs passed.
+
+**Applied:** code commit `955067bdf5c80a26d4ea5561f48d51d78d296c12` adds a restrained framed hero surface and violet accent marker to the Android Play page only. The surface uses the existing Android UI drawing primitives and palette; shared theme tokens were not changed.
+
+**Preserved:** installation and progress flow, Play action, login/account state, profile selection, catalog navigation, game engine, storage, worlds, and all non-Android UI remain untouched.
+
+**Verification status:** change is committed to `android`; no post-change CI, native checks, APK build, or device rendering has completed yet. The prior #124 success validates the parent commit only, not this visual change.
+
+**Next:** run Android source checks with `native_checks=true`; inspect the source job and all four ABI jobs. If green, continue with a second isolated pass for hierarchy/spacing and only then build a separate arm64 test APK for device review.
+
