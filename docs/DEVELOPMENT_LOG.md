@@ -328,3 +328,18 @@
 **Scope limit:** these jobs validate source and native target compilation checks; they do not produce an APK. The first branding UI changes are CI-verified, but still require a fresh isolated arm64 APK build and a device check.
 
 **Next:** dispatch `Sylphra Launcher test APK` on branch `android`; inspect the run and artifact before asking the user to install. After device confirmation, continue the next user-visible branding pass without changing engine or launcher behavior.
+
+
+## 2026-11-02 — Sylphra launcher branding, second UI pass
+
+**Preflight:** verified authorized branch `android`, starting HEAD `2006a4acfc60445e38257d9e5c4ec0c89c5c0e11`, latest commit message `docs: record successful Sylphra branding CI`, and inspected `docs/DEVELOPMENT_LOG.md`, Android launcher page rendering, and shared theme palette. No changes were made to `main`.
+
+**Applied in code commit `ceeec2c32a8a575cbccc56652f055a8f4aef0d8b`:**
+- Renamed the user-facing Mods page heading from `Horizon Mods` to `Sylphra Mods`.
+- Updated the default Mods-page hint to use Sylphra branding while retaining the HTTPS `.hmod` import guidance.
+
+**Intentionally preserved:** Horizon and Modrinth provider/source labels, source IDs, catalog identifiers, the shared Horizon-derived color theme, filesystem labels/paths, attribution, engine, download/install behavior, accounts, profiles, worlds, and skin runtime. The shared palette is used beyond the launcher, so changing it here would risk an unintended whole-client redesign.
+
+**Verification status:** the two UI string changes are committed. No CI, build, APK, or device rendering check has yet completed for this pass. This is a limited text-branding refinement, not yet a full visual redesign.
+
+**Next:** run Android source checks and the four native ABI checks on branch `android`. After they pass, group the next visual changes into a dedicated launcher-only layout pass, keeping shared game UI and runtime behavior untouched.
