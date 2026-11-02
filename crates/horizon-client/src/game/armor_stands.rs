@@ -1024,7 +1024,7 @@ impl Game<'_> {
                 * glam::Mat4::from_rotation_x(0.436_332_32)
                 * glam::Mat4::from_rotation_z(std::f32::consts::PI);
         let quads =
-            super::perspective::player_preview_quads(verts, gui, None, &self.gui.atlas.sprites);
+            horizon_client::mobs::preview::player_preview_quads(verts, gui, None, &self.gui.atlas.sprites);
         let start = batch.vertices.len();
         for (_, p, uv, color) in quads {
             batch.quad_3d(p, uv, color);
