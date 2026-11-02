@@ -18,8 +18,13 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
+#[derive(Clone, Copy)]
+enum ImportKind {
+    Content(Kind),
+    Skin,
+}
 struct Request {
-    kind: Kind,
+    kind: ImportKind,
     home: PathBuf,
     cache: PathBuf,
 }
@@ -33,6 +38,7 @@ pub struct Notice {
     pub text: String,
     pub changed: bool,
     pub kind: Option<Kind>,
+    pub skin_changed: bool,
 }
 #[derive(Default)]
 struct State {
@@ -89,6 +95,18 @@ fn imported(text: impl Into<String>, kind: Kind) {
         text,
         changed: true,
         kind: Some(kind),
+        skin_changed: false,
+    });
+}
+fn imported_skin(text: impl Into<String>) {
+    let text = text.into();
+    let mut s = STATE.lock().unwrap_or_else(|e| e.into_inner());
+    s.toast = Some((text.clone(), std::time::Instant::now()));
+    s.notice = Some(Notice {
+        text,
+        changed: true,
+        kind: None,
+        skin_changed: true,
     });
 }
 pub fn poll() -> Option<Notice> {
@@ -97,6 +115,7 @@ pub fn poll() -> Option<Notice> {
             text: "Content files changed. Reload packs to apply.".into(),
             changed: true,
             kind: None,
+            skin_changed: false,
         });
     }
     STATE
@@ -106,6 +125,14 @@ pub fn poll() -> Option<Notice> {
         .take()
 }
 pub fn begin(kind: Kind, home: PathBuf) -> std::result::Result<(), String> {
+    begin_request(ImportKind::Content(kind), home, format!("Choose a {} file", kind.label()))
+}
+
+pub fn begin_skin(home: PathBuf) -> std::result::Result<(), String> {
+    begin_request(ImportKind::Skin, home, "Choose a 64×64 PNG skin (legacy 64×32 is also supported)".into())
+}
+
+fn begin_request(kind: ImportKind, home: PathBuf, prompt: String) -> std::result::Result<(), String> {
     if busy() {
         return Err("Finish or cancel the current import first".into());
     }
@@ -119,7 +146,7 @@ pub fn begin(kind: Kind, home: PathBuf) -> std::result::Result<(), String> {
         picker_failed("Android document picker is unavailable");
         return Err("Android document picker is unavailable".into());
     }
-    notice(format!("Choose a {} file", kind.label()), false);
+    notice(prompt, false);
     Ok(())
 }
 pub fn picker_failed(error: &str) {
@@ -173,10 +200,10 @@ pub extern "system" fn document_result(
         .spawn(move || {
             let result = (|| -> Result<()> {
                 let mut env = vm.attach_current_thread()?;
-                let fallback = if pending.kind == Kind::Mods {
-                    "import.hmod"
-                } else {
-                    "import.zip"
+                let fallback = match pending.kind {
+                    ImportKind::Content(Kind::Mods) => "import.hmod",
+                    ImportKind::Content(_) => "import.zip",
+                    ImportKind::Skin => "import.png",
                 };
                 let opened =
                     crate::document_bridge::open(&mut env, activity.as_obj(), &uri, fallback);
@@ -197,10 +224,30 @@ pub extern "system" fn document_result(
     }
 }
 fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()> {
-    if !content_files::plain_name(&name) || !request.kind.accepts(&name) {
+    if matches!(request.kind, ImportKind::Skin) {
+        use std::io::Read;
+        let limit = crate::catalog::skin_library::MAX_SKIN_BYTES as u64 + 1;
+        let mut bytes = Vec::new();
+        input.take(limit).read_to_end(&mut bytes)?;
+        if bytes.len() > crate::catalog::skin_library::MAX_SKIN_BYTES {
+            return Err("Skin PNG exceeds the 1 MiB import limit".into());
+        }
+        let mut library = crate::catalog::skin_library::SkinLibrary::load(&request.home)
+            .map_err(|e| format!("Skin library unavailable: {e}"))?;
+        let model = library.active_model().unwrap_or_default();
+        let record = library
+            .import_png(&request.home, &name, &bytes, model)
+            .map_err(|e| format!("Skin import failed: {e}"))?;
+        imported_skin(format!("Imported skin: {}", record.name));
+        return Ok(());
+    }
+    let ImportKind::Content(kind) = request.kind else {
+        return Err("Invalid import route".into());
+    };
+    if !content_files::plain_name(&name) || !kind.accepts(&name) {
         return Err("Selected file has the wrong extension for this folder".into());
     }
-    let dir = request.home.join(request.kind.folder());
+    let dir = request.home.join(kind.folder());
     std::fs::create_dir_all(&dir)?;
     if std::fs::symlink_metadata(&dir)?.file_type().is_symlink() {
         return Err("Refusing a redirected content directory".into());
@@ -227,7 +274,7 @@ fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()>
             .open(&staged)?;
         content_files::copy_bounded(&mut input, &mut output, |bytes| {
             notice(
-                format!("Importing {}: {} KiB", request.kind.label(), bytes / 1024),
+                format!("Importing {}: {} KiB", kind.label(), bytes / 1024),
                 false,
             );
             !CANCEL.load(Ordering::Relaxed)
@@ -235,10 +282,10 @@ fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()>
         output.sync_all()?;
         drop(output);
         notice("Checking archive...", false);
-        let native_shader = content_files::validate(&staged, request.kind, &name, || {
+        let native_shader = content_files::validate(&staged, kind, &name, || {
             CANCEL.load(Ordering::Relaxed)
         })?;
-        let name = if request.kind == Kind::Mods {
+        let name = if kind == Kind::Mods {
             format!("{}.hmod", horizon_mods::Package::read(&staged)?.manifest.id)
         } else if native_shader || name.to_ascii_lowercase().ends_with(".hshader") {
             let pack = horizon_shader_api::Pack::read(&staged)?;
@@ -258,7 +305,7 @@ fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()>
         let target = dir.join(name);
         if target.exists() {
             STATE.lock().unwrap_or_else(|e| e.into_inner()).conflict = Some(Conflict {
-                kind: request.kind,
+                kind,
                 staged: staged.clone(),
                 target,
             });
@@ -272,9 +319,9 @@ fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()>
                 format!(
                     "Imported {} into {}. Enable it in game settings.",
                     target.file_name().unwrap_or_default().to_string_lossy(),
-                    request.kind.label()
+                    kind.label()
                 ),
-                request.kind,
+                kind,
             );
         }
         Ok(())
