@@ -299,6 +299,26 @@ impl Launcher {
             let installed = horizon_client::official_install::ready(&self.home);
             let installing = self.worker.is_some();
             let progress = *self.install.lock().unwrap();
+            // Give the Play page its own framed hero surface without changing shared
+            // theme tokens or any installation/account behaviour.
+            let panel = [20.0, 144.0, (w - 40.0).max(0.0), (h - 168.0).max(0.0)];
+            ui.rounded(
+                panel[0],
+                panel[1],
+                panel[2],
+                panel[3],
+                4.0,
+                color::RAISED,
+            );
+            ui.border(
+                panel[0],
+                panel[1],
+                panel[2],
+                panel[3],
+                1.0,
+                color::HOVER,
+            );
+            ui.rounded(20.0, 160.0, 4.0, 42.0, 2.0, color::ACCENT);
             let top = 160.0;
             ui.text(
                 Face::Medium,
