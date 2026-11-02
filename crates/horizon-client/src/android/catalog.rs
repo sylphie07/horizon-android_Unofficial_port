@@ -156,6 +156,7 @@ pub enum Page {
     Shaders,
     Installed,
     Settings,
+    SkinStudio,
 }
 impl Page {
     pub const ALL: [Self; 6] = [
@@ -174,6 +175,7 @@ impl Page {
             Self::Shaders => "Shaders",
             Self::Installed => "Installed",
             Self::Settings => "Settings",
+            Self::SkinStudio => "Skin Studio",
         }
     }
     pub fn is_catalog(self) -> bool {
