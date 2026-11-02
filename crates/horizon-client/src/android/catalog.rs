@@ -283,6 +283,9 @@ impl Catalog {
             if metadata.file_type().is_symlink() || !metadata.is_file() {
                 return Err("Selected skin is not a regular app-private PNG file".into());
             }
+            if metadata.len() > skin_library::MAX_SKIN_BYTES as u64 {
+                return Err("Selected skin exceeds the 1 MiB preview limit".into());
+            }
             let bytes = std::fs::read(&path).map_err(|e| e.to_string())?;
             let (width, height, rgba) =
                 horizon_client::hud::decode_bytes(&bytes).map_err(|e| e.to_string())?;
