@@ -10,7 +10,7 @@ use horizon_client::{
 };
 use horizon_client::{
     hud::HudBatch,
-    mobs::{Anim, Brain, Mob, MobType},
+    mobs::{Mob, MobType},
     mouse::Rotation,
     pose::Pose,
 };
