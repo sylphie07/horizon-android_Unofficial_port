@@ -161,3 +161,17 @@
 - Native Rust job: `skipped` because this was a push-triggered run. Therefore CI #80 does **not** verify Rust compilation for Android ABIs. The earlier native success #66 applies to the older source tip and does not verify the S3-A2 runtime changes.
 - S3-A2 source implementation is present in commits `6520b49c29be123c01f01d6f95cad81f265fad8f` (per-session skin loading/validation) and `4452e70a47454580d54c98946ed3f145ba302a3b` (local-only texture precedence).
 - Still pending: run the manual Android source workflow with native checks enabled for all four ABIs; Rust unit tests/formatting where covered; APK build and physical-device rendering. No multiplayer relay/server-side skin sharing is verified.
+
+
+## 2026-11-02 — S3-A2 native CI compile fix
+
+**Observed failure:** manual Android source checks run #83 ([41412353796](https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/41412353796)) on branch `android`, commit `b146caa14d747ce86230af7f7a3397a919e6f7a9`.
+- The source job passed all checks.
+- Android SDK setup and NDK/build-tools installation succeeded for all four native ABI jobs.
+- All four jobs reached Rust compilation and failed on the same E0433 in `crates/horizon-client/src/android/launcher.rs:377`: `crate::skin_library::SkinModel` referred to a non-existent crate-root module. The compiler identified `crate::catalog::skin_library::SkinModel` as the valid path.
+
+**Correction applied:** changed only the Slim model enum path in `crates/horizon-client/src/android/launcher.rs` to `crate::catalog::skin_library::SkinModel::Slim`.
+- Fix commit: `b16b6547edb11d5fd1537a39e9a9d7b10c77a2d4`.
+- No rendering precedence, PNG validation, authentication, UUID, network, world, or ABI configuration behaviour was changed.
+
+**Verification boundary:** correction is committed to the authorized `android` branch. It has not yet been validated by a new CI run. No successful native compilation, APK build, installation, or device rendering is claimed. Next: rerun the manual workflow with `native_checks=true` and inspect all four ABI jobs.
