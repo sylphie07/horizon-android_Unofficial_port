@@ -250,6 +250,9 @@ impl Launcher {
     }
 
     fn action(&mut self, events: &ActiveEventLoop) -> Result<()> {
+        if self.welcome_visible {
+            return Ok(());
+        }
         if self.exit_confirmation
             || self.chooser.is_some()
             || self.worker.is_some()
