@@ -475,6 +475,9 @@ struct Options {
     /// `--quickPlaySingleplayer`, checked once the game folder is known.
     quick_play: Option<String>,
     session_file: Option<String>,
+    /// Sylphra's optional per-launch local appearance; consumed by the renderer.
+    sylphra_skin: Option<PathBuf>,
+    sylphra_skin_slim: bool,
     /// `--session-stdin`: the session file's JSON comes on standard input instead.
     session_stdin: bool,
 }
@@ -623,6 +626,8 @@ impl Options {
             game_dir: None,
             quick_play: None,
             session_file: std::env::var("HORIZON_SESSION_FILE").ok(),
+            sylphra_skin: None,
+            sylphra_skin_slim: false,
             session_stdin: false,
         };
         while let Some(arg) = args.next() {
@@ -728,6 +733,14 @@ impl Options {
                             "--server" | "--quickPlayMultiplayer" => o.server = Some(value),
                             "--name" => o.player_name = Some(value),
                             "--session-file" => o.session_file = Some(value),
+                            "--sylphra-skin" => o.sylphra_skin = Some(value.into()),
+                            "--sylphra-skin-model" => {
+                                o.sylphra_skin_slim = match value.as_str() {
+                                    "classic" => false,
+                                    "slim" => true,
+                                    _ => return Err("expected classic or slim".into()),
+                                }
+                            }
                             "--control-socket" => o.control = Some(value.into()),
                             "--time" => o.time = Some(value.parse()?),
                             "--weather" => o.weather = Some(value),
