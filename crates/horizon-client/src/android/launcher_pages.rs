@@ -834,6 +834,12 @@ impl Launcher {
             }
         } else if page == Page::SkinStudio {
             let studio_compact = h < 560.0;
+            let has_preview_panel = w >= 400.0;
+            let control_width = if has_preview_panel {
+                (w - 240.0).max(160.0)
+            } else {
+                w - 64.0
+            };
             let title_y = if studio_compact { 128.0 } else { 156.0 };
             let profile_y = if studio_compact { 157.0 } else { 190.0 };
             let profile_buttons_y = if studio_compact { 198.0 } else { 218.0 };
@@ -855,19 +861,61 @@ impl Launcher {
             };
             ui.text(Face::Regular, 16.0, 32.0, profile_y, color::MUTED, &format!("Appearance profile: {profile}"));
             if let Some(error) = &self.catalog.skin_library_error {
-                ui.text(Face::Regular, 14.0, 32.0, profile_y + 18.0, color::MUTED, &ui.fit_text(Face::Regular, 14.0, &format!("Read-only: {error}"), w - 64.0));
+                ui.text(Face::Regular, 14.0, 32.0, profile_y + 18.0, color::MUTED, &ui.fit_text(Face::Regular, 14.0, &format!("Read-only: {error}"), control_width));
             }
-            button(&mut ui, &mut self.targets, [32.0, profile_buttons_y, (w - 80.0) * 0.5, 42.0], "Next profile", Action::NextAppearanceProfile, false);
-            button(&mut ui, &mut self.targets, [w * 0.5 + 8.0, profile_buttons_y, (w - 80.0) * 0.5, 42.0], "New profile", Action::NewAppearanceProfile, false);
-            button(&mut ui, &mut self.targets, [32.0, import_y, (w - 80.0) * 0.5, 42.0], "Import PNG skin", Action::ImportSkin, true);
-            button(&mut ui, &mut self.targets, [w * 0.5 + 8.0, import_y, (w - 80.0) * 0.5, 42.0], &format!("Model: {model}"), Action::ToggleSkinModel, false);
-            let selected_text = ui.fit_text(Face::Regular, 15.0, &format!("Selected: {selected}"), if studio_compact { w * 0.52 } else { w - 64.0 });
+            let half = (control_width - 8.0) * 0.5;
+            button(&mut ui, &mut self.targets, [32.0, profile_buttons_y, half, 42.0], "Next", Action::NextAppearanceProfile, false);
+            button(&mut ui, &mut self.targets, [40.0 + half, profile_buttons_y, half, 42.0], "New", Action::NewAppearanceProfile, false);
+            button(&mut ui, &mut self.targets, [32.0, import_y, half, 42.0], "Import PNG", Action::ImportSkin, true);
+            button(&mut ui, &mut self.targets, [40.0 + half, import_y, half, 42.0], model, Action::ToggleSkinModel, false);
+            let selected_text = ui.fit_text(Face::Regular, 15.0, &format!("Selected: {selected}"), control_width);
             ui.text(Face::Regular, 15.0, 32.0, selected_y, color::MUTED, &selected_text);
-            if studio_compact {
-                button(&mut ui, &mut self.targets, [w * 0.58, default_y, w * 0.38, 34.0], "Default skin", Action::DefaultSkin, false);
-            } else {
-                button(&mut ui, &mut self.targets, [32.0, default_y, w - 64.0, 38.0], "Use Minecraft default skin", Action::DefaultSkin, false);
+            button(&mut ui, &mut self.targets, [32.0, default_y, control_width, 34.0], "Default skin", Action::DefaultSkin, false);
+
+            if has_preview_panel {
+                let preview_rect = [
+                    w - 176.0,
+                    if studio_compact { 155.0 } else { 160.0 },
+                    w - 32.0,
+                    if studio_compact { 295.0 } else { 320.0 },
+                ];
+                ui.text(Face::Regular, 14.0, preview_rect[0], preview_rect[1] - 18.0, color::MUTED, "3D preview");
+                ui.rounded(preview_rect[0], preview_rect[1], preview_rect[2] - preview_rect[0], preview_rect[3] - preview_rect[1], 8.0, color::RAISED);
+                let skin_pixels = match self.catalog.skin_preview_rgba(&self.home) {
+                    Ok(pixels) => pixels.map(|pixels| pixels.to_vec()),
+                    Err(error) => {
+                        self.catalog.status = format!("Skin preview unavailable: {error}");
+                        None
+                    }
+                };
+                if let Some(preview) = &self.skin_preview {
+                    let skin_model = self.catalog.skin_library.active_model().unwrap_or_default()
+                        == crate::catalog::skin_library::SkinModel::Slim;
+                    let mut selected_texture = None;
+                    if let Some(pixels) = skin_pixels
+                        && let Some(slot) = gui.atlas.sprites.get("horizon/skin0").copied()
+                    {
+                        ui.batch.patches.push(horizon_client::font::Patch {
+                            x: (slot.u0 * gui.atlas.width as f32).round() as u32,
+                            y: (slot.v0 * gui.atlas.height as f32).round() as u32,
+                            width: 64,
+                            height: 64,
+                            rgba: pixels,
+                        });
+                        selected_texture = Some(("horizon/skin0", skin_model));
+                    }
+                    preview.draw(
+                        &mut *ui.batch,
+                        &gui.atlas,
+                        preview_rect,
+                        [self.cursor.0 as f32 / ui.density, self.cursor.1 as f32 / ui.density],
+                        selected_texture,
+                    );
+                } else {
+                    ui.text(Face::Regular, 13.0, preview_rect[0] + 8.0, preview_rect[1] + 52.0, color::MUTED, "Open Play once to install the player model.");
+                }
             }
+
             let top = if studio_compact { 320.0 } else { 410.0 };
             let bottom = if studio_compact { h - 12.0 } else { h - 110.0 };
             let row_height = 64.0;
