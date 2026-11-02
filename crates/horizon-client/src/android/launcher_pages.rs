@@ -904,11 +904,15 @@ impl Launcher {
                         });
                         selected_texture = Some(("horizon/skin0", skin_model));
                     }
+                    let cursor = [
+                        self.cursor.0 as f32 / ui.batch.scale,
+                        self.cursor.1 as f32 / ui.batch.scale,
+                    ];
                     preview.draw(
                         &mut *ui.batch,
                         &gui.atlas,
                         preview_rect,
-                        [self.cursor.0 as f32 / ui.density, self.cursor.1 as f32 / ui.density],
+                        cursor,
                         selected_texture,
                     );
                 } else {
