@@ -57,6 +57,7 @@ pub mod nautilus;
 pub mod nav;
 pub mod nether;
 pub mod panda;
+pub mod preview;
 pub mod parrot;
 pub mod path;
 pub mod phantom;
