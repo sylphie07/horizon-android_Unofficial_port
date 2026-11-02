@@ -4885,6 +4885,22 @@ impl Game<'_> {
             }
             resolved.push((local, OFFLINE.into()));
         }
+        // Sylphra's selected appearance has precedence for this client only.
+        // Server/account textures and every remote player's entry remain intact.
+        if let Some(rgba) = self.sylphra_skin_rgba.clone() {
+            const SYLPHRA: &str = "sylphra/local_skin";
+            if !self.skin_slots.contains(SYLPHRA)
+                || !self.gui.atlas.sprites.contains_key(SYLPHRA)
+            {
+                self.store_skin(SYLPHRA.into(), rgba);
+            }
+            resolved.retain(|(uuid, _)| *uuid != local);
+            slim.remove(&local);
+            if self.options.sylphra_skin_slim {
+                slim.insert(local);
+            }
+            resolved.push((local, SYLPHRA.into()));
+        }
         // An offline name's cape from the launcher, where the profile has none.
         if !capes.contains_key(&local)
             && let Some(rgba) = horizon_client::skins::offline_cape()
