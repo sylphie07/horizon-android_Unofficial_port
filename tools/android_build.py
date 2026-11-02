@@ -132,7 +132,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--abi', choices=TARGETS, default='arm64-v8a')
     parser.add_argument('--app-id', type=validate_android_app_id, help='Override the Android applicationId; the default remains dev.horizon.android')
-    parser.add_argument('--app-name', help='Override the Android launcher label and APK output prefix; the default remains Horizon Android')
+    parser.add_argument('--app-name', default='Sylphra Launcher', help='Android launcher label and APK output prefix (default: Sylphra Launcher)')
     parser.add_argument('--sdk', type=Path, default=os.environ.get('ANDROID_HOME') or Path(os.environ.get('LOCALAPPDATA', str(Path.home()))) / 'Android/Sdk')
     parser.add_argument('--java-home', type=Path, default=os.environ.get('JAVA_HOME') or 'C:/Program Files/Android/Android Studio/jbr')
     parser.add_argument('--skip-rust', action='store_true')
