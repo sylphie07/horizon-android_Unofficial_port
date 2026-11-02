@@ -203,6 +203,7 @@ pub struct Catalog {
     pub config: Config,
     pub skin_library: skin_library::SkinLibrary,
     pub skin_library_error: Option<String>,
+    skin_preview_cache: Option<(String, Vec<u8>)>,
     pub editing: Option<&'static str>,
     pub render_scale_text: String,
     worker: Option<mpsc::Receiver<Result<Reply, String>>>,
@@ -241,6 +242,7 @@ impl Catalog {
             config,
             skin_library,
             skin_library_error,
+            skin_preview_cache: None,
             editing: None,
             render_scale_text: String::new(),
             worker: None,
@@ -262,6 +264,33 @@ impl Catalog {
         {
             self.sections[i] = true;
         }
+    }
+    pub fn skin_preview_rgba(&mut self, home: &Path) -> Result<Option<&[u8]>, String> {
+        if self.skin_library_error.is_some() {
+            return Err("Skin library is read-only".into());
+        }
+        let Some(record) = self.skin_library.active_skin().cloned() else {
+            self.skin_preview_cache = None;
+            return Ok(None);
+        };
+        let cached = self
+            .skin_preview_cache
+            .as_ref()
+            .is_some_and(|(id, _)| id == &record.id);
+        if !cached {
+            let path = home.join("skins").join(&record.file);
+            let metadata = std::fs::symlink_metadata(&path).map_err(|e| e.to_string())?;
+            if metadata.file_type().is_symlink() || !metadata.is_file() {
+                return Err("Selected skin is not a regular app-private PNG file".into());
+            }
+            let bytes = std::fs::read(&path).map_err(|e| e.to_string())?;
+            let (width, height, rgba) =
+                horizon_client::hud::decode_bytes(&bytes).map_err(|e| e.to_string())?;
+            let rgba = horizon_client::skins::process_legacy_skin(width, height, &rgba)
+                .ok_or("Selected skin is not 64×64 or legacy 64×32")?;
+            self.skin_preview_cache = Some((record.id, rgba));
+        }
+        Ok(self.skin_preview_cache.as_ref().map(|(_, rgba)| rgba.as_slice()))
     }
     pub fn reload_skin_library(&mut self, home: &Path) {
         match skin_library::SkinLibrary::load(home) {
