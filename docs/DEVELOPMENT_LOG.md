@@ -288,3 +288,14 @@
 **Commits:** `be270bbbc20adc89808442c136b538f17b966729`, `110cccc78a6fbfdbe52586d230d4f0fabacd0a73`, `375a660585e18f95fc40961984e7a85945f00a6e`.
 
 **Next:** wait for source CI on the updated branch. If green, rerun the manual `Sylphra Launcher test APK` workflow. The previous APK is not considered deliverable because it did not pass the release audit and was not uploaded.
+
+
+## 2026-11-02 — Follow-up CI failure: package-ID regex escaping
+
+**CI run:** [`41426901487`](https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/41426901487), commit `907bd8c74122ae1aa6b63055584fe1591a4962ee`, failed in the Android Python unit tests before native checks.
+
+**Exact cause:** the new package-ID validation regex in `tools/check_android_release.py` was written as a raw string containing an over-escaped dot (`\\\\.` in the source), so it expected a literal backslash instead of a package separator. Consequently the valid `dev.sylphra.android.test` value was rejected as invalid before inspecting the APK.
+
+**Applied:** corrected the regex to use a single escaped dot in the raw regex string, preserving strict validation of dotted Android package IDs. Commit: `118bb2139aa537e6d973e9eb80b5371de702c6de`.
+
+**Verification status:** fix applied; source CI has been triggered by the commit and is pending. The release audit regression test has not yet passed in CI. Do not rerun the APK workflow until source CI is green.
