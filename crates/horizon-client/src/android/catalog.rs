@@ -276,6 +276,9 @@ impl Catalog {
         }
     }
     pub fn save_skin_library(&mut self, home: &Path) -> Result<(), String> {
+        if let Some(error) = &self.skin_library_error {
+            return Err(format!("Skin library is read-only until its metadata is repaired: {error}"));
+        }
         self.skin_library.save(home)?;
         self.skin_library_error = None;
         Ok(())
