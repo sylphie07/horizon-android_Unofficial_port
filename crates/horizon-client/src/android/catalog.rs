@@ -261,7 +261,25 @@ impl Catalog {
             self.sections[i] = true;
         }
     }
+    pub fn reload_skin_library(&mut self, home: &Path) {
+        match skin_library::SkinLibrary::load(home) {
+            Ok(library) => {
+                self.skin_library = library;
+                self.skin_library_error = None;
+            }
+            Err(error) => {
+                self.skin_library_error = Some(error.clone());
+                self.status = format!("Skin library unavailable: {error}");
+            }
+        }
+    }
+    pub fn save_skin_library(&mut self, home: &Path) -> Result<(), String> {
+        self.skin_library.save(home)?;
+        self.skin_library_error = None;
+        Ok(())
+    }
     pub fn refresh(&mut self, home: &Path) {
+        self.reload_skin_library(home);
         let game = self.config.game_home(home);
         let installed = Installed::load(&game);
         self.downloaded = installed
