@@ -343,3 +343,14 @@
 **Verification status:** the two UI string changes are committed. No CI, build, APK, or device rendering check has yet completed for this pass. This is a limited text-branding refinement, not yet a full visual redesign.
 
 **Next:** run Android source checks and the four native ABI checks on branch `android`. After they pass, group the next visual changes into a dedicated launcher-only layout pass, keeping shared game UI and runtime behavior untouched.
+
+
+## 2026-11-02 — Second UI branding pass: source CI result
+
+**Verified:** Android source-check run [41481347051](https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/41481347051), branch `android`, commit `a335cafc6386ca9425ce0c176db37fb2145b3ae2`, completed with conclusion `success`; the `source` job passed. The native matrix was skipped because this was a push event. The earlier overlapping run for code-only commit `ceeec2c32a8a575cbccc56652f055a8f4aef0d8b` was cancelled by the later push due to workflow concurrency; it is not counted as a failure or a successful native check.
+
+**Current verification boundary:** the second branding pass has passing source checks, but the four native ABI checks have not been rerun for this commit. No APK was generated for this pass and no new device rendering was checked.
+
+**Design inspection:** reviewed `docs/design-system.md`, `crates/horizon-theme/src/lib.rs`, and Android `launcher_pages.rs`. The documented Blocks visual language is already implemented in the shared Horizon launcher/theme ecosystem, but shared theme tokens are consumed outside the Android launcher and must not be globally recolored for Sylphra. The Android page renderer currently uses the shared dark palette and a compact custom layout. A safe visual redesign must therefore be isolated to Android launcher rendering, not shared theme tokens or game overlays.
+
+**Next:** manually dispatch `Android source checks` on branch `android` with `native_checks=true` to validate all four Android ABIs, then implement the first isolated visual pass on the Android Play/home page. Keep the change limited to launcher drawing/layout and avoid account, installation, engine, catalog, profile, world, and storage behavior.
