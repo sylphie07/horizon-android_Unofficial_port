@@ -163,7 +163,7 @@ impl PlayerPreview {
 }
 
 /// The inventory-preview lighting (Lighting.Entry.ENTITY_IN_UI).
-fn entity_in_ui_shade(normal: glam::Vec3) -> f32 {
+pub fn entity_in_ui_shade(normal: glam::Vec3) -> f32 {
     const LIGHT_0: glam::Vec3 = glam::Vec3::new(0.2, -1.0, 1.0);
     const LIGHT_1: glam::Vec3 = glam::Vec3::new(-0.2, -1.0, 0.0);
     let light = LIGHT_0.normalize().dot(normal).max(0.0)
