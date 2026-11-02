@@ -22,7 +22,7 @@ When the notice materially changes, increment `WELCOME_NOTICE_REVISION` so the u
 
 ## About page
 
-- A permanent **About Sylphra** row is added to Settings.
+- A permanent **About Sylphra** row is added to Settings; the Settings scroll extent accounts for all 20 rows.
 - About is a subpage, not a seventh top-level tab. `Page::ALL` remains the original six entries.
 - The body uses the launcher's existing scroll state and viewport.
 - It identifies Sylphra as independent and unofficial, based on Horizon Android, and disclaims affiliation, sponsorship, endorsement, or maintenance by the Horizon PC creators and original Android port author.
@@ -39,7 +39,7 @@ When the notice materially changes, increment `WELCOME_NOTICE_REVISION` so the u
 
 ## Verification record
 
-**Applied:** source and unit-test changes are committed on the maintained fork's `android` branch. The current implementation commit is `45913e11f81a15ec79025a1dc36f9636a2d61fe1`.
+**Applied:** source and unit-test changes are committed on the maintained fork's `android` branch. The latest implementation commit is `4686236516ad43e6d7e570ac636c399363ee5146`.
 
 **Tests added, not executed:** two Rust unit tests cover deserializing an old config without the new field and round-tripping the acknowledgement revision.
 
