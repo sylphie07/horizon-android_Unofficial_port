@@ -374,7 +374,7 @@ impl Launcher {
                     .map(|skin| self.home.join("skins").join(&skin.file)),
                 skin_slim: matches!(
                     self.catalog.skin_library.active_model(),
-                    Some(crate::skin_library::SkinModel::Slim)
+                    Some(crate::catalog::skin_library::SkinModel::Slim)
                 ),
                 extra_arguments,
                 open_gl: self.catalog.config.renderer == crate::catalog::RendererMode::OpenGl,
