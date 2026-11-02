@@ -207,3 +207,11 @@ Next: complete the runtime consumer and local-player-only appearance override, t
 - Passed source checks: diff whitespace validation, public-tree history, Android Python unit tests, diagnostics, performance, content, and workflow-export consistency.
 - Native Rust job was **skipped** on this push-triggered run. This does not yet prove the new S3-A2 Rust runtime integration compiles for Android ABIs. The previous all-ABI pass (#66) predates S3-A2.
 - Next gate: manually dispatch Android source checks with native checks enabled for `arm64-v8a`, `armeabi-v7a`, `x86_64`, and `x86`; then build/install an APK and visually test the local skin on device. Multiplayer sharing remains unimplemented/unverified.
+
+
+## S3-A2 native validation — 2026-11-02
+
+- Manual Android source checks run #86 (`41413689762`) completed successfully on branch `android`, tested commit `5587f1e670518d447b2ff06e9a74bc6ddcf879a9`.
+- Source checks and all four Android native Rust target checks passed: `armeabi-v7a`, `x86`, `arm64-v8a`, and `x86_64`.
+- This verifies configured Rust checking after the S3-A2 module-path correction. It does not build or verify an APK, nor does it establish in-game/device rendering.
+- Device validation still needs to cover selected skin visibility, Classic/Slim model, no-custom-skin fallback, and that remote players retain their server-provided skins. Multiplayer skin sharing is not implemented/verified.
