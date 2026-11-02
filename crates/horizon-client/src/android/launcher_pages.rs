@@ -832,7 +832,14 @@ impl Launcher {
                 }
             }
         } else if page == Page::SkinStudio {
-            ui.text(Face::Medium, 24.0, 32.0, 156.0, color::TEXT, "Skin Studio");
+            let studio_compact = h < 560.0;
+            let title_y = if studio_compact { 128.0 } else { 156.0 };
+            let profile_y = if studio_compact { 157.0 } else { 190.0 };
+            let profile_buttons_y = if studio_compact { 178.0 } else { 218.0 };
+            let import_y = if studio_compact { 224.0 } else { 270.0 };
+            let selected_y = if studio_compact { 270.0 } else { 328.0 };
+            let default_y = if studio_compact { 258.0 } else { 352.0 };
+            ui.text(Face::Medium, 24.0, 32.0, title_y, color::TEXT, "Skin Studio");
             let profile = self.catalog.skin_library.profiles
                 .iter()
                 .find(|p| p.id == self.catalog.skin_library.active_profile)
@@ -845,30 +852,34 @@ impl Launcher {
                 crate::catalog::skin_library::SkinModel::Classic => "Classic",
                 crate::catalog::skin_library::SkinModel::Slim => "Slim",
             };
-            ui.text(Face::Regular, 16.0, 32.0, 190.0, color::MUTED, &format!("Appearance profile: {profile}"));
+            ui.text(Face::Regular, 16.0, 32.0, profile_y, color::MUTED, &format!("Appearance profile: {profile}"));
             if let Some(error) = &self.catalog.skin_library_error {
-                ui.text(Face::Regular, 14.0, 32.0, 210.0, color::MUTED, &ui.fit_text(Face::Regular, 14.0, &format!("Library is read-only: {error}"), w - 64.0));
+                ui.text(Face::Regular, 14.0, 32.0, profile_y + 18.0, color::MUTED, &ui.fit_text(Face::Regular, 14.0, &format!("Read-only: {error}"), w - 64.0));
             }
-            button(&mut ui, &mut self.targets, [32.0, 218.0, (w - 80.0) * 0.5, 42.0], "Next profile", Action::NextAppearanceProfile, false);
-            button(&mut ui, &mut self.targets, [w * 0.5 + 8.0, 218.0, (w - 80.0) * 0.5, 42.0], "New profile", Action::NewAppearanceProfile, false);
-            button(&mut ui, &mut self.targets, [32.0, 270.0, (w - 80.0) * 0.5, 42.0], "Import PNG skin", Action::ImportSkin, true);
-            button(&mut ui, &mut self.targets, [w * 0.5 + 8.0, 270.0, (w - 80.0) * 0.5, 42.0], &format!("Model: {model}"), Action::ToggleSkinModel, false);
-            ui.text(Face::Regular, 15.0, 32.0, 328.0, color::MUTED, &format!("Selected: {selected}"));
-            button(&mut ui, &mut self.targets, [32.0, 352.0, w - 64.0, 38.0], "Use Minecraft default skin", Action::DefaultSkin, false);
-            let top = 410.0;
-            let bottom = h - 110.0;
+            button(&mut ui, &mut self.targets, [32.0, profile_buttons_y, (w - 80.0) * 0.5, 42.0], "Next profile", Action::NextAppearanceProfile, false);
+            button(&mut ui, &mut self.targets, [w * 0.5 + 8.0, profile_buttons_y, (w - 80.0) * 0.5, 42.0], "New profile", Action::NewAppearanceProfile, false);
+            button(&mut ui, &mut self.targets, [32.0, import_y, (w - 80.0) * 0.5, 42.0], "Import PNG skin", Action::ImportSkin, true);
+            button(&mut ui, &mut self.targets, [w * 0.5 + 8.0, import_y, (w - 80.0) * 0.5, 42.0], &format!("Model: {model}"), Action::ToggleSkinModel, false);
+            ui.text(Face::Regular, 15.0, 32.0, selected_y, color::MUTED, &format!("Selected: {selected}"));
+            if studio_compact {
+                button(&mut ui, &mut self.targets, [w * 0.58, default_y, w * 0.38, 34.0], "Default skin", Action::DefaultSkin, false);
+            } else {
+                button(&mut ui, &mut self.targets, [32.0, default_y, w - 64.0, 38.0], "Use Minecraft default skin", Action::DefaultSkin, false);
+            }
+            let top = if studio_compact { 300.0 } else { 410.0 };
+            let bottom = if studio_compact { h - 12.0 } else { h - 110.0 };
             let row_height = 64.0;
             let count = self.catalog.skin_library.skins.len();
-            let maximum = (count as f32 * row_height - (bottom - top)).max(0.0);
+            let maximum = (count as f32 * row_height - (bottom - top).max(0.0)).max(0.0);
             self.catalog.scroll = self.catalog.scroll.clamp(0.0, maximum);
-            self.list_view = Some([top, bottom, maximum]);
+            self.list_view = Some([top, bottom.max(top + 1.0), maximum]);
             if count == 0 {
                 ui.text(Face::Regular, 16.0, 32.0, top + 16.0, color::MUTED, "No imported skins yet. Choose Import PNG skin.");
             }
             for (i, skin) in self.catalog.skin_library.skins.iter().enumerate() {
                 let y = top + i as f32 * row_height - self.catalog.scroll;
                 self.list_targets.push(([32.0, y, w - 64.0, 56.0], Action::SelectSkin(i)));
-                if y < top || y + 56.0 > bottom { continue; }
+                if y < top || y + 56.0 > bottom.max(top + 1.0) { continue; }
                 let active = self.catalog.skin_library.active_skin().is_some_and(|current| current.id == skin.id);
                 button(&mut ui, &mut self.targets, [32.0, y, w - 64.0, 56.0], &format!("{}{}  ({}×{})", if active { "✓ " } else { "" }, skin.name, skin.width, skin.height), Action::SelectSkin(i), active);
             }
@@ -1190,27 +1201,29 @@ impl Launcher {
                 false,
             );
         }
-        let status = self.error.as_deref().unwrap_or(&self.catalog.status);
-        for (i, line) in status
-            .chars()
-            .collect::<Vec<_>>()
-            .chunks(110)
-            .take(2)
-            .enumerate()
-        {
-            ui.text(
-                Face::Regular,
-                14.0,
-                32.0,
-                h - 47.0 + i as f32 * 18.0,
-                color::MUTED,
-                &ui.fit_text(
+        if !(page == Page::SkinStudio && compact) {
+            let status = self.error.as_deref().unwrap_or(&self.catalog.status);
+            for (i, line) in status
+                .chars()
+                .collect::<Vec<_>>()
+                .chunks(110)
+                .take(2)
+                .enumerate()
+            {
+                ui.text(
                     Face::Regular,
                     14.0,
-                    &line.iter().collect::<String>(),
-                    (w - 210.0).max(40.0),
-                ),
-            );
+                    32.0,
+                    h - 47.0 + i as f32 * 18.0,
+                    color::MUTED,
+                    &ui.fit_text(
+                        Face::Regular,
+                        14.0,
+                        &line.iter().collect::<String>(),
+                        (w - 210.0).max(40.0),
+                    ),
+                );
+            }
         }
         button(
             &mut ui,
