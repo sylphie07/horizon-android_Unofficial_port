@@ -85,6 +85,7 @@ fn notice(text: impl Into<String>, changed: bool) {
         text,
         changed,
         kind: None,
+        skin_changed: false,
     });
 }
 fn imported(text: impl Into<String>, kind: Kind) {
@@ -231,6 +232,9 @@ fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()>
         input.take(limit).read_to_end(&mut bytes)?;
         if bytes.len() > crate::catalog::skin_library::MAX_SKIN_BYTES {
             return Err("Skin PNG exceeds the 1 MiB import limit".into());
+        }
+        if CANCEL.load(Ordering::Relaxed) {
+            return Err("Import cancelled".into());
         }
         let mut library = crate::catalog::skin_library::SkinLibrary::load(&request.home)
             .map_err(|e| format!("Skin library unavailable: {e}"))?;
