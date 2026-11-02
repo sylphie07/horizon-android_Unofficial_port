@@ -50,6 +50,8 @@ pub(super) struct Launcher {
     drag: Option<gesture::Drag>,
     chooser: Option<chooser::Chooser>,
     exit_confirmation: bool,
+    welcome_visible: bool,
+    about_visible: bool,
     login: login::Login,
     session_worker: Option<mpsc::Receiver<std::result::Result<Option<PathBuf>, String>>>,
     session_ready: bool,
@@ -73,6 +75,8 @@ impl Launcher {
         if crate::diagnostics::previous_unclean(&home) {
             catalog.status = crate::diagnostics::summary(&home);
         }
+        let welcome_visible =
+            catalog.config.welcome_ack_revision < crate::catalog::WELCOME_NOTICE_REVISION;
         horizon_client::android_runtime::graphics_startup::configure(home.clone());
         if horizon_client::android_runtime::graphics_startup::recover(&home) {
             catalog.config.renderer = crate::catalog::RendererMode::OpenGl;
@@ -106,6 +110,8 @@ impl Launcher {
             drag: None,
             chooser: None,
             exit_confirmation: false,
+            welcome_visible,
+            about_visible: false,
             login: login::Login::new(),
             session_worker: None,
             session_ready: false,
@@ -217,8 +223,14 @@ impl Launcher {
     }
 
     fn request_back(&mut self) {
+        if self.welcome_visible {
+            return;
+        }
         crate::platform::hide();
-        if self.exit_confirmation {
+        if self.about_visible {
+            self.about_visible = false;
+            self.catalog.scroll = 0.0;
+        } else if self.exit_confirmation {
             self.exit_confirmation = false;
         } else if self.login.visible {
             self.login.hide();
@@ -676,9 +688,15 @@ impl Launcher {
             } else if b == Button::East {
                 crate::platform::hide();
                 self.catalog.editing = None;
+                if self.welcome_visible {
+                    continue;
+                }
                 if self.chooser.take().is_none() {
                     if self.login.visible {
                         self.login.visible = false;
+                    } else if self.about_visible {
+                        self.about_visible = false;
+                        self.catalog.scroll = 0.0;
                     } else {
                         self.catalog.page = Page::Play;
                     }
