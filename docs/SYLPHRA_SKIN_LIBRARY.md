@@ -240,3 +240,12 @@ Next: complete the runtime consumer and local-player-only appearance override, t
 - This validates the S3-A3 helper-scope correction and the configured native Rust checks. It does not build an APK or verify actual atlas residency/rendering on-device.
 - S3-A3 code fix: `c968683b6c2f7751beead71976cbd0c025c5fb9f`; documentation correction recorded in the development log. The CI tested the docs tip `e129c983f7c062624bd1b87490f18224487cb86e`.
 - **Next:** audit S3-A4 texture lifecycle and atlas eviction/re-upload behaviour, then plan APK/device validation. Multiplayer skin sharing remains a separate future feature and is not verified.
+
+
+## S3-A3 completion and device-test handoff — 2026-11-02
+
+- S3-A3 native Rust validation remains green: manual CI run `41417195641` passed all four Android ABIs.
+- Sylphra Launcher branding was integrated: the Android resource `packaging/android/res/drawable-nodpi/launcher_icon.png` now contains the supplied artwork, and the launcher label defaults to `Sylphra Launcher`.
+- Branding/source CI run `41421058011` passed its source job. Its native matrix was skipped because it was a push-triggered run; do not interpret it as a fresh four-ABI native check.
+- Added manual workflow `.github/workflows/sylphra-test-apk.yml` for a public arm64-v8a release-candidate APK, using isolated application ID `dev.sylphra.android.test` and a cached test-only signing key. It uploads an Actions artifact only; it does not publish a GitHub Release.
+- **Pending verification:** run the workflow, confirm engine resource preparation/build/signing/audit all pass, then install the artifact and test launcher icon plus local Classic/Slim skin application in-world. Remote player skins and multiplayer skin sharing are outside this test.
