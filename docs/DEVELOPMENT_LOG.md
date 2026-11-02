@@ -83,3 +83,14 @@
 **Verification:** changes are committed. The source workflow's checks passed on the preceding commit, but the corrected Rust code has not yet been rechecked by the native ABI matrix. No Rust compilation, APK build, installation, or device result is claimed.
 
 **Next:** manually dispatch `Android source checks` on branch `android` with `native_checks=true`; inspect all four ABI results before proceeding with the next skin-preview stage.
+
+
+## 2026-11-02 — Native Android CI verified after compile fixes
+**Observed run:** [Android source checks #66](https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/41405537016), event `workflow_dispatch`, branch `android`, tested commit `09cb65890102fbac97edde9a8e2dd258e1524be6`.
+- Overall workflow conclusion: `success`.
+- `source` job passed all checks, including diff validation, public-tree history, Android Python tests, diagnostics, performance, content, and workflow-export consistency.
+- All four native Android jobs passed the `Check Android Rust code without building an APK` step: `arm64-v8a`, `armeabi-v7a`, `x86_64`, and `x86`.
+- This verifies the Rust Android code type-checks for all four configured targets after the helper-path and PNG output-size fixes.
+- **Verification boundary:** no APK was built, installed, signed, or tested on a physical device. SAF import, Skin Studio touch/layout, persistence and 3D preview behaviour remain device-validation tasks. No runtime skin application or multiplayer skin sharing is verified.
+- The earlier run #61 native compile failure is resolved by this successful run.
+- **Next:** review the current LaunchRequest/runtime skin flow and design S3-A as a separate, narrowly scoped integration. Preserve auth, UUID, worlds, and network protocol; do not claim in-game skin application until runtime/device testing succeeds.
