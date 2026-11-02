@@ -113,3 +113,19 @@
 **Validation plan before implementation:** add launch-argument round-trip/omission tests; add a renderer-resolution test proving the custom appearance wins only for the local UUID while remote player skins remain unchanged; validate missing/invalid/oversized/symlink paths fail closed or fall back without corrupting the manifest; then run source checks and all four native ABI checks. APK/device rendering is a separate later gate.
 
 **Status:** investigation completed; no implementation, test execution, CI run, APK build or device verification occurred in this audit. This is a proposal, not an applied change.
+
+
+## 2026-11-02 — S3-A1 launch transport implemented (renderer application pending)
+
+**Preflight:** rechecked branch `android`, latest commit before this implementation, and the current launch/runtime design notes. Work remained on the authorized fork branch; no Sylphra main-branch changes.
+
+**Applied source changes:**
+- `crates/horizon-client/src/android/game_launch.rs`: `LaunchRequest` now carries an optional skin PNG path and a Classic/Slim flag. When present, it emits separate `--sylphra-skin` and `--sylphra-skin-model` arguments; absent selection emits neither. Added tests for selected skin argument transport and unchanged no-skin launch arguments.
+- `crates/horizon-client/src/android/launcher.rs`: snapshots the active profile's selected skin file under the app-private `skins/` directory and its per-profile model into the launch request.
+- `crates/horizon-client/src/game.rs`: parses the two arguments into per-launch `Options` fields; model accepts only `classic` or `slim`.
+
+**Commits:** LaunchRequest and transport tests `40b21226b8a24cb1f974f6044e0421e9accc2af8`; launcher selection wiring `bc68e674dfdb34dba310e7f25589307c0b1bd5a1`; game argument parsing `ba041e4c49a89fa1ddcdacbf7c8c5e00c9b88cba`; formatting follow-up `7c600084c0f48155daac7a05925177d8d1c91bcb`.
+
+**Verification boundary:** edits are committed and source snippets were fetched again for inspection. No formatter, compiler, unit-test execution, CI run, APK build, or device test has yet been run. The parsed per-launch appearance fields are not yet consumed by the renderer, so this does **not** apply the custom skin in-game. File validation/decoding and local-player-only precedence remain the next implementation step.
+
+**Next:** add safe per-session PNG loading/normalization and local-player renderer precedence, preserving account/session identity and all remote player textures; add tests, then run source checks and all four native ABI checks.
