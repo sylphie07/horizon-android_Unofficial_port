@@ -460,7 +460,7 @@ impl Launcher {
                 142.0,
                 color::TEXT,
                 if page == Page::Mods {
-                    "Horizon Mods"
+                    "Sylphra Mods"
                 } else if page == Page::Shaders {
                     if w < 360.0 { "Shaders" } else { "Shader Packs" }
                 } else {
@@ -529,7 +529,7 @@ impl Launcher {
                 {
                     "Modrinth Java mods are browse-only; Fabric/Forge/NeoForge cannot run here"
                 }
-                Page::Mods => "Search Horizon mods or paste an HTTPS .hmod link",
+                Page::Mods => "Browse Sylphra mods or paste an HTTPS .hmod link",
                 Page::Shaders
                     if self.catalog.config.shader_source
                         == crate::shader_catalog::Origin::Modrinth =>
