@@ -147,3 +147,26 @@ This change adds a launcher-owned data model for appearance profiles and importe
 - This supersedes the pending native-compilation status recorded above: the corrected source now passes the configured Android Rust type-check for all four targets.
 - **Still not verified:** APK build/sign/install, SAF import on device, skin-library persistence on device, touch/layout behaviour, preview rendering on device, and live in-game skin application. The native workflow explicitly checks Rust code without building an APK.
 - Next stage: audit the current Android `LaunchRequest` and renderer skin selection path before proposing S3-A runtime integration. Keep authentication, UUID/player identity, worlds and protocol semantics unchanged.
+
+
+## S3-A — Runtime integration audit (2026-11-02; no code changes)
+
+**Inspected source tip:** fork branch `android`, commit `f1b0a4a3e8c41d77d56ed2be2d31aee790c60242`.
+
+### Findings
+- The launcher already has the active appearance profile and selected skin record. The image is stored app-privately at `home/skins/<record.file>`; model choice is per appearance profile.
+- Android constructs `LaunchRequest` in `android/launcher.rs`. The request currently has no appearance field. Its argument vector is parsed into the game's `Options` in `game.rs`.
+- Player rendering consumes `Mob.skin` and `Mob.slim`; `game/remote.rs::update_remote_skins` resolves the server-provided profile, authenticated account fallback, and finally the old offline skin fallback.
+- The old fallback uses environment variables plus a process-global `OnceLock`, and only applies when no server/account skin is resolved. It is not sufficient for Sylphra's selected profile, particularly when Microsoft authentication is active.
+
+### Proposed S3-A boundary (not implemented)
+Pass an optional, validated app-private skin path and the profile's Classic/Slim model through the immutable launch request and game options. Decode/normalize once per game session. Apply it only to the local player's rendered avatar, after normal server/account skin resolution; leave all remote player skins untouched. With no selected custom skin, preserve existing behaviour. No Microsoft session, UUID, player name, world, server protocol or authentication changes.
+
+### Required tests and verification
+- Launch request argument tests for selected and absent skins.
+- Local-UUID precedence test, including proof that a remote player's server skin remains unchanged.
+- Invalid/missing/oversized/symlink file handling.
+- Source workflow plus native Rust checks for all four Android ABIs.
+- APK and physical-device rendering remain separate, unverified gates.
+
+This entry records an audit and a proposal only. No source implementation or tests were changed/executed in this step.
