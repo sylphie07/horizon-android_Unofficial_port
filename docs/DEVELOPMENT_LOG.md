@@ -150,3 +150,14 @@
 **Verification boundary:** changes are applied to branch `android`; no formatter, Rust compiler, unit tests, Android CI, APK build, or device rendering test has yet been run for S3-A2. In particular, atlas eviction/re-upload behaviour and compilation must be checked before calling this complete. This stage does not change authentication, UUIDs, worlds, or network packets.
 
 **Next:** run formatting and Android source/native CI; address any compile or test failures; then verify local skin visibility, Classic/Slim, default-skin fallback, and unchanged remote-player skins on device.
+
+
+## 2026-11-02 — CI #80 verification for S3-A2
+
+- Workflow: [Android source checks #80](https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/41410958976).
+- Branch: `android`; tested commit: `6538fde75864f2544d4abb84bd3cc7225604103b` (`docs: document Sylphra local skin runtime`).
+- Overall conclusion: `success`.
+- Source job passed: `git diff --check`, public-tree history validation, Android Python unit tests, diagnostics tests, performance tests, content tests, and workflow-export consistency.
+- Native Rust job: `skipped` because this was a push-triggered run. Therefore CI #80 does **not** verify Rust compilation for Android ABIs. The earlier native success #66 applies to the older source tip and does not verify the S3-A2 runtime changes.
+- S3-A2 source implementation is present in commits `6520b49c29be123c01f01d6f95cad81f265fad8f` (per-session skin loading/validation) and `4452e70a47454580d54c98946ed3f145ba302a3b` (local-only texture precedence).
+- Still pending: run the manual Android source workflow with native checks enabled for all four ABIs; Rust unit tests/formatting where covered; APK build and physical-device rendering. No multiplayer relay/server-side skin sharing is verified.
