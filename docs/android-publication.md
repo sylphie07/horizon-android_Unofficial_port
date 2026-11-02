@@ -4,6 +4,25 @@ Horizon Android preserves the upstream Git history, MIT copyright and license,
 third-party notices and dependency licenses. See [upstream integration](android-upstream.json).
 The `android` branch is maintained separately from upstream deployment workflows.
 
+## Separate application identity
+
+Derived Android distributions can set their own package identity without renaming
+the Rust library, Java namespace or JNI classes. The builder accepts an optional
+`--app-id` and passes it to Gradle as `appId`.
+
+For example, a Sylphra build uses:
+
+```sh
+python tools/android_build.py --abi arm64-v8a --public --app-id dev.sylphra.android
+```
+
+The default remains `dev.horizon.android` when `--app-id` is omitted.
+Debug builds always append `.dev` to the selected base ID, so the example's
+debug package is `dev.sylphra.android.dev` and its release package remains
+`dev.sylphra.android`. Keep the same release ID and signing certificate for
+future updates. This package-ID override does not change the Mojang resource
+installer, pinned hashes, game-engine payload or Java/JNI namespace.
+
 ## Build distribution APKs
 
 Build each required architecture with the optimized public mode:

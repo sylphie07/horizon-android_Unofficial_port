@@ -23,7 +23,8 @@ android {
         debug {
             signingConfig signingConfigs.development
             versionNameSuffix '-dev.' + providers.gradleProperty('devBuild').getOrElse('local')
-            if (!providers.gradleProperty('appId').isPresent()) { applicationIdSuffix '.dev' }
+            // Keep debug and release installs separate, including explicit custom application IDs.
+            applicationIdSuffix '.dev'
         }
         release {
             debuggable false

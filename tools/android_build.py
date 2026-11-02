@@ -18,6 +18,28 @@ TARGETS = {'x86_64': 'x86_64-linux-android', 'arm64-v8a': 'aarch64-linux-android
            'armeabi-v7a': 'armv7-linux-androideabi', 'x86': 'i686-linux-android'}
 
 
+def validate_android_app_id(value):
+    """Validate a dotted Android application ID before passing it to Gradle."""
+    parts = value.split('.')
+    valid = len(parts) >= 2 and all(
+        part
+        and part[0].isascii()
+        and part[0].isalpha()
+        and all(char.isascii() and (char.isalnum() or char == '_') for char in part)
+        for part in parts
+    )
+    if not valid:
+        raise argparse.ArgumentTypeError(
+            'application ID must contain at least two dot-separated ASCII segments; '
+            'each segment must start with a letter and contain only letters, digits or underscores'
+        )
+    return value
+
+
+def gradle_app_id_args(app_id):
+    """Return the Gradle property override, leaving the upstream default untouched."""
+    return ['-PappId=' + app_id] if app_id else None
+
 def latest(directory):
     return max(directory.iterdir(), key=lambda p: tuple(int(v) for v in p.name.split('.')))
 
@@ -95,6 +117,7 @@ def engine_data(public=False):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--abi', choices=TARGETS, default='arm64-v8a')
+    parser.add_argument('--app-id', type=validate_android_app_id, help='Override the Android applicationId; the default remains dev.horizon.android')
     parser.add_argument('--sdk', type=Path, default=os.environ.get('ANDROID_HOME') or Path(os.environ.get('LOCALAPPDATA', str(Path.home()))) / 'Android/Sdk')
     parser.add_argument('--java-home', type=Path, default=os.environ.get('JAVA_HOME') or 'C:/Program Files/Android/Android Studio/jbr')
     parser.add_argument('--skip-rust', action='store_true')
@@ -206,7 +229,8 @@ def main():
         gradle = candidates[0]
     environment['ANDROID_HOME'] = str(args.sdk)
     variant = 'release' if args.release_candidate else 'debug'
-    run([gradle, '--no-daemon', '-p', ROOT / 'packaging/android', '-Pabi=' + args.abi, '-PminSdk=' + str(min_sdk), 'assemble' + variant.title()], cwd=ROOT, env=environment)
+    gradle_command = [gradle, '--no-daemon', '-p', ROOT / 'packaging/android', '-Pabi=' + args.abi, '-PminSdk=' + str(min_sdk), *(gradle_app_id_args(args.app_id) or []), 'assemble' + variant.title()]
+    run(gradle_command, cwd=ROOT, env=environment)
     apk = output / ('horizon-android-public.apk' if args.public else 'horizon-android-release.apk' if args.release_candidate else 'horizon-android.apk')
     shutil.copyfile(ROOT / f'.local/android/gradle-build/outputs/apk/{variant}/HorizonAndroid-{variant}.apk', apk)
     # Invoke the signing JAR directly so Windows does not need a batch-file shell.
