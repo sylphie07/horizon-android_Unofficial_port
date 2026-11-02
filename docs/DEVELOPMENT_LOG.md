@@ -94,3 +94,22 @@
 - **Verification boundary:** no APK was built, installed, signed, or tested on a physical device. SAF import, Skin Studio touch/layout, persistence and 3D preview behaviour remain device-validation tasks. No runtime skin application or multiplayer skin sharing is verified.
 - The earlier run #61 native compile failure is resolved by this successful run.
 - **Next:** review the current LaunchRequest/runtime skin flow and design S3-A as a separate, narrowly scoped integration. Preserve auth, UUID, worlds, and network protocol; do not claim in-game skin application until runtime/device testing succeeds.
+
+
+## 2026-11-02 — S3-A runtime integration audit (investigation only)
+
+**Repository preflight:** inspected the maintained fork on branch `android`. Branch ref resolved to commit `f1b0a4a3e8c41d77d56ed2be2d31aee790c60242`. Read the current development log, skin-library design notes, launcher, LaunchRequest, skin-library model, remote-player skin resolution and renderer body selection. No source code was modified in this audit.
+
+**Findings:**
+- `crates/horizon-client/src/android/launcher.rs` creates one `LaunchRequest` immediately before `game_launch::start`. It currently carries resource/game paths, session file, offline name, server, control socket, extra arguments and graphics flags; it does not carry the selected appearance.
+- `crates/horizon-client/src/android/catalog.rs` owns the loaded `SkinLibrary`; `active_skin()` resolves the active profile's record and `active_model()` resolves its Classic/Slim choice. The PNG lives in the app-private `home/skins/<record.file>` directory.
+- `crates/horizon-client/src/game.rs` parses launch arguments into `Options` and hands those options to the game runtime. This provides a potential explicit, per-launch transport route; no process-global state is required for the proposed integration.
+- The renderer's avatar body uses `Mob.skin` and `Mob.slim` for player/mannequin entities. Remote player skin resolution is in `game/remote.rs::update_remote_skins`.
+- Existing `horizon_client::skins::offline_skin()` is a legacy fallback based on `HORIZON_OFFLINE_SKIN`, `HORIZON_OFFLINE_SKIN_MODEL` and a process-global `OnceLock`. It only supplies an offline skin if the local profile has no resolved server/account skin. Reusing it unchanged would not support an immutable per-launch profile selection and would not override a signed-in account skin.
+- `update_remote_skins` resolves server-provided textures, then fills missing local-player skin/cape from the authenticated account profile, and only then applies the legacy offline fallback. The local custom-skin feature therefore needs a deliberate local-player precedence point; it must not rewrite other players' texture entries.
+
+**S3-A design proposal (not applied):** carry an optional local appearance descriptor (validated app-private PNG path plus Classic/Slim model) through the launch request into game options. Decode and normalize it once for that game session, then apply it only to the local player's rendered avatar after ordinary server/account resolution. If no custom skin is selected, preserve current behaviour exactly. Do not alter Microsoft session data, UUID, player name, world files, server packets, remote-player textures or authentication. Avoid environment variables and global `OnceLock` state for Sylphra's selection.
+
+**Validation plan before implementation:** add launch-argument round-trip/omission tests; add a renderer-resolution test proving the custom appearance wins only for the local UUID while remote player skins remain unchanged; validate missing/invalid/oversized/symlink paths fail closed or fall back without corrupting the manifest; then run source checks and all four native ABI checks. APK/device rendering is a separate later gate.
+
+**Status:** investigation completed; no implementation, test execution, CI run, APK build or device verification occurred in this audit. This is a proposal, not an applied change.
