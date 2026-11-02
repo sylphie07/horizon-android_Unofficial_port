@@ -900,11 +900,11 @@ impl Launcher {
             self.catalog.scroll = self
                 .catalog
                 .scroll
-                .clamp(0.0, (19.0 * row_height - (h - 130.0 - 195.0)).max(0.0));
+                .clamp(0.0, (20.0 * row_height - (h - 130.0 - 195.0)).max(0.0));
             self.list_view = Some([
                 195.0,
                 h - 130.0,
-                (19.0 * row_height - (h - 130.0 - 195.0)).max(0.0),
+                (20.0 * row_height - (h - 130.0 - 195.0)).max(0.0),
             ]);
             for (i, (title, value, action)) in [
                 ("Rendering", c.renderer.label().to_owned(), Action::Renderer),
