@@ -674,6 +674,13 @@ fn number_format(f: &play::NumberFormat) -> horizon_client::scoreboard::NumberFo
     }
 }
 
+/// Runtime atlas entries must be marked recently shown so the LRU slot
+/// allocator does not evict a texture that is still rendered.
+fn uses_runtime_skin_slot(skin: &str) -> bool {
+    skin.starts_with("skins/")
+        || matches!(skin, "horizon/offline_skin" | "sylphra/local_skin")
+}
+
 impl Game<'_> {
     /// A `Holder<SoundEvent>` off the wire: an inline event's location, or
     /// the name of a registered one.
@@ -5082,13 +5089,6 @@ impl Game<'_> {
             false
         }
     }
-/// Runtime atlas entries must be marked recently shown so the LRU slot
-/// allocator does not evict a texture that is still rendered.
-fn uses_runtime_skin_slot(skin: &str) -> bool {
-    skin.starts_with("skins/")
-        || matches!(skin, "horizon/offline_skin" | "sylphra/local_skin")
-}
-
     /// A player's skin and model as drawn: the downloaded skin once it is in
     /// the atlas, until then the profile's default (`DefaultPlayerSkin.get`),
     /// as `PlayerInfo.getSkin` gives before the texture has loaded.
