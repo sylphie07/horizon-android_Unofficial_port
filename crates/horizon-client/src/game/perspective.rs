@@ -1169,7 +1169,7 @@ mod preview_tests {
         };
         // A shield and arm can intersect: neither average depth orders both ends.
         let verts = face([1.0, 1.0, -1.0, -1.0]).chain(face([0.0; 4])).collect();
-        let quads = player_preview_quads(verts, glam::Mat4::IDENTITY, None, &Default::default());
+        let quads = horizon_client::mobs::preview::player_preview_quads(verts, glam::Mat4::IDENTITY, None, &Default::default());
         assert_eq!(quads.len(), 2);
         let mut batch = HudBatch::new([320, 240]);
         for (_, p, uv, color) in quads {
@@ -1188,7 +1188,7 @@ mod preview_tests {
     #[test]
     fn the_inventory_preview_is_lit_as_entity_in_ui() {
         // A face looking at the viewer, up, down, to the right and to the left.
-        let shade = |x, y, z| entity_in_ui_shade(glam::Vec3::new(x, y, z));
+        let shade = |x, y, z| horizon_client::mobs::preview::entity_in_ui_shade(glam::Vec3::new(x, y, z));
         assert!((shade(0.0, 0.0, 1.0) - 0.8195).abs() < 1e-3);
         assert_eq!(shade(0.0, -1.0, 0.0), 1.0);
         assert!((shade(0.0, 1.0, 0.0) - 0.4).abs() < 1e-6);
@@ -1318,8 +1318,8 @@ mod preview_tests {
             let gui = glam::Mat4::from_scale(glam::Vec3::new(30.0, 30.0, -30.0))
                 * glam::Mat4::from_rotation_z(std::f32::consts::PI)
                 * glam::Mat4::from_rotation_x(pitch.to_radians());
-            assert!(player_preview_quads(Vec::new(), gui, None, &sprites).is_empty());
-            let quads = player_preview_quads(Vec::new(), gui, Some((0.6, 1.8)), &sprites);
+            assert!(horizon_client::mobs::preview::player_preview_quads(Vec::new(), gui, None, &sprites).is_empty());
+            let quads = horizon_client::mobs::preview::player_preview_quads(Vec::new(), gui, Some((0.6, 1.8)), &sprites);
             assert!(
                 !quads.is_empty(),
                 "inventory projection must not cull all flames"
