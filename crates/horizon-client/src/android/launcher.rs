@@ -607,7 +607,11 @@ impl ApplicationHandler for Launcher {
         self.catalog.poll(&self.home);
         if let Some(notice) = crate::documents::poll() {
             self.catalog.status = notice.text;
-            if notice.changed {
+            if notice.skin_changed {
+                self.catalog.reload_skin_library(&self.home);
+                self.catalog.page = Page::SkinStudio;
+                self.catalog.scroll = 0.0;
+            } else if notice.changed {
                 self.catalog.refresh(&self.home);
                 self.catalog.show_installed(notice.kind);
             }
