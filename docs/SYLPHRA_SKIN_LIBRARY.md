@@ -47,3 +47,41 @@ This change adds a launcher-owned data model for appearance profiles and importe
 - The active profile exposes its own model selection; the independent-profile test now checks both skins and model choices after serialization/reload.
 - Applied in code commit `f6a8624fd8108e3ba77628bfdf6afed6d1e761d2`.
 - Tests remain unexecuted.
+
+
+## S1-B — Android SAF import and Skin Studio UI (2026-11-02)
+
+**Applied in fork branch `android`; current source tip:** `6163699d94f7039deb27bb580bf32affb08e3838`.
+
+### Applied changes
+- `crates/horizon-client/src/android/documents.rs`
+  - Added a separate `ImportKind::Skin` request alongside the existing archive imports.
+  - Reuses Android's existing SAF Activity result bridge and opens the selected `content://` URI through the existing document bridge; it does not derive a filesystem path from the URI.
+  - Reads at most 1 MiB + 1 byte, checks cancellation, then passes bytes through the skin library's PNG decoder/dimension validation and stores them in the app-private skin directory.
+  - Skin imports do not enter mods, resource packs, shaders, worlds, or the game profile's numbered data directory.
+  - Added a distinct `skin_changed` notice so import completion returns to Skin Studio rather than the Installed add-on list.
+- `crates/horizon-client/src/android/catalog.rs`
+  - Added reload/save helpers for the library.
+  - Save is blocked while metadata is unreadable, preventing the fallback default state from overwriting a corrupt or unsupported manifest.
+  - Added a non-tab `SkinStudio` page route; the existing six main navigation tabs remain unchanged.
+- `crates/horizon-client/src/android/launcher_pages.rs`
+  - Added a Settings entry and Skin Studio screen.
+  - Added active appearance profile cycling and creation, PNG import, Classic/Slim toggle, default-skin selection, and selection of imported skins.
+  - Added a read-only warning when the library manifest cannot be loaded.
+- `crates/horizon-client/src/android/launcher.rs`
+  - Reloads the skin library and returns to Skin Studio after a successful SAF skin import.
+
+### Current limitations
+- No thumbnail rendering or 3D preview yet.
+- Skin selection is persisted locally but is **not yet connected to the Android game LaunchRequest or renderer**. The game will not be claimed to use these selected skins yet.
+- Skin deletion/garbage collection and rename controls are not implemented.
+- Compact/landscape UI layout has not been validated on a device.
+- The local custom-skin precedence decision for authenticated play remains pending and has not been changed.
+- No authentication, player UUID, server protocol, world, downloaded resource or add-on import behaviour was intentionally changed.
+
+### Verification boundary
+**Applied:** source and documentation commits exist on fork branch `android`.
+
+**Not verified:** Rust formatting, compilation, unit-test execution, Android source CI, native ABI checks, APK build, installation, SAF behaviour on-device, persistence on-device, UI touch behaviour, preview or in-game appearance. The latest code commit has no reported combined status checks. No passing CI is claimed.
+
+**Next:** inspect the full diff and run the Android source workflow; then pin the reviewed fork revision in Sylphra's authorized branch. Keep preview and runtime application as later, separately validated stages.
