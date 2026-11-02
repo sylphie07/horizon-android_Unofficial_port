@@ -1695,11 +1695,12 @@ impl Launcher {
             Some(Action::SelectSkin(index)) => {
                 if let Some(skin) = self.catalog.skin_library.skins.get(index) {
                     let id = skin.id.clone();
+                    let name = skin.name.clone();
                     let profile = self.catalog.skin_library.active_profile.clone();
                     match self.catalog.skin_library.select_skin(&profile, Some(&id))
                         .and_then(|()| self.catalog.save_skin_library(&self.home))
                     {
-                        Ok(()) => self.catalog.status = format!("Selected skin: {}", skin.name),
+                        Ok(()) => self.catalog.status = format!("Selected skin: {name}"),
                         Err(error) => self.catalog.status = error,
                     }
                 }
@@ -1729,8 +1730,8 @@ impl Launcher {
                 let profiles = &self.catalog.skin_library.profiles;
                 if !profiles.is_empty() {
                     let current = profiles.iter().position(|p| p.id == self.catalog.skin_library.active_profile).unwrap_or(0);
-                    let next = &profiles[(current + 1) % profiles.len()].id.clone();
-                    match self.catalog.skin_library.set_active_profile(next)
+                    let next = profiles[(current + 1) % profiles.len()].id.clone();
+                    match self.catalog.skin_library.set_active_profile(&next)
                         .and_then(|()| self.catalog.save_skin_library(&self.home))
                     {
                         Ok(()) => self.catalog.status = format!("Active appearance profile: {next}"),
