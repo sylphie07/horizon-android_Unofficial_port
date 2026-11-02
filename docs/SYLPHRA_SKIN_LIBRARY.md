@@ -249,3 +249,11 @@ Next: complete the runtime consumer and local-player-only appearance override, t
 - Branding/source CI run `41421058011` passed its source job. Its native matrix was skipped because it was a push-triggered run; do not interpret it as a fresh four-ABI native check.
 - Added manual workflow `.github/workflows/sylphra-test-apk.yml` for a public arm64-v8a release-candidate APK, using isolated application ID `dev.sylphra.android.test` and a cached test-only signing key. It uploads an Actions artifact only; it does not publish a GitHub Release.
 - **Pending verification:** run the workflow, confirm engine resource preparation/build/signing/audit all pass, then install the artifact and test launcher icon plus local Classic/Slim skin application in-world. Remote player skins and multiplayer skin sharing are outside this test.
+
+
+## APK device-test handoff update — 2026-11-02
+
+- First manual arm64 APK workflow run `41423563328` prepared resources, compiled and signed the APK, but failed the final release audit because the audit script hard-coded `dev.horizon.android` and did not accept the intentionally isolated `dev.sylphra.android.test` application ID.
+- Corrected the audit to accept an explicit, validated expected application ID; the build script now passes the configured ID, and a regression test covers both matching and mismatching IDs.
+- These fixes are applied in commits `be270bb`, `110cccc`, and `375a660`, but remain **unverified until source CI and a fresh APK workflow succeed**.
+- No APK artifact was uploaded from the failed run. Device installation and visual/in-game skin testing remain pending.
