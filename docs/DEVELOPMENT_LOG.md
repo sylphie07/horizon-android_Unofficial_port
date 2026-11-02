@@ -229,7 +229,7 @@
 
 ## 2026-11-02 — Sylphra Launcher branding preparation
 
-**Preflight:** verified the maintained fork's current branch tip as `92ef79455ab08a38b82990c8a129e71e8df4cec6` on authorized branch `android`; inspected the existing development log, skin-library notes, Android manifest, Gradle application configuration and APK build script.
+**Preflight:** the branding preparation was performed on the authorized branch `android` (the actual pre-change tip was `56255b98efe9d9a4e3dd1d439e5a1582e63b51d4`; the earlier `92ef794...` note was stale); inspected the existing development log, skin-library notes, Android manifest, Gradle application configuration and APK build script.
 
 **Applied:**
 - `packaging/android/build.gradle`: changed the fallback Android launcher label to `Sylphra Launcher`.
@@ -241,3 +241,16 @@
 **Verification boundary:** the label defaults and build-script argument were inspected as source edits only. No build, APK, install, signing, CI or device verification has been performed. Existing application ID, signing key, authentication, profile data, worlds and network behaviour were not changed.
 
 **Next:** complete the binary icon replacement while preserving the manifest resource name, then prepare the arm64-v8a test APK workflow and verify package/signature isolation before installation.
+
+
+## 2026-11-02 — Sylphra Launcher icon integrated
+
+**Applied:** converted the supplied artwork into a valid optimized 96×96 PNG (RGB palette) and replaced `packaging/android/res/drawable-nodpi/launcher_icon.png`. Kept the existing Android resource name and manifest reference, so no manifest or package-ID changes were needed.
+
+**Commit:** `e1265307675053ccad4321328cc824ff9420190c` (`branding: add Sylphra Launcher icon`).
+
+**Verification:** fetched the resource back from branch `android`; Git blob SHA matches the locally generated PNG (`445a979cae49ba3efd27da5c84db56e3040ceb71`). This confirms the binary resource is present on the branch. It does not yet verify Android packaging, launcher rendering, or device installation.
+
+**Branding state:** app label defaults to `Sylphra Launcher` in Gradle and `tools/android_build.py`; the manifest continues to point to `@drawable/launcher_icon`.
+
+**Next:** prepare an arm64-v8a test APK workflow. Before installation, verify its application ID and signing continuity so it cannot unintentionally replace or conflict with an existing Sylphra/Horizon installation. No APK has been built or published yet.
