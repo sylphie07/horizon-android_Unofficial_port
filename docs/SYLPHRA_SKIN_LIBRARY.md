@@ -85,3 +85,10 @@ This change adds a launcher-owned data model for appearance profiles and importe
 **Not verified:** Rust formatting, compilation, unit-test execution, Android source CI, native ABI checks, APK build, installation, SAF behaviour on-device, persistence on-device, UI touch behaviour, preview or in-game appearance. The latest code commit has no reported combined status checks. No passing CI is claimed.
 
 **Next:** inspect the full diff and run the Android source workflow; then pin the reviewed fork revision in Sylphra's authorized branch. Keep preview and runtime application as later, separately validated stages.
+
+
+## Compact-layout follow-up
+- Skin Studio now uses a compact control layout on short screens, moves the skin list into the remaining viewport, and hides the ordinary footer/status controls while that compact page is open so they do not cover skin-selection rows.
+- Selected-skin text is constrained to avoid overlapping the default-skin action.
+- Applied in fork code commits `ba97c6bed133215430c220c28aeab2c99d03e17b`, `9836de2fe324d6fd38a3c0d2cb994ad7414dad24`, and `34bb922192b987abfd5d0ef0fbc166c4b38fc4ac`.
+- This is source-level layout work only. Touch targets, scrolling and visibility remain unverified on a physical Android device.
