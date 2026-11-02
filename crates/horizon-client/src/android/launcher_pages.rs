@@ -910,8 +910,8 @@ impl Launcher {
                         selected_texture = Some(("horizon/skin0", skin_model));
                     }
                     let cursor = [
-                        self.cursor.0 as f32 / ui.batch.scale,
-                        self.cursor.1 as f32 / ui.batch.scale,
+                        self.cursor.0 as f32 / ui.density,
+                        self.cursor.1 as f32 / ui.density,
                     ];
                     preview.draw(
                         &mut *ui.batch,
