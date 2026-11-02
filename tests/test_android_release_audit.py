@@ -71,6 +71,24 @@ class ReleaseAuditTests(unittest.TestCase):
         report = self.inspect(extra={'lib/arm64-v8a/libtest.so': b'C:/Users/example/.cargo/source.rs\x00' + key})
         self.assertEqual({f['kind'] for f in report['findings']}, {'personal_build_path', 'private_key'})
 
+    def test_audit_accepts_the_explicit_isolated_application_id(self):
+        files = {
+            'AndroidManifest.xml': b'test manifest',
+            'assets/engine-data.zip': archive({'blocks.json': b'{}'}),
+            'assets/bedrock-controls.zip': archive({'LICENSE.md': b'license'}),
+        }
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'test.apk'
+            path.write_bytes(archive(files))
+            with patch.object(audit.subprocess, 'check_output',
+                              return_value="package: name='dev.sylphra.android.test' versionCode='29'"):
+                report = audit.audit(path, Path('aapt2'), app_id='dev.sylphra.android.test')
+                self.assertTrue(report['passed'])
+            with patch.object(audit.subprocess, 'check_output',
+                              return_value="package: name='dev.horizon.android' versionCode='29'"):
+                with self.assertRaisesRegex(ValueError, 'Unexpected Android package identity'):
+                    audit.audit(path, Path('aapt2'), app_id='dev.sylphra.android.test')
+
     def test_nested_traversal_is_rejected(self):
         with self.assertRaises(ValueError):
             self.inspect({'../account.json': b'{}'})
