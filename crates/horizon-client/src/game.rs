@@ -2166,6 +2166,8 @@ struct Game<'a> {
     /// The detail revision, centre and radius `Lod::update` last had covered for.
     lod_covered_at: Option<(u64, (i32, i32), i32)>,
     options: Options,
+    /// Decoded once per game session; only the local avatar may use this image.
+    sylphra_skin_rgba: Option<Vec<u8>>,
     player: Option<PlayerMotion>,
     spawn: Option<Vec3>,
     clock: FixedStep,
@@ -17910,6 +17912,45 @@ fn load_forcefield(root: &std::path::Path) -> (u32, u32, Vec<u8>) {
         .filter(|(w, h, _)| w == h && w.is_power_of_two())
         .unwrap_or((1, 1, vec![0; 4]))
 }
+/// Loads only a library-owned skin file, with bounded dimensions and no symlink
+/// at the skin directory or file. The library uses content-addressed PNG names.
+fn load_sylphra_skin(path: &std::path::Path) -> Option<Vec<u8>> {
+    let parent = path.parent()?;
+    if parent.file_name()?.to_str()? != "skins" {
+        return None;
+    }
+    let name = path.file_name()?.to_str()?;
+    let digest = name.strip_suffix(".png")?;
+    if digest.len() != 64 || !digest.bytes().all(|b| b.is_ascii_hexdigit()) {
+        return None;
+    }
+    let directory = std::fs::symlink_metadata(parent).ok()?;
+    if directory.file_type().is_symlink() || !directory.is_dir() {
+        return None;
+    }
+    let metadata = std::fs::symlink_metadata(path).ok()?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() || metadata.len() > 1024 * 1024 {
+        return None;
+    }
+    let bytes = std::fs::read(path).ok()?;
+    if bytes.len() < 24 || bytes.len() > 1024 * 1024
+        || &bytes[..8] != b"\x89PNG\r\n\x1a\n"
+        || &bytes[12..16] != b"IHDR"
+    {
+        return None;
+    }
+    let width = u32::from_be_bytes(bytes[16..20].try_into().ok()?);
+    let height = u32::from_be_bytes(bytes[20..24].try_into().ok()?);
+    if width != 64 || !matches!(height, 32 | 64) {
+        return None;
+    }
+    let (decoded_width, decoded_height, rgba) = horizon_client::hud::decode_bytes(&bytes).ok()?;
+    if decoded_width != width || decoded_height != height {
+        return None;
+    }
+    horizon_client::skins::process_legacy_skin(width, height, &rgba)
+}
+
 impl<'a> Game<'a> {
     /// A game with no world open, over the loaded resources: the window's,
     /// or an integrated server's on its own thread.
@@ -17949,6 +17990,7 @@ impl<'a> Game<'a> {
         let inventory = vec![None; 36];
         let now = Instant::now();
         let look = options.look;
+        let sylphra_skin_rgba = options.sylphra_skin.as_deref().and_then(load_sylphra_skin);
         let particles = horizon_client::particles::ParticleEngine::new(
             &root,
             &gui.atlas.sprites,
@@ -17987,6 +18029,7 @@ impl<'a> Game<'a> {
             lod_observe: Default::default(),
             lod_covered_at: None,
             options,
+            sylphra_skin_rgba,
             player: None,
             spawn: None,
             clock: FixedStep::default(),
