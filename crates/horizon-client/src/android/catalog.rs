@@ -673,7 +673,7 @@ impl Catalog {
         };
         self.refresh(home);
     }
-    
+
 pub fn edit(&mut self, out: horizon_client::osk::Output, home: &Path) {
         use horizon_client::osk::Output;
         let field = match self.editing {
