@@ -57,3 +57,6 @@ When the notice materially changes, increment `WELCOME_NOTICE_REVISION` so the u
 
 ## CI correction — Android SDK setup
 The native CI matrix run 41389486056 failed before Rust checking because `sdkmanager` was not on PATH (`command not found`). The source validation job passed. The active workflow and packaged source-check workflow now both install Android command-line tools first using `android-actions/setup-android` pinned to `9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407`. The mirrored files were checked for exact content equality. This correction is applied but has not yet been validated by a new workflow run.
+
+## CI follow-up — source pass, native check pending
+Run `41390177748` passed the source job, including the active/exported workflow equality check. Its native matrix was skipped because the run was push-triggered; native checks require manual dispatch with `native_checks=true`. The workflow correction is therefore source-validated, but the Android SDK installation and Rust type-checking remain unverified until that manual matrix completes.
