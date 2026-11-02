@@ -84,7 +84,7 @@ def inspect_payload(path, public=False):
 
 
 def audit(path, aapt2, public=False, app_id='dev.horizon.android'):
-    if not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]*(?:\\.[A-Za-z][A-Za-z0-9_]*)+', app_id):
+    if not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+', app_id):
         raise ValueError('Invalid expected Android package identity')
     report = inspect_payload(path, public)
     badging = subprocess.check_output([str(aapt2), 'dump', 'badging', str(path)], text=True)
