@@ -188,3 +188,15 @@ This entry records an audit and a proposal only. No source implementation or tes
 - No rustfmt, compilation, test execution, CI, APK or device verification has occurred for this implementation yet.
 
 Next: complete the runtime consumer and local-player-only appearance override, then validate the source and four Android ABI checks.
+
+## S3-A2 — local avatar runtime application (2026-11-02)
+
+**Applied on branch `android`:**
+- The Android launch path now carries the selected app-private skin path and the active profile's model to the game options.
+- The game loads the selected PNG once per session, validates the content-addressed filename and skin-directory/file type, enforces the 1 MiB limit and 64×32/64×64 dimensions, then uses the renderer's existing PNG decoder and legacy-skin normalization.
+- The resolved custom texture takes precedence for the local UUID only. Remote player textures and cape handling are not replaced.
+- The active appearance profile's Classic/Slim setting controls the local model.
+
+**Code commits:** `6520b49c29be123c01f01d6f95cad81f265fad8f`, `4452e70a47454580d54c98946ed3f145ba302a3b`.
+
+**Not yet verified:** compilation, formatting, tests, Android CI, atlas eviction/re-upload, APK, and physical-device rendering. Do not treat the selected skin as device-verified until those checks pass. The custom multiplayer relay and server plugin remain separate future work.
