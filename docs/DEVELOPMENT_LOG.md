@@ -225,3 +225,19 @@
 - This verifies the S3-A3 module-scope helper correction and the atlas runtime-slot predicate checks across the configured Android targets. The earlier #92 E0425 failure is resolved by the corrected helper placement.
 - **Verification boundary:** CI did not build an APK and does not verify atlas behaviour or local-skin rendering on a physical device. No APK, install, visual, or multiplayer skin-sharing result is claimed.
 - **Next:** continue with S3-A4: audit the local skin texture lifecycle from session load through atlas insertion, draw/use marking, and eviction/re-upload; then define device validation. Keep remote-player textures, account identity, UUIDs, worlds and protocol unchanged.
+
+
+## 2026-11-02 — Sylphra Launcher branding preparation
+
+**Preflight:** verified the maintained fork's current branch tip as `92ef79455ab08a38b82990c8a129e71e8df4cec6` on authorized branch `android`; inspected the existing development log, skin-library notes, Android manifest, Gradle application configuration and APK build script.
+
+**Applied:**
+- `packaging/android/build.gradle`: changed the fallback Android launcher label to `Sylphra Launcher`.
+- `tools/android_build.py`: made `Sylphra Launcher` the default `--app-name`, so normal local APK builds receive the same launcher label and Sylphra-prefixed artifact naming without requiring an extra argument.
+- The manifest already references `@drawable/launcher_icon`; its resource path is `packaging/android/res/drawable-nodpi/launcher_icon.png`.
+
+**Icon status:** the supplied artwork was inspected (1536×1536 source image). It is a JPEG-encoded image despite the uploaded `.png` filename, so it must be converted to a real PNG before replacing the Android resource. The repository's binary resource has **not** been replaced in this commit; the available GitHub file-edit action supports text files only, so a binary Git object upload is still required. No claim is made that the supplied icon is already in the APK.
+
+**Verification boundary:** the label defaults and build-script argument were inspected as source edits only. No build, APK, install, signing, CI or device verification has been performed. Existing application ID, signing key, authentication, profile data, worlds and network behaviour were not changed.
+
+**Next:** complete the binary icon replacement while preserving the manifest resource name, then prepare the arm64-v8a test APK workflow and verify package/signature isolation before installation.
