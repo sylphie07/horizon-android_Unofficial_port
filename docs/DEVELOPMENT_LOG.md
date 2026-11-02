@@ -367,3 +367,15 @@
 
 **Next:** run Android source checks with `native_checks=true`; inspect the source job and all four ABI jobs. If green, continue with a second isolated pass for hierarchy/spacing and only then build a separate arm64 test APK for device review.
 
+## 2026-11-02 — Sylphra Play page responsive pass 2
+
+**Preflight:** verified repository `sylphie07/horizon-android_Unofficial_port`, authorized branch `android`, HEAD `6f900a14617858c0e741ad3c29894ec47d8837a3`, and inspected the latest commits, `docs/DEVELOPMENT_LOG.md`, and the Android Play renderer. The cancelled test-APK run #4 is not treated as a build result. No changes were made to `main`.
+
+**Applied in code:**
+- `crates/horizon-client/src/android/launcher_pages.rs`: made the Play hero title and subtitle scale down for compact layouts; shortened the compact instructional copy; limited the number of helper rows on short screens; and made the primary Play/download button width fit the available screen width instead of always reserving 320 px.
+- Kept the visual pass confined to the Android launcher renderer. No shared theme tokens, account/authentication, installation, game engine, profile, world, catalog, storage, or gameplay behaviour was changed.
+
+**Verification status:** source edit applied; no compiler, formatter, unit test, CI, APK, or device result is claimed yet. The existing source CI success on parent commit `6f900a1` does not validate this new change.
+
+**Next:** run Android source checks with `native_checks=true`, inspect the source job and all four ABI jobs, then build the isolated arm64 test APK only after CI passes.
+ 
