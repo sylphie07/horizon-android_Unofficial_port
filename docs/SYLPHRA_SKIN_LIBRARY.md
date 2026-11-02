@@ -200,3 +200,10 @@ Next: complete the runtime consumer and local-player-only appearance override, t
 **Code commits:** `6520b49c29be123c01f01d6f95cad81f265fad8f`, `4452e70a47454580d54c98946ed3f145ba302a3b`.
 
 **Not yet verified:** compilation, formatting, tests, Android CI, atlas eviction/re-upload, APK, and physical-device rendering. Do not treat the selected skin as device-verified until those checks pass. The custom multiplayer relay and server plugin remain separate future work.
+
+
+## CI #80 — S3-A2 source checks (2026-11-02)
+- [Android source checks #80](https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/41410958976) passed on commit `6538fde75864f2544d4abb84bd3cc7225604103b`.
+- Passed source checks: diff whitespace validation, public-tree history, Android Python unit tests, diagnostics, performance, content, and workflow-export consistency.
+- Native Rust job was **skipped** on this push-triggered run. This does not yet prove the new S3-A2 Rust runtime integration compiles for Android ABIs. The previous all-ABI pass (#66) predates S3-A2.
+- Next gate: manually dispatch Android source checks with native checks enabled for `arm64-v8a`, `armeabi-v7a`, `x86_64`, and `x86`; then build/install an APK and visually test the local skin on device. Multiplayer sharing remains unimplemented/unverified.
