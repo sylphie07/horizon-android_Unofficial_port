@@ -213,3 +213,15 @@
 - Fix commit: `c968683b6c2f7751beead71976cbd0c025c5fb9f`.
 - **Verification status:** code correction applied, not yet validated by CI. No APK/device verification is claimed.
 - **Next:** rerun Android source checks with `native_checks=true` and inspect source plus all four native jobs.
+
+
+## 2026-11-02 — S3-A3 native Android CI verified
+
+**Observed run:** [Android source checks #96](https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/41417195641), run ID `41417195641`, event `workflow_dispatch`, branch `android`, tested commit `e129c983f7c062624bd1b87490f18224487cb86e`.
+
+- Overall workflow conclusion: `success`.
+- The `source` job passed all checks: `git diff --check`, public-tree history validation, Android Python unit tests, diagnostics, performance, content checks, and workflow-export consistency.
+- All four native Android ABI jobs passed SDK setup, NDK/build-tools installation, and `Check Android Rust code without building an APK`: `arm64-v8a`, `armeabi-v7a`, `x86_64`, and `x86`.
+- This verifies the S3-A3 module-scope helper correction and the atlas runtime-slot predicate checks across the configured Android targets. The earlier #92 E0425 failure is resolved by the corrected helper placement.
+- **Verification boundary:** CI did not build an APK and does not verify atlas behaviour or local-skin rendering on a physical device. No APK, install, visual, or multiplayer skin-sharing result is claimed.
+- **Next:** continue with S3-A4: audit the local skin texture lifecycle from session load through atlas insertion, draw/use marking, and eviction/re-upload; then define device validation. Keep remote-player textures, account identity, UUIDs, worlds and protocol unchanged.
