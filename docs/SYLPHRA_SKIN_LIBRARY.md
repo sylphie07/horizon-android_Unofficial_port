@@ -40,3 +40,10 @@ This change adds a launcher-owned data model for appearance profiles and importe
 - The independent-profile test fixture now uses different PNG pixel data for its two skins, so the test exercises two distinct content IDs rather than accidentally selecting the same hash twice.
 - Applied in fork commit `f126284b7566970e4e81fe2071eae83cd9662bd1`.
 - This is a source/test correction only. The test has not yet been executed.
+
+
+## Per-profile model correction
+- Moved Classic/Slim selection from the shared skin-image record onto each appearance profile. A single PNG can now be selected as Classic in one profile and Slim in another without conflicting metadata.
+- The active profile exposes its own model selection; the independent-profile test now checks both skins and model choices after serialization/reload.
+- Applied in code commit `f6a8624fd8108e3ba77628bfdf6afed6d1e761d2`.
+- Tests remain unexecuted.
