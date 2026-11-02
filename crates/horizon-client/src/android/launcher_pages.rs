@@ -835,10 +835,10 @@ impl Launcher {
             let studio_compact = h < 560.0;
             let title_y = if studio_compact { 128.0 } else { 156.0 };
             let profile_y = if studio_compact { 157.0 } else { 190.0 };
-            let profile_buttons_y = if studio_compact { 178.0 } else { 218.0 };
-            let import_y = if studio_compact { 224.0 } else { 270.0 };
-            let selected_y = if studio_compact { 270.0 } else { 328.0 };
-            let default_y = if studio_compact { 258.0 } else { 352.0 };
+            let profile_buttons_y = if studio_compact { 198.0 } else { 218.0 };
+            let import_y = if studio_compact { 244.0 } else { 270.0 };
+            let selected_y = if studio_compact { 290.0 } else { 328.0 };
+            let default_y = if studio_compact { 278.0 } else { 352.0 };
             ui.text(Face::Medium, 24.0, 32.0, title_y, color::TEXT, "Skin Studio");
             let profile = self.catalog.skin_library.profiles
                 .iter()
@@ -860,13 +860,14 @@ impl Launcher {
             button(&mut ui, &mut self.targets, [w * 0.5 + 8.0, profile_buttons_y, (w - 80.0) * 0.5, 42.0], "New profile", Action::NewAppearanceProfile, false);
             button(&mut ui, &mut self.targets, [32.0, import_y, (w - 80.0) * 0.5, 42.0], "Import PNG skin", Action::ImportSkin, true);
             button(&mut ui, &mut self.targets, [w * 0.5 + 8.0, import_y, (w - 80.0) * 0.5, 42.0], &format!("Model: {model}"), Action::ToggleSkinModel, false);
-            ui.text(Face::Regular, 15.0, 32.0, selected_y, color::MUTED, &format!("Selected: {selected}"));
+            let selected_text = ui.fit_text(Face::Regular, 15.0, &format!("Selected: {selected}"), if studio_compact { w * 0.52 } else { w - 64.0 });
+            ui.text(Face::Regular, 15.0, 32.0, selected_y, color::MUTED, &selected_text);
             if studio_compact {
                 button(&mut ui, &mut self.targets, [w * 0.58, default_y, w * 0.38, 34.0], "Default skin", Action::DefaultSkin, false);
             } else {
                 button(&mut ui, &mut self.targets, [32.0, default_y, w - 64.0, 38.0], "Use Minecraft default skin", Action::DefaultSkin, false);
             }
-            let top = if studio_compact { 300.0 } else { 410.0 };
+            let top = if studio_compact { 320.0 } else { 410.0 };
             let bottom = if studio_compact { h - 12.0 } else { h - 110.0 };
             let row_height = 64.0;
             let count = self.catalog.skin_library.skins.len();
