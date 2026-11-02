@@ -26,8 +26,8 @@ use horizon_world::{
 };
 use std::{
     io,
-    path::{Path, PathBuf},
-    sync::{Arc, Mutex},
+    path::Path,
+    sync::Arc,
 };
 
 /// `Level.clip` with `ClipContext.Block.VISUAL` and no fluids:
@@ -141,81 +141,9 @@ fn own_invisible(effects: &horizon_client::effects::PlayerEffects, shared_flag: 
 fn body_visible(invisible: bool, team: Option<&horizon_client::scoreboard::Team>) -> bool {
     !horizon_client::scoreboard::invisible_to(team, team, false, invisible)
 }
-/// The player's model type for each resources root it was asked for.
-static PLAYER_TYPES: Mutex<Vec<(PathBuf, Option<Arc<MobType>>)>> = Mutex::new(Vec::new());
-
-/// The player's model type (`PlayerModel` with the default skin), read once
-/// per resources root: `entity-models.json` doesn't change while the game
-/// runs, and parsing it again held every world join for about 100 ms. The
-/// world resources read it as the game starts (`load_world_rest`), so a join
-/// finds it; a resource pack change's new root is read once.
+/// The player's model type for each resource root, shared with the launcher preview.
 pub(super) fn player_type(root: &Path) -> Option<Arc<MobType>> {
-    let mut cache = PLAYER_TYPES.lock().unwrap_or_else(|e| e.into_inner());
-    if let Some((_, kind)) = cache.iter().find(|(cached, _)| cached == root) {
-        return kind.clone();
-    }
-    let kind = load_player_type(root);
-    cache.push((root.to_owned(), kind.clone()));
-    kind
-}
-/// `player_type` from the document: the model and its layers from one parse.
-fn load_player_type(root: &Path) -> Option<Arc<MobType>> {
-    let models = horizon_client::mobs::EntityModelDocument::load(root).ok()?;
-    models.model("minecraft:player#main").map(|model| {
-        Arc::new(MobType {
-            id: "minecraft:player".into(),
-            // Players render as a humanoid; the species only drives local AI.
-            species: horizon_client::mobs::Species::Zombie,
-            width: 0.6,
-            height: 1.8,
-            eye_height: 1.62,
-            category: "misc".into(),
-            max_health: 20.0,
-            speed: 0.1,
-            flying_speed: 0.02,
-            attack_damage: 1.0,
-            attack_knockback: 0.0,
-            follow_range: 0.0,
-            step_height: 0.6,
-            armor: 0.0,
-            armor_toughness: 0.0,
-            knockback_resistance: 0.0,
-            jump_strength: 0.42,
-            attributes: Default::default(),
-            gravity: 0.08,
-            safe_fall_distance: 3.0,
-            fall_damage_multiplier: 1.0,
-            water_efficiency: 0.0,
-            water_slowdown: 0.8,
-            air_speed: 0.02,
-            baby_scale: 0.5,
-            head_rot_speed: 10.0,
-            max_head_x_rot: 40.0,
-            max_head_y_rot: 75.0,
-            ambient_interval: 80,
-            flags: Default::default(),
-            model: Arc::new(model),
-            // PlayerModel's slim arms, for slim skins, and PlayerCapeModel.
-            layers: ["player_slim#main", "player#cape"]
-                .into_iter()
-                .filter_map(|key| {
-                    let model = models.model(&format!("minecraft:{key}"))?;
-                    Some((key.to_owned(), Arc::new(model)))
-                })
-                .collect(),
-            texture: "entity/player/wide/steve".into(),
-            brain: Brain::Passive,
-            anim: Anim::Humanoid { zombie_arms: false },
-            sounds: [
-                "entity.player.hurt",
-                "entity.player.hurt",
-                "entity.player.death",
-            ],
-            step_sound: None,
-            food: Arc::from([]),
-            tempt: Arc::from([]),
-        })
-    })
+    horizon_client::mobs::preview::player_type(root)
 }
 fn wrap(d: f32) -> f32 {
     let d = d % 360.0;
@@ -766,7 +694,7 @@ impl Game<'_> {
             .as_ref()
             .filter(|p| p.fire_ticks > 0 && !p.spectator)
             .map(|p| (p.dimensions.width, p.dimensions.height));
-        let quads = player_preview_quads(verts, gui, fire, &atlas.sprites);
+        let quads = horizon_client::mobs::preview::player_preview_quads(verts, gui, fire, &atlas.sprites);
         let start = batch.vertices.len();
         for (_, p, uv, color) in quads {
             batch.quad_3d(p, uv, color);
@@ -1093,68 +1021,6 @@ impl Game<'_> {
 /// (-0.2, -1, 0), with the 0.6 light power and 0.4 ambient. `normal` is the
 /// face's outward normal in the preview's screen space (x right, y down, z
 /// towards the viewer), where a face that looks up has a negative y.
-fn entity_in_ui_shade(normal: glam::Vec3) -> f32 {
-    const LIGHT_0: glam::Vec3 = glam::Vec3::new(0.2, -1.0, 1.0);
-    const LIGHT_1: glam::Vec3 = glam::Vec3::new(-0.2, -1.0, 0.0);
-    let light = LIGHT_0.normalize().dot(normal).max(0.0) + LIGHT_1.normalize().dot(normal).max(0.0);
-    (light * 0.6 + 0.4).min(1.0)
-}
-
-pub(super) fn player_preview_quads(
-    mut verts: Vec<horizon_client::mesher::Vertex>,
-    gui: glam::Mat4,
-    fire: Option<(f32, f32)>,
-    sprites: &std::collections::HashMap<String, horizon_client::hud::Rect>,
-) -> Vec<(f32, [[f32; 3]; 4], [[f32; 2]; 4], u32)> {
-    let flame_start = verts.len();
-    if let Some((width, height)) = fire {
-        horizon_client::fire_render::flames(
-            [0.0; 3],
-            width,
-            height,
-            glam::DVec3::ZERO,
-            0.0,
-            sprites,
-            0xff,
-            &mut verts,
-        );
-    }
-    let mut quads: Vec<(f32, [[f32; 3]; 4], [[f32; 2]; 4], u32)> = Vec::new();
-    for (index, q) in verts.as_chunks::<4>().0.iter().enumerate() {
-        let p: [glam::Vec3; 4] =
-            std::array::from_fn(|i| gui.transform_point3(glam::Vec3::from_array(q[i].pos)));
-        let n = (p[1] - p[0]).cross(p[2] - p[0]);
-        // The winding gives inward normals: faces with n.z >= 0 point away.
-        if n.z >= 0.0 {
-            continue;
-        }
-        let n = n.normalize_or_zero();
-        let shade = if index * 4 >= flame_start {
-            1.0
-        } else {
-            entity_in_ui_shade(-n)
-        };
-        let c = q[0].color;
-        let ch = |s: u32| ((((c >> s) & 255) as f32 * shade) as u32) << s;
-        let color = (c & 0xFF00_0000) | ch(0) | ch(8) | ch(16);
-        let depth = p.iter().map(|v| v.z).sum::<f32>() / 4.0;
-        quads.push((
-            depth,
-            p.map(|v| v.to_array()),
-            std::array::from_fn(|i| q[i].uv),
-            color,
-        ));
-    }
-    // Keep far-to-near order for translucent faces; opaque overlap uses depth.
-    quads.sort_by(|a, b| a.0.total_cmp(&b.0));
-    quads
-}
-
-/// `Entity.turn` adds the turn to `xRotO` as well as to `xRot`, so the local
-/// player's `getXRot(partialTick)` follows the mouse every frame instead of
-/// easing in over a tick (#3844), while a change the tick made itself (the
-/// pitch a sleeper lies at) still eases in. `pitch_o` is the model's old
-/// pitch; without a model the old pitch is the pitch.
 fn turn_rotation(yaw: f32, pitch: f32, pitch_o: Option<f32>, xo: f64, yo: f64) -> Rotation {
     let mut rotation = Rotation {
         x_rot: pitch,
