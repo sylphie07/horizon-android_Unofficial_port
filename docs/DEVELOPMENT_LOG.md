@@ -129,3 +129,24 @@
 **Verification boundary:** edits are committed and source snippets were fetched again for inspection. No formatter, compiler, unit-test execution, CI run, APK build, or device test has yet been run. The parsed per-launch appearance fields are not yet consumed by the renderer, so this does **not** apply the custom skin in-game. File validation/decoding and local-player-only precedence remain the next implementation step.
 
 **Next:** add safe per-session PNG loading/normalization and local-player renderer precedence, preserving account/session identity and all remote player textures; add tests, then run source checks and all four native ABI checks.
+
+## 2026-11-02 — Sylphra S3-A2 local skin runtime connection
+
+**Preflight:** inspected branch `android`, current documentation, launch options, `Game::new`, PNG decoder/skin normalization, and `update_remote_skins`. Starting source tip was `6a384058d119914fa7868b4e39b62b91e16a90c9`.
+
+**Applied source changes:**
+- `crates/horizon-client/src/game.rs`
+  - Loads the selected skin once per game session rather than decoding it on every remote-skin update.
+  - Restricts the selected path to the app-private `skins/<64-hex-content-id>.png` layout.
+  - Rejects symlinked skin directory/file, non-regular files, files above 1 MiB, invalid PNG signatures, and dimensions other than 64×32 or 64×64 before decoding.
+  - Uses the engine PNG decoder and existing legacy-skin normalization.
+- `crates/horizon-client/src/game/remote.rs`
+  - Applies the selected texture after server/account skin resolution, with precedence only for the local UUID.
+  - Leaves remote player skin entries untouched and preserves cape resolution.
+  - Applies the active appearance profile's Classic/Slim metadata to the local avatar.
+
+**Commits:** decoder/session loading `6520b49c29be123c01f01d6f95cad81f265fad8f`; local-avatar precedence `4452e70a47454580d54c98946ed3f145ba302a3b`.
+
+**Verification boundary:** changes are applied to branch `android`; no formatter, Rust compiler, unit tests, Android CI, APK build, or device rendering test has yet been run for S3-A2. In particular, atlas eviction/re-upload behaviour and compilation must be checked before calling this complete. This stage does not change authentication, UUIDs, worlds, or network packets.
+
+**Next:** run formatting and Android source/native CI; address any compile or test failures; then verify local skin visibility, Classic/Slim, default-skin fallback, and unchanged remote-player skins on device.
