@@ -1678,6 +1678,84 @@ impl Launcher {
                 self.catalog.offset = 0;
                 self.catalog.browse(&self.home);
             }
+            Some(Action::SkinStudio) => {
+                self.about_visible = false;
+                self.catalog.editing = None;
+                crate::platform::hide();
+                self.catalog.page = Page::SkinStudio;
+                self.catalog.scroll = 0.0;
+                self.catalog.reload_skin_library(&self.home);
+            }
+            Some(Action::ImportSkin) => {
+                crate::platform::hide();
+                if let Err(error) = crate::documents::begin_skin(self.home.clone()) {
+                    self.catalog.status = error;
+                }
+            }
+            Some(Action::SelectSkin(index)) => {
+                if let Some(skin) = self.catalog.skin_library.skins.get(index) {
+                    let id = skin.id.clone();
+                    let profile = self.catalog.skin_library.active_profile.clone();
+                    match self.catalog.skin_library.select_skin(&profile, Some(&id))
+                        .and_then(|()| self.catalog.save_skin_library(&self.home))
+                    {
+                        Ok(()) => self.catalog.status = format!("Selected skin: {}", skin.name),
+                        Err(error) => self.catalog.status = error,
+                    }
+                }
+            }
+            Some(Action::DefaultSkin) => {
+                let profile = self.catalog.skin_library.active_profile.clone();
+                match self.catalog.skin_library.select_skin(&profile, None)
+                    .and_then(|()| self.catalog.save_skin_library(&self.home))
+                {
+                    Ok(()) => self.catalog.status = "Minecraft default skin selected.".into(),
+                    Err(error) => self.catalog.status = error,
+                }
+            }
+            Some(Action::ToggleSkinModel) => {
+                let model = match self.catalog.skin_library.active_model().unwrap_or_default() {
+                    crate::catalog::skin_library::SkinModel::Classic => crate::catalog::skin_library::SkinModel::Slim,
+                    crate::catalog::skin_library::SkinModel::Slim => crate::catalog::skin_library::SkinModel::Classic,
+                };
+                match self.catalog.skin_library.set_active_model(model)
+                    .and_then(|()| self.catalog.save_skin_library(&self.home))
+                {
+                    Ok(()) => self.catalog.status = format!("Skin model set to {:?}.", model),
+                    Err(error) => self.catalog.status = error,
+                }
+            }
+            Some(Action::NextAppearanceProfile) => {
+                let profiles = &self.catalog.skin_library.profiles;
+                if !profiles.is_empty() {
+                    let current = profiles.iter().position(|p| p.id == self.catalog.skin_library.active_profile).unwrap_or(0);
+                    let next = &profiles[(current + 1) % profiles.len()].id.clone();
+                    match self.catalog.skin_library.set_active_profile(next)
+                        .and_then(|()| self.catalog.save_skin_library(&self.home))
+                    {
+                        Ok(()) => self.catalog.status = format!("Active appearance profile: {next}"),
+                        Err(error) => self.catalog.status = error,
+                    }
+                }
+            }
+            Some(Action::NewAppearanceProfile) => {
+                let mut index = self.catalog.skin_library.profiles.len() + 1;
+                while self.catalog.skin_library.profiles.iter().any(|p| p.id == format!("appearance-{index}")) {
+                    index += 1;
+                }
+                let id = format!("appearance-{index}");
+                let name = format!("Appearance {index}");
+                match self.catalog.skin_library.add_profile(id.clone(), name.clone())
+                    .and_then(|()| self.catalog.skin_library.set_active_profile(&id))
+                    .and_then(|()| self.catalog.save_skin_library(&self.home))
+                {
+                    Ok(()) => {
+                        self.catalog.scroll = 0.0;
+                        self.catalog.status = format!("Created appearance profile: {name}");
+                    }
+                    Err(error) => self.catalog.status = error,
+                }
+            }
             Some(Action::Play) => self.action(events)?,
             Some(Action::Search) => {
                 crate::platform::hide();
