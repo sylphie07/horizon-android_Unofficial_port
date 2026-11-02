@@ -1270,9 +1270,9 @@ impl Launcher {
             ui.rounded(x, y, width, height, 8.0, color::RAISED);
             ui.text(Face::Medium, 24.0, x + 20.0, y + 24.0, color::TEXT, "Welcome to Sylphra");
             let notice = [
-                "Sylphra is an independent, unofficial",
-                "Android launcher based on Horizon Android.",
-                "It is not affiliated with or endorsed by",
+                "Independent, unofficial Android launcher",
+                "based on Horizon Android.",
+                "Not affiliated with or endorsed by",
                 "the Horizon project creators.",
                 "",
                 "Open About Sylphra for full attribution,",
