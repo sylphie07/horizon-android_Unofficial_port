@@ -175,3 +175,15 @@
 - No rendering precedence, PNG validation, authentication, UUID, network, world, or ABI configuration behaviour was changed.
 
 **Verification boundary:** correction is committed to the authorized `android` branch. It has not yet been validated by a new CI run. No successful native compilation, APK build, installation, or device rendering is claimed. Next: rerun the manual workflow with `native_checks=true` and inspect all four ABI jobs.
+
+
+## 2026-11-02 — S3-A2 native Android CI verified after module-path correction
+
+**Observed run:** [Android source checks #86](https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/41413689762), run ID `41413689762`, event `workflow_dispatch`, branch `android`, tested commit `5587f1e670518d447b2ff06e9a74bc6ddcf879a9`.
+
+- Overall workflow conclusion: `success`.
+- The `source` job passed all steps, including `git diff --check`, public-tree history validation, Android Python unit tests, diagnostics, performance, content checks, and workflow-export consistency.
+- All four native Android jobs passed the `Check Android Rust code without building an APK` step: `armeabi-v7a`, `x86`, `arm64-v8a`, and `x86_64`.
+- The common E0433 module-path failure from run #83 was corrected in `crates/horizon-client/src/android/launcher.rs` by referencing `crate::catalog::skin_library::SkinModel`; this run verifies the corrected source passes the configured Rust checks across all four Android targets.
+- **Verification boundary:** this workflow checks Rust code but does not build an APK. APK build/sign/install, local skin rendering, Classic/Slim appearance, fallback behaviour, and unchanged remote-player appearance remain unverified on a physical device. Multiplayer skin sharing remains future work.
+- **Next:** proceed with a narrowly scoped S3-A3 audit for runtime texture lifecycle and local-player rendering correctness before any further code changes. Preserve account/session identity, UUIDs, worlds, remote-player textures, and network protocol.
