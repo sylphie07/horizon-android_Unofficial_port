@@ -628,3 +628,17 @@
 **Known limitation:** actual player skin layer visibility (hat, jacket, sleeves, trousers) is still not implemented. The current preview renderer submits the baked player model as one body model, and the generic entity layer path does not expose these skin parts as independent overlays. The next investigation must identify the baked player model's child-part structure and implement visibility without changing the in-game player renderer or inventory preview. Do not add nonfunctional toggles.
 
 **Next:** inspect source CI for this push; fix any compile/test failures; then implement isolated preview-only model-part visibility if the model data supports it. Native four-ABI checks and a test-only APK/device test remain required before declaring Skin Studio complete.
+
+
+## Skin Studio — functional layer visibility controls (2026-11-03)
+
+**Applied on branch `android`:**
+- `crates/horizon-client/src/android/launcher.rs`: stores a preview-only hidden-part bitmask; clears an active preview gesture on focus loss.
+- `crates/horizon-client/src/android/launcher_pages.rs`: added six functional controls for Hat, Jacket, Left sleeve, Right sleeve, Left pants and Right pants. The selected/visible state is reflected by the button styling and status message.
+- `crates/horizon-client/src/mobs/preview.rs`: passes the bitmask to the cloned preview mob's existing `hidden_model_parts` field. The existing player animation visibility logic applies the same vanilla player-part flags to the preview model. No gameplay entity is modified.
+
+**Code commits:** `ea74fc3299088746d13f458a900d3e6802a80e7b`, `28dfe575cbab230afb54834571cb6179a4a4080f`, `3db7cd5ce8f1c30ab58078d888c45b427a4f8820`, followed by fixes `c65d5f3fe6b20c4928e8e01a720e325c51e9212e`, `1d1baca8f6af2007dc498e105b3a71e13132f724`, and `b1b8f0918902e5e525a9f1f89f8f5ad01d7e2d43`.
+
+**Technical basis:** `MobExtra.hidden_model_parts` already represents the vanilla `PlayerModelPart` bit flags, and `mobs/anim.rs::player_model_visibility` maps bits 1..6 to jacket, left/right sleeves, left/right pants and hat. The Skin Studio now controls those bits on its private preview clone only. This is preferable to inventing separate render layers.
+
+**Verification:** code is applied, but formatting, Rust compilation, unit tests, Android ABI CI and physical-device testing have not yet been verified. Push-triggered source runs were cancelled by subsequent rapid commits; a clean run must be observed on the final documented tip. Native four-ABI checks require the manual `native_checks=true` workflow dispatch.
