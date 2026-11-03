@@ -157,3 +157,11 @@
 - The screenshot's original failure was confirmed in geometry: layer buttons were drawn at y≈default_y+56..+83 and +86..+113, while the list began at preview bottom +16; on wide layout those ranges intersected. New ordering removes that intersection.
 - User also reports 3D player preview remains unavailable after several game launches. Current code tries `PlayerPreview::load(home/.local/horizon-client/VANILLA_VERSION)` only on entering Skin Studio. Verify `EntityModelDocument::load` expected root and actual installer output before changing lifecycle; avoid a per-frame disk-load loop.
 - No APK or physical-device validation yet. Do not sync to Sylphra until source/native CI passes.
+
+
+## Continuity — Skin Studio preview diagnostics (2026-11-03)
+- Latest code commit at this stage: 98dbcb1bc8e5c3a9e845a748f19a4cb4f67b4d59 (preview diagnostic UI); preceding loader change: e61382bd0e6816b2b1ec0fefb332a305e7c1ddf9.
+- The preview loader now returns the underlying entity-models.json read/parse error or missing player-model-key error, and the UI logs/displays it. It does not claim successful rendering. Failed loads are retryable on a later Skin Studio visit; successful models are cached.
+- Skin list overlap fix is included on this branch: separate six-button layer strip and compact clipped list below it.
+- Source workflow #214 (41698244902) was queued for the latest code commit; verify its final result before proceeding. Native ABI matrix, APK and device test remain unverified.
+- Required next action: obtain the exact diagnostic from a test run and fix the root cause; do not introduce blind launch retries. Integrate the fork tip into Sylphra only after source/native checks and document the exact gitlink.
