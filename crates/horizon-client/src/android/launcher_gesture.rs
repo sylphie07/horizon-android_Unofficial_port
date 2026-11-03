@@ -1,3 +1,9 @@
+/// A touch drag may scroll a list only when it began inside the list's
+/// horizontal and vertical viewport. Coordinates are in logical UI units.
+pub(super) fn contains_origin(view: [f32; 5], x: f64, y: f64) -> bool {
+    let [left, top, right, bottom, _] = view;
+    x >= left as f64 && x <= right as f64 && y >= top as f64 && y <= bottom as f64
+}
 //! Track total drag distance separately from per-event scroll deltas.
 /// Scroll only enough to reveal the selected row, retaining the current offset.
 pub(super) fn reveal(scroll: f32, row: [f32; 4], view: [f32; 3]) -> f32 {
@@ -24,6 +30,10 @@ impl Drag {
             previous_y: y,
             moved: false,
         }
+    }
+
+    pub(super) fn origin_x(&self) -> f64 {
+        self.origin[0]
     }
 
     pub(super) fn origin_y(&self) -> f64 {
@@ -77,6 +87,18 @@ mod tests {
         assert!(drag.moved);
         assert_eq!(drag.origin_y(), 300.0);
         assert_eq!(drag.update(100.0, 290.0, 1.0), -5.0);
+    }
+
+
+    #[test]
+    fn drag_origin_must_be_inside_both_viewport_axes() {
+        let view = [24.0, 140.0, 720.0, 680.0, 320.0];
+        assert!(contains_origin(view, 24.0, 140.0));
+        assert!(contains_origin(view, 500.0, 400.0));
+        assert!(!contains_origin(view, 23.9, 400.0));
+        assert!(!contains_origin(view, 720.1, 400.0));
+        assert!(!contains_origin(view, 500.0, 139.9));
+        assert!(!contains_origin(view, 500.0, 680.1));
     }
 
     #[test]
