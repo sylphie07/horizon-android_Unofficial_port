@@ -216,3 +216,14 @@
 - Next: source checks + all four native ABIs; then isolated arm64 test APK and device check. No Sylphra submodule sync or Release publication.
 
 - Final geometry follow-up: commit `c88c2a7601c5016577d7bdf73bde3d161b7d1e02` extends the wide preview and skin-list viewport to `h - 12`, instead of the shorter generic content rectangle, to reclaim the unused lower area shown in the reference screenshot. Not yet compiled or device-verified.
+
+
+## Sylphra launcher visual identity and build-channel news (2026-11-03)
+- User supplied Minecraft Java Launcher screenshot as visual reference. Applied a Sylphra-specific charcoal/green palette in `launcher_pages.rs`; it does not recolor shared Horizon UI theme or in-game HUD.
+- Wide sidebar now places account/profile above navigation. Play home has a Java-inspired hero composition, a Files shortcut and a prominent right-aligned green Play button. Sylphra's own layout and existing game launch action are preserved; no fake Multiplayer shortcut was added because there is no separate launcher multiplayer action in the current code.
+- Added `Page::News` gated by compile-time `SYLPHRA_BUILD_CHANNEL`: stable/release excludes News from navigation; beta/development includes it. `crates/horizon-client/build.rs` validates the allowed channel names and defaults to stable. The isolated test APK workflow sets `development`; a beta APK workflow is not yet present.
+- News content comes from `docs/SYLPHRA_DEVELOPMENT_NEWS.md` and is scrollable. It distinguishes PROPOSED, IN PROGRESS, APPLIED — UNVERIFIED and VERIFIED; includes tester/contributor guidance.
+- Code commits: `ec75e42585a62b730b24bd86d9af66addf1e0f0e`, `df7b9d5f8b3789a3a9a088c903968e32a8cd0cb4`, `51364b6eaabc3b103a1edddb4161edd182ba488a`, `427a9803d5864318aa013fdcd67e8f35fcbc4179`, `351aea1d323dd6cc85c7adf39fadba310b8dbbcd`, `e3762924902159ee1d1f1675983a0c30cf1133b5`, `e8c9c5e424cf74d9671b1c25177f5002c3bfeb95`.
+- Development log entry committed as `33f6809fa5cfbae29632f59f5b067fe0a103484c`.
+- **Not yet verified:** rustfmt, compilation, tests, source CI, four-ABI native checks, APK build/install, or device appearance/interaction. No beta workflow was created. Do not sync the Sylphra submodule or publish a Release before validation and explicit authorization.
+- Next: run Android source checks and native checks for arm64-v8a, armeabi-v7a, x86 and x86_64; then build the isolated development APK and review UI/device behaviour. Also validate the player-model first-install preflight from the prior Skin Studio task in the same APK.
