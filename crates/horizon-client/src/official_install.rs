@@ -492,6 +492,19 @@ pub fn install_with_progress(home: &Path, progress: impl Fn(InstallProgress) + S
         if !stage.join("horizon-resources.json").is_file() {
             return Err("APK has no engine data for this version".into());
         }
+        // Skin Studio uses the same pinned engine resources as the game. Verify
+        // the player model during the first resource installation so a missing
+        // model is detected before the user opens Skin Studio. This does not
+        // download a duplicate model or make the game install depend on preview.
+        match crate::mobs::preview::PlayerPreview::load(&stage) {
+            Ok(_) => {
+                fs::write(stage.join("skin-preview-ready.json"), b"{\"schema\":1}")?;
+                log::info!("Skin Studio player model is available in the installed engine resources");
+            }
+            Err(error) => {
+                log::warn!("Skin Studio player model is unavailable in the installed engine resources: {error}");
+            }
+        }
         if cfg!(feature = "audio") {
             fs::write(stage.join("audio-complete.json"), b"{}")?;
         }
