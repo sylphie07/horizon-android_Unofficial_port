@@ -282,6 +282,7 @@ impl Launcher {
                     match page {
                         Page::Installed => "Files",
                         Page::SkinStudio => "Skins",
+                        Page::Shaders => "FX",
                         Page::Settings => "Setup",
                         _ => page.name(),
                     }
