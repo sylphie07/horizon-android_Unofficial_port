@@ -193,3 +193,12 @@
 - Development log records the exact failed run and correction in commit `1906443271fe3a430e655fc7ed3938f2a23fcf3c`.
 - Current status: correction committed; not yet rerun or CI-verified. Branch remains `android`; no Sylphra submodule sync, APK artifact, install, or public release has occurred.
 - Next: run the Android source checks to validate Python tests/workflow consistency, then manually dispatch `Sylphra Launcher test APK` on branch `android`. Inspect artifact/signature/manifest before asking for device validation.
+
+
+## Skin Studio — preview enlargement and diagnostic persistence (2026-11-03)
+- User installed the preceding test APK and confirmed the controls/list are better arranged, but the 3D preview remains too small and the generic model-not-loaded message persists. Screenshot: 1536×691; the prior wide preview height was fixed at 194 units and the renderer capped mannequin scale at 112 units.
+- Applied code on authorized branch `android`: responsive preview height (wide: 42% of viewport, 260–340; stacked: 30%, 180–260), larger mannequin transform (up to 220 units, 72% of viewport height), and dedicated `skin_preview_error` state so the full load failure is not overwritten by ordinary catalog status updates.
+- Code commits: `81d6dc29457b127de3af02b0d0fee8607091c4fb`, `e7a64827dfa56ce795eb732275884104614d5f55`, `6c4ac1d99932a5d6587d27d44b3a22cf1baa8c17`, `91aa7a24dac5cae75cdb455b88fe66881b435a1e`.
+- Documentation log entry committed as `5e8257aba72563761e4ba21203489bca4ff9296b`.
+- **Not yet verified:** formatting, Rust compile, tests, source CI, four-ABI native CI, APK build, or device behavior for these changes. The underlying player-model resource failure is still unknown.
+- Next: run source checks and native matrix, build/audit the isolated arm64 test APK, then read the persistent diagnostic from the device and fix the actual resource path/load issue. No Sylphra submodule sync or Release publication.
