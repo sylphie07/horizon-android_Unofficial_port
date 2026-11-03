@@ -49,3 +49,10 @@ The original preflight status above is historical. Current progress:
 - **Not yet done:** About and Play page migration; footer/status and scrollbar content bounds; x-aware list drag regions; final focus/controller/modal audit; expanded phone navigation and wide-screen sidebar.
 - **Not verified:** current geometry stages have no new native four-ABI run, APK or physical-device visual/input validation. Do not activate adaptive navigation until these gates are complete.
 - Background image/GIF/video customization remains deferred until navigation redesign is finished.
+
+
+## Progress update — stages 7–8 (2026-11-03)
+- **Applied:** About page title/body/scroll viewport/actions, Play hero panel/progress/actions, and global footer/status/GitHub control now derive from `LauncherLayout.content_rect`.
+- **Applied correction:** static review found the footer bounds were scoped inside a conditional despite being used by the GitHub action outside it. Commit `b1980e9` moved the declarations to the enclosing scope. This was corrected before claiming a successful check.
+- **CI:** source run #175 (`41581418514`) passed on preceding commit `9c04410`; it does not validate the corrected HEAD. Run #174 was cancelled during overlapping push delivery. Fresh source CI required.
+- **Next:** X-aware list viewport and drag-origin checks, then final modal/scrollbar/focus/gamepad/touch audit. Sidebar and expanded phone navigation remain disabled until those steps and native checks pass.

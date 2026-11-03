@@ -552,3 +552,18 @@
 **Not verified:** this push workflow does not run the native ABI matrix. No Rust formatter, Rust Android compile, APK, installation or device visual/touch test is claimed.
 
 **Next:** migrate About and Play content to shared bounds; then audit footer/status, scrollbar and list drag hit regions, modal overlays, keyboard/gamepad focus and touch gestures. Enable the wide-screen sidebar only after all page families and input geometry are migrated and native checks pass.
+
+
+## 2026-11-03 — About, Play and footer geometry (stages 7–8)
+
+**Preflight:** checked branch `android`, current source and previous continuity/plan. Starting source tip was `051fb1d419f587b4cd0375ef20efc237ef0ad50b`.
+
+**Applied in `crates/horizon-client/src/android/launcher_pages.rs`:** About content and buttons now use shared content bounds; Play panel, progress controls, text and primary button derive horizontal placement/width from the content rectangle; the status footer and Horizon GitHub action derive their horizontal bounds from the same content rectangle. Existing coordinates are preserved with the current non-sidebar layout.
+
+**Commits:** initial page migration `9c04410b6c17e7afe3860cd2889b7ff124573dee`; static-review correction `b1980e9c8803ca5bb3caeda942158e05aa2a884a` moved footer geometry declarations into the enclosing scope so the GitHub button can access them.
+
+**CI history:** run #174 was cancelled during overlapping push delivery. Run #175 (`41581418514`) completed successfully on the preceding `9c04410` commit, not the corrected HEAD. A fresh source run is required for `b1980e9` and this documentation tip.
+
+**Not verified:** Rust formatting/compile, native ABI matrix, APK, installation or visual/touch behaviour on device.
+
+**Next:** migrate list viewport hit regions to include X bounds, update drag-origin checks, then audit dialogs, scrollbar position, focus navigation and touch gestures before enabling adaptive navigation.

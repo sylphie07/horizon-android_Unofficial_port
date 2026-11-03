@@ -106,3 +106,13 @@
 - Android source checks #172, run `41580868881`, completed successfully on that code commit. Diff check, public-tree history, Android Python unit tests, diagnostics, performance, content and workflow-export consistency all passed.
 - The workflow has no native ABI jobs on push; Rust formatting/compile, native matrix, APK and device validation remain unverified for this stage.
 - Next: migrate About content/list/actions and Play hero content to the shared rectangle; then align footer/status and scrollbar bounds, audit touch drag origins/gamepad focus and modal behaviour before enabling sidebar/adaptive navigation.
+
+
+## About, Play and footer shared geometry — stages 7–8 (2026-11-03)
+- Migrated About title, body width, scroll viewport and Back/Sylphra GitHub actions to `LauncherLayout.content_rect`.
+- Migrated Play hero panel, accent rail, content origin, progress bar, progress text and Play button width/position to shared content bounds.
+- Migrated global status text and Horizon GitHub button to the content rectangle so the footer can follow a future sidebar layout.
+- Code commits: `9c04410b6c17e7afe3860cd2889b7ff124573dee` and scope correction `b1980e9c8803ca5bb3caeda942158e05aa2a884a`.
+- Static review caught a footer-bound variable declared inside a conditional but used after it; moved the bounds into the enclosing draw scope in `b1980e9`. No compiler failure is claimed; the initial run #174 was cancelled by overlapping push delivery. Run #175 (`41581418514`) passed source checks on the preceding `9c04410` commit, not the corrected HEAD.
+- Current branch HEAD `b1980e9` requires a fresh source run. Native Rust/ABI, APK and device validation remain unverified.
+- Next: make list viewport hit regions X-aware, then audit modal/focus/scrollbar/touch behaviour before enabling the phone and sidebar navigation modes.
