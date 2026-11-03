@@ -681,3 +681,10 @@
 - Source checks: success. Native ABI checks: x86 (i686-linux-android), arm64-v8a (aarch64-linux-android), x86_64 (x86_64-linux-android), armeabi-v7a (armv7-linux-androideabi) all success.
 - Confirms the previous E0308 mismatch is corrected at the gameplay compatibility boundary while retaining the detailed Result in the Skin Studio preview loader.
 - Next: run isolated test APK workflow, audit APK contents/signature/metadata and only then request device test. The 3D preview itself remains unverified on-device.
+
+
+## Test APK workflow failure: republished Minecraft manifest (2026-11-03)
+- Observed workflow run #9 (`41720733718`) on branch `android`, commit `c549ea195131c743420df5d39f2188d4f271e9eb`: setup steps succeeded, but `Prepare pinned Minecraft-derived engine tables` failed before APK compilation. Build and artifact upload were skipped.
+- Exact cause: `tools/android_prepare.py` selected the live Mojang version-catalog entry for 26.3 and downloaded its current JSON (SHA-1 `80608ff6753705b6a82e2cb86a5937d4d233abd4`). `horizon-prepare` rejected it because it is not among the engine's accepted manifests. The repository lock already pins the canonical manifest SHA-1 `11f1aefe473eefba0af62e3286c33b692807b2eb` and Mojang immutable package URL.
+- Correction applied in commit `8cbd2ead693b8e03bcedad3e6ef251fbab39d88a`: preparation now downloads the version JSON from the immutable package URL constructed from `research-lock.json`'s `manifest_sha1`, and verifies it against that same pin. This removes dependence on a mutable version-catalog URL while preserving checksum verification and the existing client/server jar pins.
+- Status: source edit applied; no rerun or APK build has yet verified the correction. Next: run source checks / Python syntax and then dispatch the isolated test APK workflow. Do not sync the submodule into Sylphra or publish a release until the APK and device gates pass.
