@@ -23,12 +23,13 @@
 - This navigation pass only changes page order and the compact Shaders label. The renderer still uses a single horizontal tab row; a Java-style wide-screen sidebar and a more spacious phone navigation pattern are not implemented yet.
 
 ## Verification state
-- Android source-check run `41523801686` passed on commit `2b1f4e43afbe753dab9be12a8a4f6e717e236cd0`.
-- In that run, all source checks passed; native matrix was skipped because the event was a push, not a manual dispatch with `native_checks=true`.
-- That CI result predates the Settings pass and does not validate it.
-- No formatter, Rust compile, unit test, APK build, install, or device verification is claimed for the latest Settings pass.
+- Latest source commits for the navigation priority pass: `ccb89774e6db8192c2420ed2d5525598fa7ca5f7` (page order) and `ddb17228df9c194bd7317be96bcf442c09490654` (compact Shaders label).
+- Documentation commits for this pass: `320a8cc1ecda223f575512054cf622f20da212af` (development log) and the current continuity update follows.
+- Source files were fetched again from branch `android`; the seven-page order and compact `FX` label are present.
+- No CI status checks were attached to the current documentation HEAD when queried. No formatter, Rust compile, unit test, APK build, install, or device verification is claimed for this navigation pass.
 - Required next validation: manually run **Android source checks** on branch `android` with `native_checks=true`; inspect `source`, `armeabi-v7a`, `arm64-v8a`, `x86`, and `x86_64` jobs.
-
+- The earlier run `41523801686` is historical and does not validate these latest navigation commits.
+ 
 ## APK workflow
 - Test-only workflow: `.github/workflows/sylphra-test-apk.yml`.
 - Manual dispatch on branch `android` only, arm64-v8a only.
