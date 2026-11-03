@@ -127,6 +127,7 @@ struct LauncherLayout {
     tab_rect_y: f32,
     tab_rect_height: f32,
     content_top: f32,
+    content_rect: [f32; 4],
 }
 impl LauncherLayout {
     fn new(width: f32, _height: f32) -> Self {
@@ -144,6 +145,7 @@ impl LauncherLayout {
             tab_rect_y: 88.0,
             tab_rect_height: 42.0,
             content_top: 144.0,
+            content_rect: [20.0, 144.0, (width - 40.0).max(0.0), ( _height - 244.0).max(0.0)],
         }
     }
 }
@@ -782,8 +784,8 @@ impl Launcher {
             );
         } else if page == Page::Installed {
             use horizon_client::content_files::Kind;
-            let top = 156.0;
-            let bottom = h - 100.0;
+            let top = layout.content_rect[1] + 12.0;
+            let bottom = layout.content_rect[1] + layout.content_rect[3];
             let row_height = if compact { 110.0 } else { 72.0 };
             let total = Kind::ALL
                 .iter()
