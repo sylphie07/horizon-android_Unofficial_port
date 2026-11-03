@@ -599,3 +599,16 @@
 **Boundary:** this workflow checks native Rust code; it does not produce an APK. No APK build, artifact, manifest/package audit, install or physical-device interaction has been run or verified.
 
 **Next:** use the separate manual test-only APK workflow on branch `android`; do not publish a Release. After artifact audit, request device validation. Background image/GIF/video remains deferred.
+
+
+## Skin Studio responsive preview — 2026-11-03
+
+**Applied on branch `android`:**
+- Replaced the Skin Studio's fixed 144-unit preview column with a responsive layout: on sufficiently wide viewports the preview column receives 40% of the available content width; narrower viewports use a stacked preview instead of hiding it.
+- Reordered the profile, import/model, selected-skin and default-skin controls to avoid the previous compact-layout overlap between the selected label and Default button.
+- The 3D mannequin now scales from the available preview rectangle, with bounded minimum/maximum scale, instead of a fixed 78-unit transform.
+- The preview still uses the shared player model and selected Classic/Slim skin path. No skin-layer toggles or drag-rotation behavior were added in this pass.
+
+**Commits:** responsive page layout `170326f09ca0e19641925fb256a9c9ce25fad1e6`; preview scaling `7218728c11abbb39b977c7e1149a830a382deae5`.
+
+**Verification status:** source changes are applied, but formatting, compilation, unit tests, Android ABI CI, APK build, and physical-device layout checks have not yet been run. Do not treat the responsive design as verified until CI and device checks pass. The player renderer currently returns no extra render layers for avatar/player entities, so meaningful hat/jacket/sleeve/pants toggles require a separate renderer-level implementation; decorative toggles are intentionally deferred. Touch drag still uses pointer-position look-at behavior and needs a separate interaction change.
