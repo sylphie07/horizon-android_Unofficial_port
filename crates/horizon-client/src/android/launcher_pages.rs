@@ -535,10 +535,14 @@ impl Launcher {
                 );
             }
         } else if page.is_catalog() {
+            let content_left = layout.content_rect[0] + 12.0;
+            let content_right = layout.content_rect[0] + layout.content_rect[2] - 12.0;
+            let action_x = content_right - 130.0;
+            let search_x = content_right - 170.0;
             ui.text(
                 Face::Medium,
                 18.0,
-                32.0,
+                content_left,
                 142.0,
                 color::TEXT,
                 if page == Page::Mods {
@@ -552,7 +556,7 @@ impl Launcher {
             button(
                 &mut ui,
                 &mut self.targets,
-                [32.0, 174.0, w - 240.0, 44.0],
+                [content_left, 174.0, search_x - content_left - 18.0, 44.0],
                 &format!(
                     "{}{}",
                     if page == Page::Mods {
@@ -568,7 +572,7 @@ impl Launcher {
             button(
                 &mut ui,
                 &mut self.targets,
-                [w - 190.0, 174.0, 158.0, 44.0],
+                [search_x, 174.0, 158.0, 44.0],
                 if page == Page::Mods && self.catalog.query.trim().starts_with("https://") {
                     "Import .hmod"
                 } else {
@@ -579,9 +583,9 @@ impl Launcher {
             );
             if matches!(page, Page::Shaders | Page::Mods) {
                 use crate::shader_catalog::Origin;
-                let width = ((w - 185.0) / 2.0).clamp(58.0, 120.0);
+                let width = ((content_right - content_left - 12.0) / 2.0).clamp(58.0, 120.0);
                 for (i, origin) in [Origin::Horizon, Origin::Modrinth].into_iter().enumerate() {
-                    let rect = [w - 32.0 - (2 - i) as f32 * width, 134.0, width - 5.0, 32.0];
+                    let rect = [content_right - 12.0 - (2 - i) as f32 * width, 134.0, width - 5.0, 32.0];
                     button(
                         &mut ui,
                         &mut self.targets,
@@ -621,18 +625,18 @@ impl Launcher {
                 Page::Shaders => "Horizon native .hshader packs",
                 _ => "Verified downloads / enable in Installed",
             };
-            let hint = ui.fit_text(Face::Regular, 14.0, hint, w - 64.0);
-            ui.text(Face::Regular, 14.0, 32.0, 270.0, color::MUTED, &hint);
+            let hint = ui.fit_text(Face::Regular, 14.0, hint, content_right - content_left);
+            ui.text(Face::Regular, 14.0, content_left, 270.0, color::MUTED, &hint);
             let kind = match page {
                 Page::Mods => horizon_client::content_files::Kind::Mods,
                 Page::Shaders => horizon_client::content_files::Kind::Shaders,
                 _ => horizon_client::content_files::Kind::Packs,
             };
-            let file_button_width = ((w - 72.0) / 2.0).min(158.0);
+            let file_button_width = ((content_right - content_left - 24.0) / 2.0).min(158.0);
             button(
                 &mut ui,
                 &mut self.targets,
-                [32.0, 222.0, file_button_width, 38.0],
+                [content_left, 222.0, file_button_width, 38.0],
                 "Open folder",
                 Action::OpenFolder(kind),
                 false,
@@ -640,7 +644,7 @@ impl Launcher {
             button(
                 &mut ui,
                 &mut self.targets,
-                [w - 32.0 - file_button_width, 222.0, file_button_width, 38.0],
+                [content_right - 12.0 - file_button_width, 222.0, file_button_width, 38.0],
                 "Import file",
                 Action::Import(kind),
                 false,
@@ -688,14 +692,14 @@ impl Launcher {
                 if y < top - 1.0 || y + 68.0 > bottom {
                     continue;
                 }
-                let title = ui.fit_text(Face::Medium, 19.0, title, w - 214.0);
-                let summary = ui.fit_text(Face::Regular, 14.0, description, w - 214.0);
-                ui.text(Face::Medium, 19.0, 32.0, y, color::TEXT, &title);
-                ui.text(Face::Regular, 14.0, 32.0, y + 29.0, color::MUTED, &summary);
+                let title = ui.fit_text(Face::Medium, 19.0, title, action_x - content_left - 32.0);
+                let summary = ui.fit_text(Face::Regular, 14.0, description, action_x - content_left - 32.0);
+                ui.text(Face::Medium, 19.0, content_left, y, color::TEXT, &title);
+                ui.text(Face::Regular, 14.0, content_left, y + 29.0, color::MUTED, &summary);
                 button(
                     &mut ui,
                     &mut self.targets,
-                    [w - 150.0, y, 118.0, 42.0],
+                    [action_x, y, 118.0, 42.0],
                     if self.catalog.bundled_enabled.contains(*id) {
                         "Disable"
                     } else {
@@ -714,24 +718,24 @@ impl Launcher {
                         && p.source == crate::browser::SourceId::Modrinth)
                 {
                     self.list_targets
-                        .push(([w - 150.0, y, 118.0, 70.0], Action::Install(i)));
+                        .push(([action_x, y, 118.0, 70.0], Action::Install(i)));
                 }
                 if y < top || y + 70.0 > bottom {
                     continue;
                 }
-                let title = ui.fit_text(Face::Medium, 19.0, &p.title, w - 214.0);
-                let summary = ui.fit_text(Face::Regular, 14.0, &p.summary, w - 214.0);
-                ui.text(Face::Medium, 19.0, 32.0, y, color::TEXT, &title);
-                ui.text(Face::Regular, 14.0, 32.0, y + 29.0, color::MUTED, &summary);
+                let title = ui.fit_text(Face::Medium, 19.0, &p.title, action_x - content_left - 32.0);
+                let summary = ui.fit_text(Face::Regular, 14.0, &p.summary, action_x - content_left - 32.0);
+                ui.text(Face::Medium, 19.0, content_left, y, color::TEXT, &title);
+                ui.text(Face::Regular, 14.0, content_left, y + 29.0, color::MUTED, &summary);
                 if let Some(state) = download {
-                    ui.text(Face::Medium, 16.0, w - 150.0, y + 12.0, color::TEXT, &state);
+                    ui.text(Face::Medium, 16.0, action_x, y + 12.0, color::TEXT, &state);
                 } else if p.kind == crate::browser::Kind::Mod
                     && p.source == crate::browser::SourceId::Modrinth
                 {
                     ui.text(
                         Face::Regular,
                         14.0,
-                        w - 150.0,
+                        action_x,
                         y + 12.0,
                         color::MUTED,
                         "Java mod",
@@ -740,7 +744,7 @@ impl Launcher {
                     ui.text(
                         Face::Regular,
                         14.0,
-                        w - 150.0,
+                        action_x,
                         y + 12.0,
                         color::MUTED,
                         ".hnmod: later",
@@ -750,7 +754,7 @@ impl Launcher {
                     ui.text(
                         Face::Regular,
                         14.0,
-                        w - 150.0,
+                        action_x,
                         y + 12.0,
                         color::MUTED,
                         "64-bit required",
@@ -759,7 +763,7 @@ impl Launcher {
                     button(
                         &mut ui,
                         &mut self.targets,
-                        [w - 150.0, y, 118.0, 42.0],
+                        [action_x, y, 118.0, 42.0],
                         self.catalog.install_button(p),
                         Action::Install(i),
                         false,
@@ -769,7 +773,7 @@ impl Launcher {
             button(
                 &mut ui,
                 &mut self.targets,
-                [32.0, h - 100.0, 120.0, 40.0],
+                [content_left, h - 100.0, 120.0, 40.0],
                 "Previous",
                 Action::Previous,
                 false,
@@ -777,7 +781,7 @@ impl Launcher {
             button(
                 &mut ui,
                 &mut self.targets,
-                [166.0, h - 100.0, 120.0, 40.0],
+                [content_left + 134.0, h - 100.0, 120.0, 40.0],
                 "Next",
                 Action::Next,
                 false,
