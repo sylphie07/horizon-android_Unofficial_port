@@ -113,23 +113,23 @@ impl PlayerPreview {
         batch: &mut crate::hud::HudBatch,
         atlas: &crate::hud::HudAtlas,
         rect: [f32; 4],
-        cursor: [f32; 2],
+        rotation: [f32; 2],
         skin: Option<(&str, bool)>,
     ) {
         let [x0, y0, x1, y1] = rect;
         let (cx, cy) = ((x0 + x1) / 2.0, (y0 + y1) / 2.0);
-        let x_angle = ((cx - cursor[0]) / 40.0).atan();
-        let y_angle = ((cy - cursor[1]) / 40.0).atan();
+        let yaw = rotation[0];
+        let pitch = rotation[1].clamp(-35.0, 35.0);
         let mut mob = self.mob.clone();
         mob.skin = skin.map(|(name, _)| name.to_owned());
         mob.slim = skin.is_some_and(|(_, slim)| slim);
         mob.extra.model_scale = 0.0;
         mob.previous = mob.position;
-        mob.body_yaw = 180.0 + x_angle * 20.0;
+        mob.body_yaw = 180.0 + yaw;
         mob.previous_body_yaw = mob.body_yaw;
-        mob.head_yaw = mob.body_yaw + x_angle * 20.0;
+        mob.head_yaw = mob.body_yaw;
         mob.previous_head_yaw = mob.head_yaw;
-        mob.head_pitch = -y_angle * 20.0;
+        mob.head_pitch = -pitch;
         mob.previous_head_pitch = mob.head_pitch;
         let camera = glam::DVec3::new(mob.position.x, mob.position.y, mob.position.z);
         let lookup = |name: &str| {
@@ -157,7 +157,7 @@ impl PlayerPreview {
             * glam::Mat4::from_scale(glam::Vec3::new(model_scale, model_scale, -model_scale))
             * glam::Mat4::from_translation(glam::Vec3::new(0.0, height / 2.0, 0.0))
             * glam::Mat4::from_rotation_z(std::f32::consts::PI)
-            * glam::Mat4::from_rotation_x((y_angle * 20.0).to_radians());
+            * glam::Mat4::from_rotation_x(pitch.to_radians());
         let quads = player_preview_quads(vertices, gui, None, &atlas.sprites);
         let start = batch.vertices.len();
         for (_, positions, uv, color) in quads {
