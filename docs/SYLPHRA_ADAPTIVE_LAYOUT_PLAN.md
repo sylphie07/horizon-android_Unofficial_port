@@ -39,3 +39,13 @@ Complete the Java-launcher-inspired navigation redesign without breaking the cur
 - Preserve page actions, game/engine behaviour, authentication, profiles, worlds, storage, catalog source IDs, and shared theme tokens.
 - Keep Sylphra-specific visual styling in `crates/horizon-client/src/android/launcher_pages.rs`.
 - Record proposals, applied changes, and verified results separately.
+
+## Implementation progress update — 2026-11-03
+
+The original preflight status above is historical. Current progress:
+- **Applied:** shared launcher geometry model and migration stages 1–6: shell/header/navigation bounds, Installed viewport and horizontal anchors, catalog geometry, Skin Studio geometry, and Settings geometry.
+- **Verified by source inspection:** current page drawing and corresponding list/action targets consume the shared content rectangle in the migrated page families.
+- **CI:** source run #172 (`41580868881`) passed on code commit `1a2d0764d7e5a74b254e9a3464c0ff9afd8dcbeb`.
+- **Not yet done:** About and Play page migration; footer/status and scrollbar content bounds; x-aware list drag regions; final focus/controller/modal audit; expanded phone navigation and wide-screen sidebar.
+- **Not verified:** current geometry stages have no new native four-ABI run, APK or physical-device visual/input validation. Do not activate adaptive navigation until these gates are complete.
+- Background image/GIF/video customization remains deferred until navigation redesign is finished.

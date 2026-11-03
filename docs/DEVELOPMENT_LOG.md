@@ -537,3 +537,18 @@
 **Not verified:** no formatter, compiler, tests, CI, APK build, install, or Android device test was run.
 
 **Next:** migrate Settings page content and its list targets/viewport, then review About, dialogs, scrollbars and gesture/focus handling before implementing the actual adaptive navigation.
+
+
+## 2026-11-03 — Settings page shared geometry (stage 6)
+
+**Preflight:** branch `android` and HEAD `0ca4a6a43a69755f9536e0abc0ad39d039384094` were checked. Re-read continuity, development log, adaptive layout plan and Settings renderer block.
+
+**Applied:** `crates/horizon-client/src/android/launcher_pages.rs` now derives Settings content left/right edges, row split, title position, list top/bottom, scroll maximum, row hitboxes, toggle/button rectangles, dividers and bottom Diagnostics/Account buttons from `LauncherLayout.content_rect`. The wide-screen split and compact full-width row dimensions preserve the prior coordinate formulas. Drawn controls and input targets remain paired.
+
+**Code commit:** `1a2d0764d7e5a74b254e9a3464c0ff9afd8dcbeb`.
+
+**Verification:** Android source checks #172, run `41580868881`, completed successfully. Passed `git diff --check`, public-tree history validation, Android Python unit tests, diagnostics, performance, content tests and workflow-export consistency.
+
+**Not verified:** this push workflow does not run the native ABI matrix. No Rust formatter, Rust Android compile, APK, installation or device visual/touch test is claimed.
+
+**Next:** migrate About and Play content to shared bounds; then audit footer/status, scrollbar and list drag hit regions, modal overlays, keyboard/gamepad focus and touch gestures. Enable the wide-screen sidebar only after all page families and input geometry are migrated and native checks pass.

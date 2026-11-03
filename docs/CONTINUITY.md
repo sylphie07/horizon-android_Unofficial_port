@@ -97,3 +97,12 @@
 - Static source fetch confirmed the migrated geometry and matching skin row hitboxes. No formatter, compiler, tests, CI, APK or device test has run.
 - Next: migrate Settings page content/list targets/viewport; then audit About, dialogs, scrollbars and input gestures/focus before activating adaptive navigation.
 - Development log updated in commit `a4878abb98e38284b48ae7e6ab378eb007fcda1b`.
+
+
+## Settings shared geometry — stage 6 (2026-11-03)
+- Migrated Settings title, row positions, list viewport/scroll clamp, row hitboxes, toggle/button rectangles, dividers and bottom Diagnostics/Account actions to `LauncherLayout.content_rect`.
+- The compact and wide-screen formulas preserve the previous coordinates and dimensions at the existing layout sizes; drawing and input targets use the same derived bounds.
+- Code commit: `1a2d0764d7e5a74b254e9a3464c0ff9afd8dcbeb`.
+- Android source checks #172, run `41580868881`, completed successfully on that code commit. Diff check, public-tree history, Android Python unit tests, diagnostics, performance, content and workflow-export consistency all passed.
+- The workflow has no native ABI jobs on push; Rust formatting/compile, native matrix, APK and device validation remain unverified for this stage.
+- Next: migrate About content/list/actions and Play hero content to the shared rectangle; then align footer/status and scrollbar bounds, audit touch drag origins/gamepad focus and modal behaviour before enabling sidebar/adaptive navigation.
