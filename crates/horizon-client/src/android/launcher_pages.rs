@@ -2043,8 +2043,8 @@ impl Launcher {
                 self.catalog.scroll = 0.0;
             }
             Some(Action::SylphraRepository) => {
-                self.catalog.status = if crate::platform::open_url("https://github.com/sylphie07/Sylphra-Android") {
-                    "Sylphra repository opened in browser."
+                self.catalog.status = if crate::platform::open_url("https://github.com/sylphie07/Sylphra-Android-Public") {
+                    "Public Sylphra project page opened in browser."
                 } else {
                     "No browser available to open the Sylphra repository."
                 }
