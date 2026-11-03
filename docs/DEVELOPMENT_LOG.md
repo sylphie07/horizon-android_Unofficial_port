@@ -612,3 +612,19 @@
 **Commits:** responsive page layout `170326f09ca0e19641925fb256a9c9ce25fad1e6`; preview scaling `7218728c11abbb39b977c7e1149a830a382deae5`.
 
 **Verification status:** source changes are applied, but formatting, compilation, unit tests, Android ABI CI, APK build, and physical-device layout checks have not yet been run. Do not treat the responsive design as verified until CI and device checks pass. The player renderer currently returns no extra render layers for avatar/player entities, so meaningful hat/jacket/sleeve/pants toggles require a separate renderer-level implementation; decorative toggles are intentionally deferred. Touch drag still uses pointer-position look-at behavior and needs a separate interaction change.
+
+
+## Skin Studio — cumulative touch rotation (2026-11-03)
+
+**Applied on branch `android`:**
+- `crates/horizon-client/src/android/launcher.rs`: added independent preview hitbox, active touch tracking and persistent yaw/pitch state; reset preview interaction state when returning from gameplay.
+- `crates/horizon-client/src/android/launcher_pages.rs`: records the preview rectangle, labels the drag affordance, routes a touch that starts inside the 3D preview to rotation, and preserves the existing list-scroll gesture for touches that start outside it.
+- `crates/horizon-client/src/mobs/preview.rs`: changed the preview API to consume explicit yaw/pitch values instead of deriving orientation from the absolute cursor position. Horizontal rotation accumulates; vertical rotation is clamped to a comfortable range.
+
+**Code commits:** `3404878f09e19f66e11d06a592c4bfacfc9d6f1b`, `273003a9b2141b9a89d6e8b26af18081c7af33cd`, `3e7f11027fccd6f60548e9cab31b7422466c3d05`.
+
+**Verification:** changes are applied to the authorized branch. No Rust formatting, compilation, unit test, Android ABI CI, APK build or physical-device interaction test has yet been confirmed for these commits. Do not describe touch rotation as verified until those checks complete.
+
+**Known limitation:** actual player skin layer visibility (hat, jacket, sleeves, trousers) is still not implemented. The current preview renderer submits the baked player model as one body model, and the generic entity layer path does not expose these skin parts as independent overlays. The next investigation must identify the baked player model's child-part structure and implement visibility without changing the in-game player renderer or inventory preview. Do not add nonfunctional toggles.
+
+**Next:** inspect source CI for this push; fix any compile/test failures; then implement isolated preview-only model-part visibility if the model data supports it. Native four-ABI checks and a test-only APK/device test remain required before declaring Skin Studio complete.
