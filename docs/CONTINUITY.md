@@ -141,10 +141,11 @@
 ## Current work: Skin Studio (2026-11-03)
 
 - Active code branch: `android` in `sylphie07/horizon-android_Unofficial_port`.
-- Current applied code tip before documentation update: `3e7f11027fccd6f60548e9cab31b7422466c3d05`.
 - Responsive preview layout and dynamic model scale are applied (commits `170326f09ca0e19641925fb256a9c9ce25fad1e6`, `7218728c11abbb39b977c7e1149a830a382deae5`).
-- Cumulative touch rotation is now applied (commits `3404878f09e19f66e11d06a592c4bfacfc9d6f1b`, `273003a9b2141b9a89d6e8b26af18081c7af33cd`, `3e7f11027fccd6f60548e9cab31b7422466c3d05`). A touch beginning inside the preview rotates the mannequin; a touch beginning outside it retains list scrolling. Yaw accumulates and pitch is bounded.
-- Not yet verified: rustfmt, Rust compilation, unit tests, four-ABI native CI, test APK, or real-device layout/touch behavior. Wait for CI before requesting a new APK.
-- Real skin-layer toggles remain unimplemented. Investigate the baked player model's child-part tree and implement preview-only visibility for hat/jacket/sleeves/trousers; avoid decorative controls and avoid changing normal gameplay rendering.
-- After code and native checks pass, synchronize the verified Horizon gitlink into Sylphra's authorized branch `sylphra/horizon-foundation`. Then build the isolated test APK and request device acceptance. Do not publish a Release.
-- Keep the optional launcher background image/GIF/video feature deferred until the Skin Studio base design is accepted.
+- Cumulative touch rotation is applied. Touches beginning inside the 3D preview rotate the mannequin; touches beginning outside retain list scrolling. Yaw accumulates and pitch is clamped. See code commits `3404878f09e19f66e11d06a592c4bfacfc9d6f1b`, `273003a9b2141b9a89d6e8b26af18081c7af33cd`, `3e7f11027fccd6f60548e9cab31b7422466c3d05`.
+- Functional layer controls are now applied: Hat, Jacket, Left sleeve, Right sleeve, Left pants and Right pants. They toggle the existing vanilla player model-part visibility bits on the preview mob clone only. Gameplay rendering is not changed. Commits: `ea74fc3299088746d13f458a900d3e6802a80e7b`, `28dfe575cbab230afb54834571cb6179a4a4080f`, `3db7cd5ce8f1c30ab58078d888c45b427a4f8820`, with follow-up correctness fixes `c65d5f3fe6b20c4928e8e01a720e325c51e9212e`, `1d1baca8f6af2007dc498e105b3a71e13132f724`, `b1b8f0918902e5e525a9f1f89f8f5ad01d7e2d43`.
+- Technical basis: `MobExtra.hidden_model_parts` and `mobs/anim.rs::player_model_visibility` already implement the vanilla bit mapping for jacket, sleeves, pants and hat. The new controls reuse that behavior without touching the in-game player.
+- Not yet verified: rustfmt, Rust compilation, unit tests, four-ABI native CI, APK build or physical-device layout/touch/layer behavior. Multiple push CI runs were cancelled due to successive commits; inspect a fresh run on the final documented tip before proceeding.
+- Next: run/inspect source CI on the final tip, then manually dispatch native checks with `native_checks=true`. Fix any failures before building the isolated test APK. Do not publish a Release.
+- After successful validation, synchronize the verified Horizon gitlink into Sylphra's authorized branch `sylphra/horizon-foundation`; request device acceptance before declaring Skin Studio complete.
+- Keep optional launcher background image/GIF/video customization deferred until the base design is accepted.
