@@ -7,25 +7,27 @@ use std::{
     sync::{Arc, Mutex, OnceLock, RwLock},
 };
 
-static PLAYER_TYPES: Mutex<Vec<(PathBuf, Option<Arc<MobType>>)>> = Mutex::new(Vec::new());
+static PLAYER_TYPES: Mutex<Vec<(PathBuf, Arc<MobType>)>> = Mutex::new(Vec::new());
 
 /// The player model type for each engine-data root, loaded once.
-pub fn player_type(root: &Path) -> Option<Arc<MobType>> {
+pub fn player_type(root: &Path) -> crate::Result<Arc<MobType>> {
     let mut cache = PLAYER_TYPES.lock().unwrap_or_else(|e| e.into_inner());
-    if let Some((_, Some(kind))) = cache.iter().find(|(cached, _)| cached == root) {
-        return Some(kind.clone());
+    if let Some((_, kind)) = cache.iter().find(|(cached, _)| cached == root) {
+        return Ok(kind.clone());
     }
-    let kind = load_player_type(root);
-    if let Some(kind) = &kind {
-        cache.push((root.to_owned(), Some(kind.clone())));
-    }
-    kind
+    let kind = load_player_type(root)?;
+    cache.push((root.to_owned(), kind.clone()));
+    Ok(kind)
 }
 
-fn load_player_type(root: &Path) -> Option<Arc<MobType>> {
-    let models = super::EntityModelDocument::load(root).ok()?;
-    models.model("minecraft:player#main").map(|model| {
-        Arc::new(MobType {
+fn load_player_type(root: &Path) -> crate::Result<Arc<MobType>> {
+    let models = super::EntityModelDocument::load(root).map_err(|error| {
+        format!("could not read {}/entity-models.json: {error}", root.display())
+    })?;
+    let model = models
+        .model("minecraft:player#main")
+        .ok_or_else(|| format!("entity-models.json in {} has no minecraft:player#main entry", root.display()))?;
+    Ok(Arc::new(MobType {
             id: "minecraft:player".into(),
             species: Species::Zombie,
             width: 0.6,
@@ -75,8 +77,7 @@ fn load_player_type(root: &Path) -> Option<Arc<MobType>> {
             step_sound: None,
             food: Arc::from([]),
             tempt: Arc::from([]),
-        })
-    })
+        }))
 }
 
 /// A reusable player preview. It owns only model/animation data; each draw
@@ -88,8 +89,8 @@ pub struct PlayerPreview {
 
 impl PlayerPreview {
     /// Load the same baked player model and animation definitions used by the
-    /// game. Returns None until the engine data has been installed.
-    pub fn load(root: &Path) -> Option<Self> {
+    /// game, preserving a useful error when engine data is not installed.
+    pub fn load(root: &Path) -> crate::Result<Self> {
         let kind = player_type(root)?;
         let mob = Mob::new(0, kind, Vec3::ZERO, 180.0);
         let data = MobData {
@@ -103,7 +104,7 @@ impl PlayerPreview {
             pois: OnceLock::new(),
             species_placements: OnceLock::new(),
         };
-        Some(Self { mob, data })
+        Ok(Self { mob, data })
     }
 
     /// Draw the player inside a clipped, depth-tested GUI rectangle.
