@@ -148,9 +148,15 @@ impl Config {
         self.profile_home(home)
     }
 }
+/// Build channel injected by the Android build workflow. Stable builds omit
+/// development-only navigation and notes.
+pub const BUILD_CHANNEL: &str = env!("SYLPHRA_BUILD_CHANNEL");
+pub const SHOW_DEVELOPMENT_NEWS: bool = !matches!(BUILD_CHANNEL, "stable" | "release");
+
 #[derive(Clone, Copy, PartialEq)]
 pub enum Page {
     Play,
+    News,
     Mods,
     Packs,
     Shaders,
@@ -159,18 +165,32 @@ pub enum Page {
     SkinStudio,
 }
 impl Page {
-    pub const ALL: [Self; 7] = [
-        Self::Play,
-        Self::Installed,
-        Self::SkinStudio,
-        Self::Mods,
-        Self::Packs,
-        Self::Shaders,
-        Self::Settings,
-    ];
+    pub const ALL: &'static [Self] = if SHOW_DEVELOPMENT_NEWS {
+        &[
+            Self::Play,
+            Self::News,
+            Self::Installed,
+            Self::SkinStudio,
+            Self::Mods,
+            Self::Packs,
+            Self::Shaders,
+            Self::Settings,
+        ]
+    } else {
+        &[
+            Self::Play,
+            Self::Installed,
+            Self::SkinStudio,
+            Self::Mods,
+            Self::Packs,
+            Self::Shaders,
+            Self::Settings,
+        ]
+    };
     pub fn name(self) -> &'static str {
         match self {
             Self::Play => "Play",
+            Self::News => "News",
             Self::Mods => "Mods",
             Self::Packs => "Packs",
             Self::Shaders => "Shaders",
