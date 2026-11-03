@@ -78,3 +78,13 @@
 - Static source fetch confirms old hard-coded horizontal anchors are absent from the Installed page block and shared geometry is used. No formatter, compile, tests, CI, APK or device verification has run.
 - Next: migrate catalog page content bounds and ensure row drawing, action targets, pagination and scroll viewport remain aligned; then migrate Skin Studio and Settings before enabling adaptive navigation.
 - Development log entry: `docs/DEVELOPMENT_LOG.md` updated in commit `92fdcfcd01054e784277147d70ea7803bd62c53c`.
+
+
+## Catalog page shared content geometry — stage 4 (2026-11-03)
+- Catalog title, search field/button, source selectors, hints, folder/import buttons, result text/actions and pagination now derive horizontal positions from `LauncherLayout.content_rect`.
+- Catalog result action hitboxes use the same derived action column as visible controls. Scroll viewport top/bottom and pagination Y also derive from the shared rectangle.
+- Derived offsets were corrected to preserve the previous numerical spacing; this stage centralizes geometry rather than changing the visual layout.
+- Code commits: `62de6b668537b6face24c9c7f7fe8e9b11ac17a0`, `d8ed8bbb89d50e4fe8ff51953c4525931f5b6767`, `ebf780dc119cee3aa23ffd35352668f4e21b7655`.
+- Static source inspection confirms old catalog hard-coded position/width anchors were replaced. No formatter, compiler, tests, CI, APK or device test has run.
+- Next: migrate Skin Studio and Settings, then audit dialogs, scrollbars, focus and touch gestures before implementing wide-screen sidebar/adaptive phone navigation.
+- Development log updated in commit `12cb1b6c9187cfda04a2dede50cb6e8de2212397`.
