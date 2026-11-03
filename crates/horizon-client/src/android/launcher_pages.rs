@@ -1015,21 +1015,25 @@ impl Launcher {
             }
         } else if page == Page::SkinStudio {
             let studio_compact = h < 560.0;
-            let has_preview_panel = w >= 400.0;
             let content_left = layout.content_rect[0] + 12.0;
             let content_right = layout.content_rect[0] + layout.content_rect[2] - 12.0;
-            let preview_left = content_right - 144.0;
-            let control_width = if has_preview_panel {
-                (preview_left - content_left - 32.0).max(160.0)
+            let content_width = (content_right - content_left).max(0.0);
+            // Reserve a true 40% preview column only when both columns remain
+            // comfortable. Narrow phones use a full-width stacked preview.
+            let wide_preview = w >= 640.0 && content_width >= 560.0;
+            let preview_width = if wide_preview { content_width * 0.40 } else { content_width };
+            let column_gap = if wide_preview { 16.0 } else { 0.0 };
+            let control_width = if wide_preview {
+                (content_width - preview_width - column_gap).max(240.0)
             } else {
-                content_right - content_left
+                content_width
             };
             let title_y = if studio_compact { 128.0 } else { 156.0 };
-            let profile_y = if studio_compact { 157.0 } else { 190.0 };
-            let profile_buttons_y = if studio_compact { 198.0 } else { 218.0 };
-            let import_y = if studio_compact { 244.0 } else { 270.0 };
-            let selected_y = if studio_compact { 290.0 } else { 328.0 };
-            let default_y = if studio_compact { 278.0 } else { 352.0 };
+            let profile_y = title_y + 30.0;
+            let profile_buttons_y = title_y + 66.0;
+            let import_y = title_y + 112.0;
+            let selected_y = title_y + 160.0;
+            let default_y = title_y + 184.0;
             ui.text(Face::Medium, 24.0, content_left, title_y, color::TEXT, "Skin Studio");
             let profile = self.catalog.skin_library.profiles
                 .iter()
@@ -1047,86 +1051,78 @@ impl Launcher {
             if let Some(error) = &self.catalog.skin_library_error {
                 ui.text(Face::Regular, 14.0, content_left, profile_y + 18.0, color::MUTED, &ui.fit_text(Face::Regular, 14.0, &format!("Read-only: {error}"), control_width));
             }
-            let half = (control_width - 8.0) * 0.5;
+            let half = (control_width - 8.0).max(0.0) * 0.5;
             button(&mut ui, &mut self.targets, [content_left, profile_buttons_y, half, 42.0], "Next", Action::NextAppearanceProfile, false);
             button(&mut ui, &mut self.targets, [content_left + 8.0 + half, profile_buttons_y, half, 42.0], "New", Action::NewAppearanceProfile, false);
             button(&mut ui, &mut self.targets, [content_left, import_y, half, 42.0], "Import PNG", Action::ImportSkin, true);
             button(&mut ui, &mut self.targets, [content_left + 8.0 + half, import_y, half, 42.0], model, Action::ToggleSkinModel, false);
-            let selected_width = if studio_compact { control_width * 0.52 } else { control_width };
-            let selected_text = ui.fit_text(Face::Regular, 15.0, &format!("Selected: {selected}"), selected_width);
+            let selected_text = ui.fit_text(Face::Regular, 15.0, &format!("Selected: {selected}"), control_width);
             ui.text(Face::Regular, 15.0, content_left, selected_y, color::MUTED, &selected_text);
-            if studio_compact {
-                button(&mut ui, &mut self.targets, [content_left + control_width * 0.55, default_y, control_width * 0.45, 34.0], "Default", Action::DefaultSkin, false);
-            } else {
-                button(&mut ui, &mut self.targets, [content_left, default_y, control_width, 34.0], "Default skin", Action::DefaultSkin, false);
-            }
+            button(&mut ui, &mut self.targets, [content_left, default_y, control_width, 34.0], "Use default skin", Action::DefaultSkin, false);
 
-            if has_preview_panel {
-                let preview_rect = [
-                    preview_left,
-                    if studio_compact { 155.0 } else { 160.0 },
-                    content_right,
-                    if studio_compact { 295.0 } else { 320.0 },
-                ];
-                ui.text(Face::Regular, 14.0, preview_rect[0], preview_rect[1] - 18.0, color::MUTED, "3D preview");
-                ui.rounded(preview_rect[0], preview_rect[1], preview_rect[2] - preview_rect[0], preview_rect[3] - preview_rect[1], 8.0, color::RAISED);
-                let skin_pixels = match self.catalog.skin_preview_rgba(&self.home) {
-                    Ok(pixels) => pixels.map(|pixels| pixels.to_vec()),
-                    Err(error) => {
-                        self.catalog.status = format!("Skin preview unavailable: {error}");
-                        None
-                    }
-                };
-                if let Some(preview) = &self.skin_preview {
-                    let skin_model = self.catalog.skin_library.active_model().unwrap_or_default()
-                        == crate::catalog::skin_library::SkinModel::Slim;
-                    let mut selected_texture = None;
-                    if let Some(pixels) = skin_pixels
-                        && let Some(slot) = gui.atlas.sprites.get("horizon/skin0").copied()
-                    {
-                        ui.batch.patches.push(horizon_client::font::Patch {
-                            x: (slot.u0 * gui.atlas.width as f32).round() as u32,
-                            y: (slot.v0 * gui.atlas.height as f32).round() as u32,
-                            width: 64,
-                            height: 64,
-                            rgba: pixels,
-                        });
-                        selected_texture = Some(("horizon/skin0", skin_model));
-                    }
-                    let cursor = [
-                        self.cursor.0 as f32 / ui.density,
-                        self.cursor.1 as f32 / ui.density,
-                    ];
-                    preview.draw(
-                        &mut *ui.batch,
-                        &gui.atlas,
-                        preview_rect,
-                        cursor,
-                        selected_texture,
-                    );
-                } else {
-                    ui.text(Face::Regular, 13.0, preview_rect[0] + 8.0, preview_rect[1] + 52.0, color::MUTED, "Open Play once to install the player model.");
-                }
-            }
-
-            let top = if studio_compact { 320.0 } else { 410.0 };
-            let bottom = if studio_compact {
-                layout.content_rect[1] + layout.content_rect[3] + 88.0
+            let preview_rect = if wide_preview {
+                let left = content_left + control_width + column_gap;
+                [left, title_y + 8.0, content_right, title_y + 202.0]
             } else {
-                layout.content_rect[1] + layout.content_rect[3] - 10.0
+                let preview_top = default_y + 48.0;
+                let width = preview_width.min(300.0);
+                let left = content_left + (content_width - width) * 0.5;
+                [left, preview_top, left + width, preview_top + 156.0]
             };
+            ui.text(Face::Regular, 14.0, preview_rect[0], preview_rect[1] - 18.0, color::MUTED, "3D preview");
+            ui.rounded(preview_rect[0], preview_rect[1], preview_rect[2] - preview_rect[0], preview_rect[3] - preview_rect[1], 8.0, color::RAISED);
+            let skin_pixels = match self.catalog.skin_preview_rgba(&self.home) {
+                Ok(pixels) => pixels.map(|pixels| pixels.to_vec()),
+                Err(error) => {
+                    self.catalog.status = format!("Skin preview unavailable: {error}");
+                    None
+                }
+            };
+            if let Some(preview) = &self.skin_preview {
+                let skin_model = self.catalog.skin_library.active_model().unwrap_or_default()
+                    == crate::catalog::skin_library::SkinModel::Slim;
+                let mut selected_texture = None;
+                if let Some(pixels) = skin_pixels
+                    && let Some(slot) = gui.atlas.sprites.get("horizon/skin0").copied()
+                {
+                    ui.batch.patches.push(horizon_client::font::Patch {
+                        x: (slot.u0 * gui.atlas.width as f32).round() as u32,
+                        y: (slot.v0 * gui.atlas.height as f32).round() as u32,
+                        width: 64,
+                        height: 64,
+                        rgba: pixels,
+                    });
+                    selected_texture = Some(("horizon/skin0", skin_model));
+                }
+                let cursor = [
+                    self.cursor.0 as f32 / ui.density,
+                    self.cursor.1 as f32 / ui.density,
+                ];
+                preview.draw(
+                    &mut *ui.batch,
+                    &gui.atlas,
+                    preview_rect,
+                    cursor,
+                    selected_texture,
+                );
+            } else {
+                ui.text(Face::Regular, 13.0, preview_rect[0] + 8.0, preview_rect[1] + 52.0, color::MUTED, "Open Play once to install the player model.");
+            }
+
+            let top = preview_rect[3] + 16.0;
+            let bottom = (layout.content_rect[1] + layout.content_rect[3] - 10.0).max(top + 1.0);
             let row_height = 64.0;
             let count = self.catalog.skin_library.skins.len();
             let maximum = (count as f32 * row_height - (bottom - top).max(0.0)).max(0.0);
             self.catalog.scroll = self.catalog.scroll.clamp(0.0, maximum);
-            self.list_view = Some([content_left, top, content_right, bottom.max(top + 1.0), maximum]);
+            self.list_view = Some([content_left, top, content_right, bottom, maximum]);
             if count == 0 {
                 ui.text(Face::Regular, 16.0, content_left, top + 16.0, color::MUTED, "No imported skins yet. Choose Import PNG skin.");
             }
             for (i, skin) in self.catalog.skin_library.skins.iter().enumerate() {
                 let y = top + i as f32 * row_height - self.catalog.scroll;
                 self.list_targets.push(([content_left, y, content_right - content_left, 56.0], Action::SelectSkin(i)));
-                if y < top || y + 56.0 > bottom.max(top + 1.0) { continue; }
+                if y < top || y + 56.0 > bottom { continue; }
                 let active = self.catalog.skin_library.active_skin().is_some_and(|current| current.id == skin.id);
                 button(&mut ui, &mut self.targets, [content_left, y, content_right - content_left, 56.0], &format!("{}{}  ({}×{})", if active { "✓ " } else { "" }, skin.name, skin.width, skin.height), Action::SelectSkin(i), active);
             }
