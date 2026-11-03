@@ -468,3 +468,21 @@
 **Static source inspection:** fetched the final source back from branch `android`; confirmed the model, header/account/nav/tab consumers and Play panel consumer are present. This is source inspection only. No formatter, compiler, unit test, CI, APK build, installation, or device visual check was run. No runtime equivalence is claimed until those checks and a device test are performed.
 
 **Next:** migrate the next page families to explicit content bounds and update their drawn controls, list targets, scroll viewports, and bottom/right anchors together. Only after that migration should the adaptive sidebar be enabled.
+
+
+## 2026-11-03 — Shared Installed-page viewport bounds (stage 2)
+
+**Preflight:** confirmed branch `android` is the only returned branch and starting HEAD was `775a02b2d957b36edb5b492a4befeeae54f4d251`. Re-read `docs/CONTINUITY.md`, this log, `docs/SYLPHRA_ADAPTIVE_LAYOUT_PLAN.md`, and inspected the full Android launcher page renderer. No changes were made to `main`.
+
+**Applied in `crates/horizon-client/src/android/launcher_pages.rs`:**
+- Extended the launcher-local `LauncherLayout` with a content rectangle derived from the already-inset UI width and height.
+- Migrated the Installed page's scroll viewport top and bottom to that shared rectangle. The same `top`/`bottom` values continue to drive scroll clamping, `list_view`, row visibility, and list hitbox placement.
+- Kept all current visible coordinates and right/bottom anchors unchanged. This is a geometry-centralization step, not yet an adaptive sidebar or a visual layout change.
+
+**Code commits:** `67bbd8015b558441f456b654a796472e6f45aa85` (shared viewport rectangle) and `29134294339fdefd810df7503df268f1aa9ddea2` (use the height parameter).
+
+**Static source inspection:** fetched the final source from branch `android`; confirmed the content rectangle is initialized and the Installed page derives both viewport bounds from it, then uses those bounds for scroll clamping and `list_view`. These checks are source inspection only.
+
+**Not verified:** no formatter, Rust compiler, unit tests, GitHub Actions run, APK build, install, or Android device test was executed. No runtime or visual equivalence is claimed.
+
+**Next:** migrate the Installed page's horizontal content anchors (including matching draw and hitbox rectangles) to the same content model, then continue with catalog pages. Enable a sidebar only after page families and their input/scroll geometry have been migrated and CI passes.
