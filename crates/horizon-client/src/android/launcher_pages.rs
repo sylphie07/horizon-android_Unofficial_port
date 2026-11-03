@@ -2047,12 +2047,12 @@ impl Launcher {
             Some(Action::ToggleSkinLayer(bit)) => {
                 self.skin_preview_hidden_parts ^= bit;
                 let part = match bit {
-                    1 << 6 => "hat",
-                    1 << 1 => "jacket",
-                    1 << 2 => "left sleeve",
-                    1 << 3 => "right sleeve",
-                    1 << 4 => "left trousers",
-                    1 << 5 => "right trousers",
+                    64 => "hat",
+                    2 => "jacket",
+                    4 => "left sleeve",
+                    8 => "right sleeve",
+                    16 => "left trousers",
+                    32 => "right trousers",
                     _ => "skin layer",
                 };
                 self.catalog.status = format!(
