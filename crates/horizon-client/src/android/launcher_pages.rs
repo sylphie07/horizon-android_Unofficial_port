@@ -1061,29 +1061,6 @@ impl Launcher {
             let selected_text = ui.fit_text(Face::Regular, 15.0, &format!("Selected: {selected}"), control_width);
             ui.text(Face::Regular, 15.0, content_left, selected_y, color::MUTED, &selected_text);
             button(&mut ui, &mut self.targets, [content_left, default_y, control_width, 34.0], "Use default skin", Action::DefaultSkin, false);
-            ui.text(Face::Regular, 13.0, content_left, default_y + 48.0, color::MUTED, "Visible skin layers");
-            let layer_gap = 5.0;
-            let layer_width = ((control_width - layer_gap * 2.0) / 3.0).max(0.0);
-            let layer_rows = [
-                [(1u8 << 6, "Hat"), (1u8 << 1, "Jacket"), (1u8 << 2, "L sleeve")],
-                [(1u8 << 3, "R sleeve"), (1u8 << 4, "L pants"), (1u8 << 5, "R pants")],
-            ];
-            for (row, layers) in layer_rows.iter().enumerate() {
-                for (column, (bit, label)) in layers.iter().enumerate() {
-                    let x = content_left + column as f32 * (layer_width + layer_gap);
-                    let y = default_y + 56.0 + row as f32 * 30.0;
-                    let visible = self.skin_preview_hidden_parts & *bit == 0;
-                    button(
-                        &mut ui,
-                        &mut self.targets,
-                        [x, y, layer_width, 27.0],
-                        label,
-                        Action::ToggleSkinLayer(*bit),
-                        visible,
-                    );
-                }
-            }
-
             let preview_rect = if wide_preview {
                 let left = content_left + control_width + column_gap;
                 [left, title_y + 8.0, content_right, title_y + 202.0]
@@ -1131,9 +1108,42 @@ impl Launcher {
                 ui.text(Face::Regular, 13.0, preview_rect[0] + 8.0, preview_rect[1] + 52.0, color::MUTED, "Open Play once to install the player model.");
             }
 
-            let top = preview_rect[3] + 16.0;
+            // Keep the layer controls in their own full-width strip below the
+            // preview. They must never overlap the selectable skin list.
+            let layer_top = preview_rect[3] + 5.0;
+            ui.text(Face::Regular, 12.0, content_left, layer_top, color::MUTED, "Visible skin layers");
+            let layer_gap = 5.0;
+            let layer_width = ((content_width - layer_gap * 5.0) / 6.0).max(0.0);
+            let layers = [
+                (1u8 << 6, "Hat"),
+                (1u8 << 1, "Jacket"),
+                (1u8 << 2, "L sleeve"),
+                (1u8 << 3, "R sleeve"),
+                (1u8 << 4, "L pants"),
+                (1u8 << 5, "R pants"),
+            ];
+            for (column, (bit, label)) in layers.iter().enumerate() {
+                let x = content_left + column as f32 * (layer_width + layer_gap);
+                let y = layer_top + 18.0;
+                let visible = self.skin_preview_hidden_parts & *bit == 0;
+                button(
+                    &mut ui,
+                    &mut self.targets,
+                    [x, y, layer_width, 28.0],
+                    label,
+                    Action::ToggleSkinLayer(*bit),
+                    visible,
+                );
+            }
+
+            // The list owns the remaining vertical space down to the content
+            // bottom. Compact rows avoid wasting height and keep names inside
+            // their own selection surface.
+            let top = layer_top + 54.0;
             let bottom = (layout.content_rect[1] + layout.content_rect[3] - 10.0).max(top + 1.0);
-            let row_height = 64.0;
+            let row_height = 48.0;
+            let row_gap = 4.0;
+            let row_surface = row_height - row_gap;
             let count = self.catalog.skin_library.skins.len();
             let maximum = (count as f32 * row_height - (bottom - top).max(0.0)).max(0.0);
             self.catalog.scroll = self.catalog.scroll.clamp(0.0, maximum);
@@ -1143,10 +1153,17 @@ impl Launcher {
             }
             for (i, skin) in self.catalog.skin_library.skins.iter().enumerate() {
                 let y = top + i as f32 * row_height - self.catalog.scroll;
-                self.list_targets.push(([content_left, y, content_right - content_left, 56.0], Action::SelectSkin(i)));
-                if y < top || y + 56.0 > bottom { continue; }
+                if y < top || y + row_surface > bottom { continue; }
+                let rect = [content_left, y, content_right - content_left, row_surface];
+                self.list_targets.push((rect, Action::SelectSkin(i)));
                 let active = self.catalog.skin_library.active_skin().is_some_and(|current| current.id == skin.id);
-                button(&mut ui, &mut self.targets, [content_left, y, content_right - content_left, 56.0], &format!("{}{}  ({}×{})", if active { "✓ " } else { "" }, skin.name, skin.width, skin.height), Action::SelectSkin(i), active);
+                let label = ui.fit_text(
+                    Face::Regular,
+                    15.0,
+                    &format!("{}{}  ({}×{})", if active { "✓ " } else { "" }, skin.name, skin.width, skin.height),
+                    (content_right - content_left - 24.0).max(0.0),
+                );
+                button(&mut ui, &mut self.targets, rect, &label, Action::SelectSkin(i), active);
             }
         } else if self.about_visible {
             let content_left = layout.content_rect[0] + 12.0;
