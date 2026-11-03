@@ -379,3 +379,16 @@
 
 **Next:** run Android source checks with `native_checks=true`, inspect the source job and all four ABI jobs, then build the isolated arm64 test APK only after CI passes.
  
+
+
+## 2026-11-02 — Sylphra Settings compact-layout pass 3
+
+**Preflight:** rechecked repository `sylphie07/horizon-android_Unofficial_port`, authorized branch `android`, branch HEAD `2b1f4e43afbe753dab9be12a8a4f6e717e236cd0`, the current development log, and the Android launcher renderer. `docs/CONTINUITY.md` did not exist at preflight. No changes were made to `main`.
+
+**Applied in code commit `d19f7c8fcf71676777b618261d965f6770f4c10c`:**
+- `crates/horizon-client/src/android/launcher_pages.rs`: made the Launch settings heading slightly smaller and higher on compact screens; reduced compact settings row height on short viewports; tightened toggle/value control vertical placement and separator position to match the reduced row height.
+- The settings list remains scrollable and uses the existing actions/config persistence. No settings semantics, account/authentication, engine, profile, world, storage, or shared theme tokens were changed.
+
+**Verification status:** source edit committed and fetched back from branch `android`; no formatter, compiler, unit tests, CI, APK build, or Android device check has yet run for this pass. The prior source CI success on commit `2b1f4e4` does not validate this new change. The all-ABI native matrix remains a manual workflow dispatch requirement.
+
+**Next:** run source CI plus `native_checks=true` for all four ABIs; if green, group any remaining launcher-only refinements before building the isolated arm64 test APK. No APK or device result is claimed.
