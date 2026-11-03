@@ -1047,13 +1047,19 @@ impl Launcher {
             let c = &self.catalog.config;
             ui.text(
                 Face::Medium,
-                24.0,
+                if compact { 21.0 } else { 24.0 },
                 32.0,
-                156.0,
+                if compact { 150.0 } else { 156.0 },
                 color::TEXT,
                 "Launch settings",
             );
-            let row_height = if compact { 82.0 } else { 66.0 };
+            // Compact rows retain a stacked label/value layout. On short screens,
+            // trim only the vertical padding; the list remains scrollable.
+            let row_height = if compact {
+                if h < 520.0 { 76.0 } else { 82.0 }
+            } else {
+                66.0
+            };
             self.catalog.scroll = self
                 .catalog
                 .scroll
@@ -1222,9 +1228,13 @@ impl Launcher {
                         &mut self.targets,
                         [
                             if compact { 32.0 } else { w * 0.36 },
-                            y + if compact { 24.0 } else { 0.0 },
+                            y + if compact {
+                                if h < 520.0 { 20.0 } else { 24.0 }
+                            } else {
+                                0.0
+                            },
                             if compact { w - 64.0 } else { w * 0.64 - 32.0 },
-                            46.0,
+                            if compact && h < 520.0 { 42.0 } else { 46.0 },
                         ],
                         match action {
                             Action::PerformanceHints => c.device.performance_hints,
@@ -1240,9 +1250,13 @@ impl Launcher {
                         &mut self.targets,
                         [
                             if compact { 32.0 } else { w * 0.36 },
-                            y + if compact { 24.0 } else { 0.0 },
+                            y + if compact {
+                                if h < 520.0 { 20.0 } else { 24.0 }
+                            } else {
+                                0.0
+                            },
                             if compact { w - 64.0 } else { w * 0.64 - 32.0 },
-                            46.0,
+                            if compact && h < 520.0 { 42.0 } else { 46.0 },
                         ],
                         &format!(
                             "{} {}",
@@ -1268,7 +1282,11 @@ impl Launcher {
                 }
                 ui.rounded(
                     32.0,
-                    y + if compact { 78.0 } else { 62.0 },
+                    y + if compact {
+                        if h < 520.0 { 70.0 } else { 78.0 }
+                    } else {
+                        62.0
+                    },
                     w - 64.0,
                     1.0,
                     0.0,
