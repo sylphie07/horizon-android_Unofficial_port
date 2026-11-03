@@ -651,3 +651,12 @@
 - **Still under investigation:** the 3D preview reports that the player model must be installed via Play. Its current load is attempted when entering Skin Studio from `home/.local/horizon-client/<VANILLA_VERSION>`. Need verify the actual model/resource path and why the current device still requires repeated launches. Do not claim fixed yet.
 - **Verification:** no CI result or APK/device check has been confirmed for this commit yet.
 - **Next:** inspect the model document loader and installation path, add a bounded retry only if the install timing requires it, then verify source/native CI before updating Sylphra's submodule.
+
+
+## 3D Skin Studio preview diagnostics (2026-11-03)
+
+- Applied on android: mobs/preview.rs now preserves the actual resource-loading error instead of collapsing every failure to None. It reports a missing/unreadable entity-models.json with the exact resource root, or a missing minecraft:player#main model entry. Successful model loads remain cached by root; failures are not cached, so later visits can retry after resource installation.
+- android/launcher_pages.rs logs the diagnostic and displays it inside the preview panel rather than repeating the generic instruction to open Play. This is diagnostic instrumentation, not a claim that the preview is fixed.
+- The immediately preceding Skin Studio layout fix remains in the same branch: dedicated six-toggle layer strip, compact skin rows, fitted labels, and list viewport bounds.
+- Source workflow run #214 (41698244902) was queued for the UI diagnostic commit when this entry was written. Native ABI validation has not been run for the new changes. No APK or device verification is claimed.
+- Next: wait for source checks, inspect the exact error shown by a test APK/device, then fix the real resource-path/installation mismatch rather than adding blind retries. Before integrating to Sylphra, run the required native matrix when the workflow can be manually dispatched.
