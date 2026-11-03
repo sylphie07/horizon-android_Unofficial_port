@@ -441,3 +441,18 @@
 **Verification:** GitHub accepted the source update on `android`. No formatter, compiler, unit test, CI, APK build, installation, or device visual check has run for this change.
 
 **Next:** inspect the resulting diff and layout constraints; the full sidebar requires a coordinated content-layout refactor so hit-testing and page content remain aligned. Run source/native CI before preparing a test APK.
+
+
+## 2026-11-02 — Adaptive navigation layout audit
+
+**Preflight:** confirmed the only returned branch is `android`; HEAD before documentation changes was `22847b254ba4ea9d02de0c334480075d83cbd935`. Re-read continuity and development log, then inspected the launcher renderer, page drawing, and shared UI implementation. `docs/PROJECT_CONTEXT.md` is absent at the checked path (404).
+
+**Investigation:** mapped the top-level header/navigation and page-specific coordinate patterns. Navigation buttons append rectangles to `self.targets`; list controls also use `self.list_targets` and `self.list_view`, which drive touch and gamepad behaviour. Page families use direct absolute coordinates and independent right/bottom anchors. A sidebar-only visual move would desynchronize hit targets and overlap content, so it is not safe as a one-line change.
+
+**Code changes:** none in this audit. No source files were modified.
+
+**Documentation applied:** added `docs/SYLPHRA_ADAPTIVE_LAYOUT_PLAN.md` with renderer findings, a staged geometry migration, validation gates, and scope guardrails. Background customization (image/GIF/video) remains a separate later feature.
+
+**Verification:** branch and HEAD inspected; documentation source files fetched. No formatter, compiler, unit test, CI, APK build, install, or device test was run. This audit does not claim runtime validation.
+
+**Next:** implement a launcher-only geometry model, first preserving the current layout exactly; then migrate page families to consume a content rectangle before enabling a wide-screen sidebar.
