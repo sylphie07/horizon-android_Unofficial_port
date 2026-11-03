@@ -498,6 +498,7 @@ impl ApplicationHandler for Launcher {
                 self.controller_repeat = None;
                 self.mouse_down = false;
                 self.drag = None;
+                self.skin_preview_touch = None;
                 Ok(())
             }
             WindowEvent::MouseInput {
