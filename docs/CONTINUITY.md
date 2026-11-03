@@ -51,3 +51,11 @@
 2. Update `docs/DEVELOPMENT_LOG.md` with exact commits, changed files, actual tests/results, errors and corrections.
 3. Update this file with exact current state and pending steps.
 4. Never mark an unrun formatter, test, build, CI job, APK install, or device behaviour as verified.
+
+
+## Shared launcher geometry — stage 1
+- Implemented a launcher-only `LauncherLayout` in `launcher_pages.rs` for title, account button, navigation surface, tab bounds, and Play hero content top.
+- Header, account, navigation surface and border, tab buttons, and Play hero panel now use the shared geometry. Existing horizontal coordinates are represented; adaptive sidebar is not yet active.
+- Source commits: `72b99bcd8920e8a7cf221ab05e0e3f91526aa1c8` and `36891d928fcf82917849a1a29a8e650793f237b0`.
+- Static source fetch confirmed the geometry consumers. No formatter, compile, tests, CI, APK, install, or device test has run for this stage.
+- Next: migrate page families and their hitboxes/list viewports/anchors to shared content bounds before enabling a sidebar.
