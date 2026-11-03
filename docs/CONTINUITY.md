@@ -241,3 +241,9 @@
 - Corrected the Sylphra GitHub button target from private `sylphie07/Sylphra-Android` to public `sylphie07/Sylphra-Android-Public` after verifying repository visibility through GitHub metadata.
 - Public target: `https://github.com/sylphie07/Sylphra-Android-Public`. Private implementation repository remains private and is not linked from the launcher.
 - Code commit: `7ce3d959b4461107ea37d4980fc496a87c0f5022`. Not yet compiled or device-tested.
+
+
+## Validation checkpoint (2026-11-03)
+- Android source checks #261 / run `41738307509` passed on commit `cc5ea8e5c5a599dce392ec3065eb6abd25f516d6`. All source, tests, diagnostics, performance/content checks and workflow-export comparison succeeded.
+- Native ABI matrix remains pending; dispatch `.github/workflows/android-source.yml` on branch `android` with `native_checks=true`. The workflow dispatch action is not available through the connected GitHub tools, so the user must start it from GitHub Actions.
+- After four ABI jobs pass, dispatch `.github/workflows/sylphra-test-apk.yml` (development APK only, not a Release). Then verify UI and public repository button on device.
