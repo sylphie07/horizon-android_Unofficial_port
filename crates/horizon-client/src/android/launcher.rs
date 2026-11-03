@@ -44,6 +44,9 @@ pub(super) struct Launcher {
     error: Option<String>,
     catalog: Catalog,
     skin_preview: Option<horizon_client::mobs::preview::PlayerPreview>,
+    skin_preview_rect: Option<[f32; 4]>,
+    skin_preview_touch: Option<(u64, f64, f64)>,
+    skin_preview_rotation: [f32; 2],
     targets: Vec<([f32; 4], pages::Action)>,
     list_targets: Vec<([f32; 4], pages::Action)>,
     list_view: Option<[f32; 5]>,
@@ -105,6 +108,9 @@ impl Launcher {
             error: None,
             catalog,
             skin_preview: None,
+            skin_preview_rect: None,
+            skin_preview_touch: None,
+            skin_preview_rotation: [0.0, 0.0],
             targets: vec![],
             list_targets: vec![],
             list_view: None,
@@ -156,6 +162,9 @@ impl Launcher {
         self.catalog.config.input_host = horizon_client::android_runtime::input_mode();
         self.catalog.refresh(&self.home);
         self.skin_preview = None;
+        self.skin_preview_rect = None;
+        self.skin_preview_touch = None;
+        self.skin_preview_rotation = [0.0, 0.0];
         self.login.refresh_status();
         crate::diagnostics::heartbeat("returned_to_launcher", || serde_json::json!({}));
         self.catalog.page = Page::Play;
