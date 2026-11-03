@@ -227,3 +227,11 @@
 - Development log entry committed as `33f6809fa5cfbae29632f59f5b067fe0a103484c`.
 - **Not yet verified:** rustfmt, compilation, tests, source CI, four-ABI native checks, APK build/install, or device appearance/interaction. No beta workflow was created. Do not sync the Sylphra submodule or publish a Release before validation and explicit authorization.
 - Next: run Android source checks and native checks for arm64-v8a, armeabi-v7a, x86 and x86_64; then build the isolated development APK and review UI/device behaviour. Also validate the player-model first-install preflight from the prior Skin Studio task in the same APK.
+
+
+## Repository link and independence notice (2026-11-03)
+- Footer GitHub button now explicitly reads `Sylphra GitHub` and invokes the existing `SylphraRepository` action to open `https://github.com/sylphie07/Sylphra-Android`; it no longer routes visitors to Horizon's upstream repository.
+- About Sylphra now states that this is an independent unofficial project using Horizon Android as a technical foundation; it is not affiliated with, sponsored by or endorsed by Horizon or the original Android port author; Sylphra does not speak for them and does not know their position on the project. It also explicitly thanks and respects the original Android port author and acknowledges Horizon's contribution.
+- Commit: `9f1b3e5d39728f0b3bd1e848303bb7078bd4e744`; development log update: `f0969b9cb87c5feed7d2aa3d1cbc6072d0e6fc79`.
+- Static source inspection confirms the footer no longer creates the legacy generic GitHub action. The legacy handler remains but has no call site. No compile, CI, APK or device verification yet.
+- Next: include this in source/native CI and the next isolated development APK; tap-test the footer link and review About text on device. Preserve upstream attribution and third-party licenses.
