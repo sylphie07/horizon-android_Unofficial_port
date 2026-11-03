@@ -1061,9 +1061,14 @@ impl Launcher {
             let selected_text = ui.fit_text(Face::Regular, 15.0, &format!("Selected: {selected}"), control_width);
             ui.text(Face::Regular, 15.0, content_left, selected_y, color::MUTED, &selected_text);
             button(&mut ui, &mut self.targets, [content_left, default_y, control_width, 34.0], "Use default skin", Action::DefaultSkin, false);
+            let preview_height = if wide_preview {
+                (h * 0.42).clamp(260.0, 340.0)
+            } else {
+                (h * 0.30).clamp(180.0, 260.0)
+            };
             let preview_rect = if wide_preview {
                 let left = content_left + control_width + column_gap;
-                [left, title_y + 8.0, content_right, title_y + 202.0]
+                [left, title_y + 8.0, content_right, title_y + 8.0 + preview_height]
             } else {
                 let preview_top = default_y + 118.0;
                 let width = preview_width.min(300.0);
@@ -1105,11 +1110,8 @@ impl Launcher {
                     selected_texture,
                 );
             } else {
-                let message = if self.catalog.status.starts_with("3D preview could not load") {
-                    self.catalog.status.as_str()
-                } else {
-                    "Player model is not loaded yet. Open Play once, then return here."
-                };
+                let message = self.skin_preview_error.as_deref()
+                    .unwrap_or("Player model is not loaded yet. Open Play once, then return here.");
                 let message = ui.fit_text(Face::Regular, 13.0, message, (preview_rect[2] - preview_rect[0] - 16.0).max(0.0));
                 ui.text(Face::Regular, 13.0, preview_rect[0] + 8.0, preview_rect[1] + 52.0, color::MUTED, &message);
             }
@@ -2039,12 +2041,15 @@ impl Launcher {
                     match horizon_client::mobs::preview::PlayerPreview::load(&root) {
                         Ok(preview) => {
                             self.skin_preview = Some(preview);
+                            self.skin_preview_error = None;
                             self.catalog.status = "3D player model loaded.".into();
                         }
                         Err(error) => {
                             self.skin_preview = None;
-                            self.catalog.status = format!("3D preview could not load from {}: {error}", root.display());
-                            log::warn!("{}", self.catalog.status);
+                            let diagnostic = format!("3D preview could not load from {}: {error}", root.display());
+                            log::warn!("{diagnostic}");
+                            self.skin_preview_error = Some(diagnostic.clone());
+                            self.catalog.status = diagnostic;
                         }
                     }
                 }
