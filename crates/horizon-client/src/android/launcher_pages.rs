@@ -1401,10 +1401,10 @@ impl Launcher {
                 false,
             );
         }
+        let footer_left = layout.content_rect[0] + 12.0;
+        let footer_right = layout.content_rect[0] + layout.content_rect[2] - 12.0;
+        let footer_text_width = (footer_right - footer_left - 146.0).max(40.0);
         if !skin_studio_compact {
-            let footer_left = layout.content_rect[0] + 12.0;
-            let footer_right = layout.content_rect[0] + layout.content_rect[2] - 12.0;
-            let footer_text_width = (footer_right - footer_left - 146.0).max(40.0);
             let status = self.error.as_deref().unwrap_or(&self.catalog.status);
             for (i, line) in status
                 .chars()
