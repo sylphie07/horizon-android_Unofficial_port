@@ -16,6 +16,7 @@ jobs:
     timeout-minutes: 180
     env:
       HORIZON_TELEMETRY_URL: "off"
+      SYLPHRA_BUILD_CHANNEL: "development"
       CARGO_BUILD_JOBS: "2"
       CARGO_TARGET_DIR: .local/ci-target
     steps:
