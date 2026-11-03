@@ -705,3 +705,5 @@
 **Verification:** edits are committed, but no formatter, Rust compile, unit test, Android source/native CI, APK build, or device test has yet verified this pass. The device screenshot is evidence of the preceding APK's appearance only; it does not verify these new changes. The exact player-resource loading failure remains unknown until the next test APK displays the persistent diagnostic.
 
 **Next:** run source checks and the four-ABI native matrix, build the isolated arm64 test APK, then inspect the exact diagnostic shown on device. Do not sync the submodule into Sylphra or publish a Release until validation gates pass.
+
+- Follow-up scale-fit correction committed as `2534eb6f03f5487f470703b6850b03c83edf46ba`: model scale now uses 42% of preview height (rather than 72%) and 46% of preview width, with a 220-unit ceiling. This keeps the full 1.8-unit player model inside the taller viewport instead of enlarging it beyond the clip bounds. Still uncompiled/unverified.
