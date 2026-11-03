@@ -271,6 +271,25 @@ impl Launcher {
         );
         let tabs = Page::ALL.len() as f32;
         let tab_margin = if w < 700.0 { 16.0 } else { 32.0 };
+        // Group the primary destinations into a distinct launcher navigation surface.
+        // Keep the existing tab rectangles unchanged so pointer, touch, and gamepad
+        // hit targets remain aligned with the current page layout.
+        ui.rounded(
+            tab_margin,
+            82.0,
+            (w - 2.0 * tab_margin).max(0.0),
+            54.0,
+            4.0,
+            color::RAISED,
+        );
+        ui.border(
+            tab_margin,
+            82.0,
+            (w - 2.0 * tab_margin).max(0.0),
+            54.0,
+            4.0,
+            color::HOVER,
+        );
         let tab_width = (w - 2.0 * tab_margin) / tabs;
         for (i, page) in Page::ALL.iter().enumerate() {
             let x = tab_margin + i as f32 * tab_width;
