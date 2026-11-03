@@ -128,3 +128,11 @@
 - Source CI #185 (`41583666042`) passed on `f629757e008003561d14704c4aae25ae123c5be3`: diff check, public-tree history, Android Python unit tests, diagnostics, performance, content and workflow-export consistency.
 - **Not verified:** Rust formatting/compilation, four-ABI native checks, APK build/install, or visual/touch behaviour on a physical device. The native matrix requires manually dispatching Android source checks with `native_checks=true`.
 - Next: synchronize this Horizon tip into Sylphra's authorized foundation branch, then obtain the native matrix and physical-device review before declaring the design phase fully verified. Background image/GIF/video customization remains deferred.
+
+
+## Native validation completed — responsive navigation (2026-11-03)
+- Manual Android source checks run #188, ID `41584912109`, completed with overall conclusion `success` on branch `android`, HEAD `b22e97b2ca0b3e16537e57efafc04a513abe4851`.
+- Verified jobs: `source`, `native (arm64-v8a)`, `native (armeabi-v7a)`, `native (x86)`, and `native (x86_64)`; every job and its configured steps completed successfully, including Android SDK/NDK setup, Rust Android code checks, source tests, diagnostics, performance, content and workflow-export consistency.
+- This run validates native Rust code checks for all four configured ABIs. It explicitly does **not** build an APK. No installation, manifest inspection, visual/touch/gamepad/orientation device test, or release signing verification is claimed.
+- Test-only APK workflow remains `.github/workflows/sylphra-test-apk.yml`, manually dispatched on `android`; it checks out this branch, builds arm64 with isolated ID `dev.sylphra.android.test`, label `Sylphra Launcher`, and uploads a seven-day artifact without creating a GitHub Release.
+- Next: run the isolated test APK workflow, audit the produced artifact and package metadata, then request physical-device acceptance. Keep background image/GIF/video customization deferred until the base design is accepted.
