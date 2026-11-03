@@ -17,8 +17,9 @@
 ## Latest applied work
 - Play page responsive pass: code commit `4fba2f5335730e049ddecd561a6d10915b2dc948`.
 - Settings compact-layout pass: code commit `d19f7c8fcf71676777b618261d965f6770f4c10c`.
-- Latest documentation commit before this file: see branch `android` and `docs/DEVELOPMENT_LOG.md`.
-- The Settings pass adapts heading and compact row spacing for short screens while retaining scroll behaviour and existing settings actions.
+- Main navigation now includes the existing Skin Studio page as **Skins**; desktop-facing Installed label is **Installations**. Code commits: `5e4146cf14921e17bd2753dc06ffc69b162ca031` and `f00f9602f6fc2e0908ecf42f83414c3866534cb1`.
+- Detailed chronological record: `docs/DEVELOPMENT_LOG.md`.
+- The Skins navigation entry only exposes existing Skin Studio functionality; it does not add new skin runtime or multiplayer-sharing behaviour.
 
 ## Verification state
 - Android source-check run `41523801686` passed on commit `2b1f4e43afbe753dab9be12a8a4f6e717e236cd0`.
