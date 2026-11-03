@@ -684,7 +684,9 @@ impl Launcher {
                 .scroll
                 .clamp(0.0, (row_count as f32 * 78.0 - (bottom - top)).max(0.0));
             self.list_view = Some([
+                content_left,
                 top,
+                content_right,
                 bottom,
                 (row_count as f32 * 78.0 - (bottom - top)).max(0.0),
             ]);
@@ -817,7 +819,7 @@ impl Launcher {
                 .sum::<f32>();
             let maximum = (total - (bottom - top)).max(0.0);
             self.catalog.scroll = self.catalog.scroll.clamp(0.0, maximum);
-            self.list_view = Some([top, bottom, maximum]);
+            self.list_view = Some([content_left, top, content_right, bottom, maximum]);
             let mut offset = 0.0;
             for (section, kind) in Kind::ALL.into_iter().enumerate() {
                 let count = self.catalog.local.iter().filter(|e| e.kind == kind).count();
@@ -1036,7 +1038,7 @@ impl Launcher {
             let count = self.catalog.skin_library.skins.len();
             let maximum = (count as f32 * row_height - (bottom - top).max(0.0)).max(0.0);
             self.catalog.scroll = self.catalog.scroll.clamp(0.0, maximum);
-            self.list_view = Some([top, bottom.max(top + 1.0), maximum]);
+            self.list_view = Some([content_left, top, content_right, bottom.max(top + 1.0), maximum]);
             if count == 0 {
                 ui.text(Face::Regular, 16.0, content_left, top + 16.0, color::MUTED, "No imported skins yet. Choose Import PNG skin.");
             }
@@ -1095,7 +1097,7 @@ impl Launcher {
             let bottom = content_bottom - 72.0;
             let maximum = (lines.len() as f32 * line_height - (bottom - top)).max(0.0);
             self.catalog.scroll = self.catalog.scroll.clamp(0.0, maximum);
-            self.list_view = Some([top, bottom, maximum]);
+            self.list_view = Some([content_left, top, content_right, bottom, maximum]);
             for (i, line) in lines.iter().enumerate() {
                 let y = top + i as f32 * line_height - self.catalog.scroll;
                 if y + line_height < top || y > bottom {
@@ -1147,7 +1149,7 @@ impl Launcher {
             let settings_maximum =
                 (21.0 * row_height - (settings_bottom - settings_top)).max(0.0);
             self.catalog.scroll = self.catalog.scroll.clamp(0.0, settings_maximum);
-            self.list_view = Some([settings_top, settings_bottom, settings_maximum]);
+            self.list_view = Some([settings_left, settings_top, settings_right, settings_bottom, settings_maximum]);
             for (i, (title, value, action)) in [
                 ("Rendering", c.renderer.label().to_owned(), Action::Renderer),
                 (
@@ -1451,9 +1453,9 @@ impl Launcher {
         if let Some(chooser) = &mut self.chooser {
             chooser.draw(&mut ui, &mut self.targets);
             self.list_targets = chooser.navigation(ui.w);
-            self.list_view = Some(chooser.viewport(ui.h));
+            self.list_view = Some(chooser.viewport(ui.w, ui.h));
         }
-        if let Some([top, bottom, maximum]) = self.list_view
+        if let Some([_, top, right, bottom, maximum]) = self.list_view
             && maximum > 0.0
             && bottom > top
         {
@@ -1464,8 +1466,9 @@ impl Launcher {
             let height = bottom - top;
             let thumb = (height * height / (height + maximum)).max(20.0).min(height);
             let y = top + (height - thumb) * (scroll / maximum).clamp(0.0, 1.0);
-            ui.rounded(w - 12.0, top, 4.0, height, 2.0, color::BORDER);
-            ui.rounded(w - 12.0, y, 4.0, thumb, 2.0, color::MUTED);
+            let scrollbar_x = right - 12.0;
+            ui.rounded(scrollbar_x, top, 4.0, height, 2.0, color::BORDER);
+            ui.rounded(scrollbar_x, y, 4.0, thumb, 2.0, color::MUTED);
         }
         let caret_visible = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
@@ -2140,13 +2143,18 @@ impl Launcher {
                 let density = self.ui_density() as f64;
                 if let Some(drag) = &mut self.drag {
                     let delta = drag.update(t.location.x, t.location.y, density);
-                    if drag.moved {
+                    if drag.moved
+                        && self.list_view.is_some_and(|view| {
+                            super::gesture::contains_origin(
+                                view,
+                                drag.origin_x() / density,
+                                drag.origin_y() / density,
+                            )
+                        })
+                    {
                         if let Some(chooser) = &mut self.chooser {
                             chooser.scroll = (chooser.scroll + delta).max(0.0);
-                        } else if self
-                            .list_view
-                            .is_some_and(|view| drag.origin_y() / density >= view[0] as f64)
-                        {
+                        } else {
                             self.catalog.scroll = (self.catalog.scroll + delta).max(0.0);
                         }
                     }
