@@ -1105,7 +1105,13 @@ impl Launcher {
                     selected_texture,
                 );
             } else {
-                ui.text(Face::Regular, 13.0, preview_rect[0] + 8.0, preview_rect[1] + 52.0, color::MUTED, "Open Play once to install the player model.");
+                let message = if self.catalog.status.starts_with("3D preview could not load") {
+                    self.catalog.status.as_str()
+                } else {
+                    "Player model is not loaded yet. Open Play once, then return here."
+                };
+                let message = ui.fit_text(Face::Regular, 13.0, message, (preview_rect[2] - preview_rect[0] - 16.0).max(0.0));
+                ui.text(Face::Regular, 13.0, preview_rect[0] + 8.0, preview_rect[1] + 52.0, color::MUTED, &message);
             }
 
             // Keep the layer controls in their own full-width strip below the
@@ -2030,7 +2036,17 @@ impl Launcher {
                         .home
                         .join(".local/horizon-client")
                         .join(horizon_core::VANILLA_VERSION);
-                    self.skin_preview = horizon_client::mobs::preview::PlayerPreview::load(&root);
+                    match horizon_client::mobs::preview::PlayerPreview::load(&root) {
+                        Ok(preview) => {
+                            self.skin_preview = Some(preview);
+                            self.catalog.status = "3D player model loaded.".into();
+                        }
+                        Err(error) => {
+                            self.skin_preview = None;
+                            self.catalog.status = format!("3D preview could not load from {}: {error}", root.display());
+                            log::warn!("{}", self.catalog.status);
+                        }
+                    }
                 }
             }
             Some(Action::ImportSkin) => {
