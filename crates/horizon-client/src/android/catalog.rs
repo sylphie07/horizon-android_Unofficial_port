@@ -161,11 +161,11 @@ pub enum Page {
 impl Page {
     pub const ALL: [Self; 7] = [
         Self::Play,
+        Self::Installed,
+        Self::SkinStudio,
         Self::Mods,
         Self::Packs,
         Self::Shaders,
-        Self::Installed,
-        Self::SkinStudio,
         Self::Settings,
     ];
     pub fn name(self) -> &'static str {
