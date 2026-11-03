@@ -138,12 +138,13 @@
 - Next: run the isolated test APK workflow, audit the produced artifact and package metadata, then request physical-device acceptance. Keep background image/GIF/video customization deferred until the base design is accepted.
 
 
-## Current work: Skin Studio responsive preview (2026-11-03)
+## Current work: Skin Studio (2026-11-03)
 
 - Active code branch: `android` in `sylphie07/horizon-android_Unofficial_port`.
-- Applied commits: `170326f09ca0e19641925fb256a9c9ce25fad1e6` (responsive layout) and `7218728c11abbb39b977c7e1149a830a382deae5` (preview scale).
-- The preview column now uses 40% of content width on sufficiently wide screens; narrow screens stack the preview instead of hiding it. Controls were reordered to remove a compact-mode overlap. The mannequin scales to the preview rectangle.
-- Not verified yet: formatting, compilation, tests, Android ABI CI, APK, and device layout. The user will need to install/test an APK after CI passes.
-- Layer toggles are deferred because player/avatar rendering currently has no extra render layers exposed by the generic layer function. Implement them only with a proper renderer-level visibility model; do not add decorative controls.
-- Pointer-follow preview rotation remains unchanged; cumulative touch rotation is a separate next task.
-- Next: inspect CI result; fix any source failures; then implement safe, cumulative drag rotation isolated to the preview hitbox and test it. After that, design real model-part visibility controls and synchronize the verified Horizon gitlink into Sylphra's authorized branch.
+- Current applied code tip before documentation update: `3e7f11027fccd6f60548e9cab31b7422466c3d05`.
+- Responsive preview layout and dynamic model scale are applied (commits `170326f09ca0e19641925fb256a9c9ce25fad1e6`, `7218728c11abbb39b977c7e1149a830a382deae5`).
+- Cumulative touch rotation is now applied (commits `3404878f09e19f66e11d06a592c4bfacfc9d6f1b`, `273003a9b2141b9a89d6e8b26af18081c7af33cd`, `3e7f11027fccd6f60548e9cab31b7422466c3d05`). A touch beginning inside the preview rotates the mannequin; a touch beginning outside it retains list scrolling. Yaw accumulates and pitch is bounded.
+- Not yet verified: rustfmt, Rust compilation, unit tests, four-ABI native CI, test APK, or real-device layout/touch behavior. Wait for CI before requesting a new APK.
+- Real skin-layer toggles remain unimplemented. Investigate the baked player model's child-part tree and implement preview-only visibility for hat/jacket/sleeves/trousers; avoid decorative controls and avoid changing normal gameplay rendering.
+- After code and native checks pass, synchronize the verified Horizon gitlink into Sylphra's authorized branch `sylphra/horizon-foundation`. Then build the isolated test APK and request device acceptance. Do not publish a Release.
+- Keep the optional launcher background image/GIF/video feature deferred until the Skin Studio base design is accepted.
