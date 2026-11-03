@@ -456,3 +456,15 @@
 **Verification:** branch and HEAD inspected; documentation source files fetched. No formatter, compiler, unit test, CI, APK build, install, or device test was run. This audit does not claim runtime validation.
 
 **Next:** implement a launcher-only geometry model, first preserving the current layout exactly; then migrate page families to consume a content rectangle before enabling a wide-screen sidebar.
+
+## 2026-11-02 — Shared launcher shell geometry (stage 1)
+
+**Preflight:** confirmed branch search returns only `android`; HEAD before this implementation was `43a2131c7ba520e30b28445bf66758c2e85cb544`. Re-read `docs/CONTINUITY.md`, `docs/DEVELOPMENT_LOG.md`, `docs/SYLPHRA_ADAPTIVE_LAYOUT_PLAN.md`, and the launcher page renderer. No changes were made to `main`.
+
+**Applied:** `crates/horizon-client/src/android/launcher_pages.rs` now defines a launcher-local `LauncherLayout` geometry model for the title origin, account button rectangle, navigation surface rectangle, tab button vertical bounds, and Play panel content top. The header, account button, navigation surface/border, tab buttons, and Play hero panel now consume these shared geometry values. The geometry currently reproduces the existing horizontal layout; no sidebar or expanded navigation has been enabled.
+
+**Commits:** initial geometry model `72b99bcd8920e8a7cf221ab05e0e3f91526aa1c8`; navigation border alignment follow-up `36891d928fcf82917849a1a29a8e650793f237b0`.
+
+**Static source inspection:** fetched the final source back from branch `android`; confirmed the model, header/account/nav/tab consumers and Play panel consumer are present. This is source inspection only. No formatter, compiler, unit test, CI, APK build, installation, or device visual check was run. No runtime equivalence is claimed until those checks and a device test are performed.
+
+**Next:** migrate the next page families to explicit content bounds and update their drawn controls, list targets, scroll viewports, and bottom/right anchors together. Only after that migration should the adaptive sidebar be enabled.
