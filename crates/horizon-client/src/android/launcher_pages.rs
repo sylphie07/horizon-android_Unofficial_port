@@ -1073,7 +1073,7 @@ impl Launcher {
                 let preview_top = default_y + 118.0;
                 let width = preview_width.min(300.0);
                 let left = content_left + (content_width - width) * 0.5;
-                [left, preview_top, left + width, preview_top + 156.0]
+                [left, preview_top, left + width, preview_top + preview_height]
             };
             self.skin_preview_rect = Some(preview_rect);
             ui.text(Face::Regular, 14.0, preview_rect[0], preview_rect[1] - 18.0, color::MUTED, "3D preview · drag to rotate");
