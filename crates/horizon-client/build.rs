@@ -2,6 +2,13 @@
 //! resource 1: Explorer and the task bar show it, and the window takes it as its icon.
 //! The optional Segment Heap manifest is embedded in the same resource compilation.
 fn main() {
+    println!("cargo:rerun-if-env-changed=SYLPHRA_BUILD_CHANNEL");
+    let channel = std::env::var("SYLPHRA_BUILD_CHANNEL").unwrap_or_else(|_| "stable".into());
+    let channel = match channel.as_str() {
+        "stable" | "beta" | "development" => channel,
+        _ => panic!("SYLPHRA_BUILD_CHANNEL must be stable, beta, or development"),
+    };
+    println!("cargo:rustc-env=SYLPHRA_BUILD_CHANNEL={channel}");
     let dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_default();
     let ico = format!("{dir}/../../packaging/icons/horizon.ico");
     println!("cargo:rerun-if-changed={ico}");
