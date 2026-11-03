@@ -764,3 +764,11 @@
 **Static verification:** fetched the updated source and confirmed the footer no longer contains the generic `GitHub` / `Action::Repository` button; the only remaining `Action::Repository` occurrence is its now-unreferenced legacy handler. The About text and explicit Sylphra repository action are present. No formatter, compile, tests, CI, APK build, install or device tap test has run yet.
 
 **Next:** validate through the already planned Android source/native CI and isolated development APK; on device, tap the footer button and confirm it opens the Sylphra repository. Do not change Horizon attribution or remove required third-party notices.
+
+
+## Correction: public-facing Sylphra repository target (2026-11-03)
+- User correctly pointed out that the previous link targeted the private development repository `Sylphra-Android`. That would be unsuitable for a public launcher button and could expose internal work if visibility changed later.
+- Verified repository metadata: `sylphie07/Sylphra-Android-Public` is public; `sylphie07/Sylphra-Android` is private. The public repository description identifies Sylphra as an independent unofficial Android launcher based on Horizon Android.
+- Updated `crates/horizon-client/src/android/launcher_pages.rs`: footer and About repository action now open `https://github.com/sylphie07/Sylphra-Android-Public`; status text says public Sylphra project page.
+- Commit: `7ce3d959b4461107ea37d4980fc496a87c0f5022`.
+- Static source edit applied; no build, CI or device tap test yet. Keep private implementation repository and speculative/internal development notes out of public links unless explicitly approved for publication.
