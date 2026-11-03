@@ -351,7 +351,9 @@ impl Launcher {
             let progress = *self.install.lock().unwrap();
             // Give the Play page its own framed hero surface without changing shared
             // theme tokens or any installation/account behaviour.
-            let panel = [20.0, layout.content_top, (w - 40.0).max(0.0), (h - layout.content_top - 24.0).max(0.0)];
+            let content_x = layout.content_rect[0] + 12.0;
+            let content_width = (layout.content_rect[2] - 24.0).max(0.0);
+            let panel = [layout.content_rect[0], layout.content_top, layout.content_rect[2].max(0.0), (h - layout.content_top - 24.0).max(0.0)];
             ui.rounded(
                 panel[0],
                 panel[1],
@@ -368,10 +370,9 @@ impl Launcher {
                 1.0,
                 color::HOVER,
             );
-            ui.rounded(20.0, 160.0, 4.0, 42.0, 2.0, color::ACCENT);
-            let top = 160.0;
+            let top = layout.content_top + 16.0;
+            ui.rounded(layout.content_rect[0], top, 4.0, 42.0, 2.0, color::ACCENT);
             // Keep the hero readable on narrow phones and in landscape-sized windows.
-            let content_x = 32.0;
             let title_size = if compact { 25.0 } else { 32.0 };
             let subtitle_size = if compact { 14.0 } else { 17.0 };
             ui.text(
@@ -415,7 +416,7 @@ impl Launcher {
                         ui.text(
                             Face::Regular,
                             16.0,
-                            32.0,
+                            content_x,
                             y,
                             if index == current {
                                 color::TEXT
@@ -429,7 +430,7 @@ impl Launcher {
                     ui.text(
                         Face::Regular,
                         18.0,
-                        32.0,
+                        content_x,
                         top + 100.0,
                         color::TEXT,
                         progress.stage.label(),
@@ -437,7 +438,7 @@ impl Launcher {
                     ui.text(
                         Face::Regular,
                         15.0,
-                        32.0,
+                        content_x,
                         top + 138.0,
                         color::MUTED,
                         &format!("Step {} of 6", current + 1),
@@ -450,9 +451,9 @@ impl Launcher {
                 };
                 let overall = (current as f32 + fraction.clamp(0.0, 1.0)) / 6.0;
                 let bar_y = h - 152.0;
-                ui.rounded(32.0, bar_y, w - 64.0, 4.0, 2.0, color::RAISED);
+                ui.rounded(content_x, bar_y, content_width, 4.0, 2.0, color::RAISED);
                 if overall > 0.0 {
-                    ui.rounded(32.0, bar_y, (w - 64.0) * overall, 4.0, 2.0, color::ACCENT);
+                    ui.rounded(content_x, bar_y, content_width * overall, 4.0, 2.0, color::ACCENT);
                 }
                 let detail = match progress.stage {
                     InstallStage::Download => format!(
@@ -469,7 +470,7 @@ impl Launcher {
                 ui.text(
                     Face::Regular,
                     14.0,
-                    32.0,
+                    content_x,
                     bar_y + 12.0,
                     color::MUTED,
                     &detail,
@@ -512,17 +513,17 @@ impl Launcher {
                 ui.text(
                     Face::Medium,
                     19.0,
-                    32.0,
-                    h - 90.0,
+                    content_x,
+                    layout.content_rect[1] + layout.content_rect[3] + 10.0,
                     color::TEXT,
                     progress.stage.label(),
                 );
             } else {
-                let play_width = (w - 64.0).clamp(0.0, 320.0);
+                let play_width = content_width.clamp(0.0, 320.0);
                 button(
                     &mut ui,
                     &mut self.targets,
-                    [32.0, h - 100.0, play_width, 60.0],
+                    [content_x, layout.content_rect[1] + layout.content_rect[3], play_width, 60.0],
                     if installed {
                         "Play"
                     } else if self.error.is_some() {
@@ -1047,11 +1048,15 @@ impl Launcher {
                 button(&mut ui, &mut self.targets, [content_left, y, content_right - content_left, 56.0], &format!("{}{}  ({}×{})", if active { "✓ " } else { "" }, skin.name, skin.width, skin.height), Action::SelectSkin(i), active);
             }
         } else if self.about_visible {
+            let content_left = layout.content_rect[0] + 12.0;
+            let content_right = layout.content_rect[0] + layout.content_rect[2] - 12.0;
+            let content_width = (content_right - content_left).max(0.0);
+            let content_bottom = layout.content_rect[1] + layout.content_rect[3];
             ui.text(
                 Face::Medium,
                 24.0,
-                32.0,
-                156.0,
+                content_left,
+                layout.content_rect[1] + 12.0,
                 color::TEXT,
                 "About Sylphra",
             );
@@ -1086,8 +1091,8 @@ impl Launcher {
                 "as collaborators.",
             ];
             let line_height = if compact { 32.0 } else { 30.0 };
-            let top = 194.0;
-            let bottom = h - 172.0;
+            let top = layout.content_rect[1] + 50.0;
+            let bottom = content_bottom - 72.0;
             let maximum = (lines.len() as f32 * line_height - (bottom - top)).max(0.0);
             self.catalog.scroll = self.catalog.scroll.clamp(0.0, maximum);
             self.list_view = Some([top, bottom, maximum]);
@@ -1096,13 +1101,13 @@ impl Launcher {
                 if y + line_height < top || y > bottom {
                     continue;
                 }
-                let text = ui.fit_text(Face::Regular, 16.0, line, w - 64.0);
-                ui.text(Face::Regular, 16.0, 32.0, y, color::TEXT, &text);
+                let text = ui.fit_text(Face::Regular, 16.0, line, content_width);
+                ui.text(Face::Regular, 16.0, content_left, y, color::TEXT, &text);
             }
             button(
                 &mut ui,
                 &mut self.targets,
-                [32.0, h - 114.0, w * 0.5 - 38.0, 42.0],
+                [content_left, content_bottom - 14.0, (content_width - 12.0) / 2.0, 42.0],
                 "Back",
                 Action::BackAbout,
                 false,
@@ -1110,7 +1115,7 @@ impl Launcher {
             button(
                 &mut ui,
                 &mut self.targets,
-                [w * 0.5 + 6.0, h - 114.0, w * 0.5 - 38.0, 42.0],
+                [content_left + (content_width + 12.0) / 2.0, content_bottom - 14.0, (content_width - 12.0) / 2.0, 42.0],
                 "Sylphra GitHub",
                 Action::SylphraRepository,
                 true,
@@ -1397,6 +1402,9 @@ impl Launcher {
             );
         }
         if !skin_studio_compact {
+            let footer_left = layout.content_rect[0] + 12.0;
+            let footer_right = layout.content_rect[0] + layout.content_rect[2] - 12.0;
+            let footer_text_width = (footer_right - footer_left - 146.0).max(40.0);
             let status = self.error.as_deref().unwrap_or(&self.catalog.status);
             for (i, line) in status
                 .chars()
@@ -1408,14 +1416,14 @@ impl Launcher {
                 ui.text(
                     Face::Regular,
                     14.0,
-                    32.0,
+                    footer_left,
                     h - 47.0 + i as f32 * 18.0,
                     color::MUTED,
                     &ui.fit_text(
                         Face::Regular,
                         14.0,
                         &line.iter().collect::<String>(),
-                        (w - 210.0).max(40.0),
+                        footer_text_width,
                     ),
                 );
             }
@@ -1424,7 +1432,7 @@ impl Launcher {
             button(
                 &mut ui,
                 &mut self.targets,
-                [w - 142.0, h - 52.0, 110.0, 32.0],
+                [footer_right - 110.0, h - 52.0, 110.0, 32.0],
                 "GitHub",
                 Action::Repository,
                 false,
