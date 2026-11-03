@@ -310,10 +310,10 @@ impl Launcher {
             color::RAISED,
         );
         ui.border(
-            tab_margin,
-            82.0,
-            (w - 2.0 * tab_margin).max(0.0),
-            54.0,
+            layout.nav_rect[0],
+            layout.nav_rect[1],
+            layout.nav_rect[2],
+            layout.nav_rect[3],
             4.0,
             color::HOVER,
         );
