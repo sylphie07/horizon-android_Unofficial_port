@@ -425,4 +425,6 @@
 
 **Verification:** GitHub accepted both source updates on `android`. No formatter, compiler, unit test, CI, APK build, installation, or device visual test has run for these changes. The previously recorded CI results do not validate this new commit.
 
-**Next:** verify both files on the branch, complete the continuity record, then run Android source checks with `native_checks=true` before any test APK build.
+**Post-change inspection:** fetched both source files again from branch `android`; confirmed the requested page order and compact `FX` label are present. Updated `docs/CONTINUITY.md` with the exact commits and verification boundary.
+
+**Next:** manually dispatch Android source checks with `native_checks=true` on branch `android`; inspect the source job and all four ABI jobs before any test APK build.
