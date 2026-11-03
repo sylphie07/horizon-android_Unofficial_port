@@ -537,8 +537,8 @@ impl Launcher {
         } else if page.is_catalog() {
             let content_left = layout.content_rect[0] + 12.0;
             let content_right = layout.content_rect[0] + layout.content_rect[2] - 12.0;
-            let action_x = content_right - 130.0;
-            let search_x = content_right - 170.0;
+            let action_x = content_right - 118.0;
+            let search_x = content_right - 158.0;
             ui.text(
                 Face::Medium,
                 18.0,
@@ -583,9 +583,9 @@ impl Launcher {
             );
             if matches!(page, Page::Shaders | Page::Mods) {
                 use crate::shader_catalog::Origin;
-                let width = ((content_right - content_left - 12.0) / 2.0).clamp(58.0, 120.0);
+                let width = ((content_right - content_left - 121.0) / 2.0).clamp(58.0, 120.0);
                 for (i, origin) in [Origin::Horizon, Origin::Modrinth].into_iter().enumerate() {
-                    let rect = [content_right - 12.0 - (2 - i) as f32 * width, 134.0, width - 5.0, 32.0];
+                    let rect = [content_right - (2 - i) as f32 * width, 134.0, width - 5.0, 32.0];
                     button(
                         &mut ui,
                         &mut self.targets,
@@ -632,7 +632,7 @@ impl Launcher {
                 Page::Shaders => horizon_client::content_files::Kind::Shaders,
                 _ => horizon_client::content_files::Kind::Packs,
             };
-            let file_button_width = ((content_right - content_left - 24.0) / 2.0).min(158.0);
+            let file_button_width = ((content_right - content_left - 8.0) / 2.0).min(158.0);
             button(
                 &mut ui,
                 &mut self.targets,
@@ -644,7 +644,7 @@ impl Launcher {
             button(
                 &mut ui,
                 &mut self.targets,
-                [content_right - 12.0 - file_button_width, 222.0, file_button_width, 38.0],
+                [content_right - file_button_width, 222.0, file_button_width, 38.0],
                 "Import file",
                 Action::Import(kind),
                 false,
