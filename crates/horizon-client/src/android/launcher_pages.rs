@@ -130,7 +130,7 @@ struct LauncherLayout {
     content_rect: [f32; 4],
 }
 impl LauncherLayout {
-    fn new(width: f32, _height: f32) -> Self {
+    fn new(width: f32, height: f32) -> Self {
         let compact = width < 700.0;
         let margin = if compact { 16.0 } else { 32.0 };
         Self {
@@ -145,7 +145,7 @@ impl LauncherLayout {
             tab_rect_y: 88.0,
             tab_rect_height: 42.0,
             content_top: 144.0,
-            content_rect: [20.0, 144.0, (width - 40.0).max(0.0), ( _height - 244.0).max(0.0)],
+            content_rect: [20.0, 144.0, (width - 40.0).max(0.0), (height - 244.0).max(0.0)],
         }
     }
 }
