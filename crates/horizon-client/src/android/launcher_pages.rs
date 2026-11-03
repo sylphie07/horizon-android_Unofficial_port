@@ -13,6 +13,7 @@ pub(super) enum Action {
     SelectSkin(usize),
     DefaultSkin,
     ToggleSkinModel,
+    ToggleSkinLayer(u8),
     NextAppearanceProfile,
     NewAppearanceProfile,
     About,
@@ -1060,12 +1061,34 @@ impl Launcher {
             let selected_text = ui.fit_text(Face::Regular, 15.0, &format!("Selected: {selected}"), control_width);
             ui.text(Face::Regular, 15.0, content_left, selected_y, color::MUTED, &selected_text);
             button(&mut ui, &mut self.targets, [content_left, default_y, control_width, 34.0], "Use default skin", Action::DefaultSkin, false);
+            ui.text(Face::Regular, 13.0, content_left, default_y + 48.0, color::MUTED, "Visible skin layers");
+            let layer_gap = 5.0;
+            let layer_width = ((control_width - layer_gap * 2.0) / 3.0).max(0.0);
+            let layer_rows = [
+                [(1u8 << 6, "Hat"), (1u8 << 1, "Jacket"), (1u8 << 2, "L sleeve")],
+                [(1u8 << 3, "R sleeve"), (1u8 << 4, "L pants"), (1u8 << 5, "R pants")],
+            ];
+            for (row, layers) in layer_rows.iter().enumerate() {
+                for (column, (bit, label)) in layers.iter().enumerate() {
+                    let x = content_left + column as f32 * (layer_width + layer_gap);
+                    let y = default_y + 56.0 + row as f32 * 30.0;
+                    let visible = self.skin_preview_hidden_parts & bit == 0;
+                    button(
+                        &mut ui,
+                        &mut self.targets,
+                        [x, y, layer_width, 27.0],
+                        label,
+                        Action::ToggleSkinLayer(*bit),
+                        visible,
+                    );
+                }
+            }
 
             let preview_rect = if wide_preview {
                 let left = content_left + control_width + column_gap;
                 [left, title_y + 8.0, content_right, title_y + 202.0]
             } else {
-                let preview_top = default_y + 48.0;
+                let preview_top = default_y + 118.0;
                 let width = preview_width.min(300.0);
                 let left = content_left + (content_width - width) * 0.5;
                 [left, preview_top, left + width, preview_top + 156.0]
@@ -1101,6 +1124,7 @@ impl Launcher {
                     &gui.atlas,
                     preview_rect,
                     self.skin_preview_rotation,
+                    self.skin_preview_hidden_parts,
                     selected_texture,
                 );
             } else {
@@ -2019,6 +2043,22 @@ impl Launcher {
                     Ok(()) => self.catalog.status = "Minecraft default skin selected.".into(),
                     Err(error) => self.catalog.status = error,
                 }
+            }
+            Some(Action::ToggleSkinLayer(bit)) => {
+                self.skin_preview_hidden_parts ^= bit;
+                let part = match bit {
+                    1 << 6 => "hat",
+                    1 << 1 => "jacket",
+                    1 << 2 => "left sleeve",
+                    1 << 3 => "right sleeve",
+                    1 << 4 => "left trousers",
+                    1 << 5 => "right trousers",
+                    _ => "skin layer",
+                };
+                self.catalog.status = format!(
+                    "{} {part} in the 3D preview.",
+                    if self.skin_preview_hidden_parts & bit == 0 { "Showing" } else { "Hiding" }
+                );
             }
             Some(Action::ToggleSkinModel) => {
                 let model = match self.catalog.skin_library.active_model().unwrap_or_default() {
