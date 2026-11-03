@@ -1026,7 +1026,11 @@ impl Launcher {
             }
 
             let top = if studio_compact { 320.0 } else { 410.0 };
-            let bottom = if studio_compact { layout.content_rect[1] + layout.content_rect[3] } else { layout.content_rect[1] + layout.content_rect[3] - 98.0 };
+            let bottom = if studio_compact {
+                layout.content_rect[1] + layout.content_rect[3] + 88.0
+            } else {
+                layout.content_rect[1] + layout.content_rect[3] - 10.0
+            };
             let row_height = 64.0;
             let count = self.catalog.skin_library.skins.len();
             let maximum = (count as f32 * row_height - (bottom - top).max(0.0)).max(0.0);
