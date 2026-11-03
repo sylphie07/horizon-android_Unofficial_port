@@ -772,3 +772,10 @@
 - Updated `crates/horizon-client/src/android/launcher_pages.rs`: footer and About repository action now open `https://github.com/sylphie07/Sylphra-Android-Public`; status text says public Sylphra project page.
 - Commit: `7ce3d959b4461107ea37d4980fc496a87c0f5022`.
 - Static source edit applied; no build, CI or device tap test yet. Keep private implementation repository and speculative/internal development notes out of public links unless explicitly approved for publication.
+
+
+## Validation checkpoint — launcher visual identity and public repository link (2026-11-03)
+- Android source checks workflow run #261, run ID `41738307509`, completed successfully for commit `cc5ea8e5c5a599dce392ec3065eb6abd25f516d6`. Successful steps: `git diff --check`, public-tree history validation, Android unit tests, diagnostics tests, performance tests, content tests, and active/exported workflow comparison.
+- The source workflow does not run native Rust checks unless manually dispatched with `native_checks=true`. No native ABI checks or APK build have run for the latest launcher changes.
+- The code in the tested commit includes the public GitHub destination `Sylphra-Android-Public`, About/independence wording, green launcher palette, News channel gating, and Java-inspired home layout.
+- Next gate: manually dispatch `.github/workflows/android-source.yml` on branch `android` with `native_checks=true`. If all four ABI jobs pass, manually dispatch `.github/workflows/sylphra-test-apk.yml` to build the isolated development APK. No release or submodule sync.
