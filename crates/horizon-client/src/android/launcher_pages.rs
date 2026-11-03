@@ -1119,7 +1119,7 @@ impl Launcher {
 
             // Keep the layer controls in their own full-width strip below the
             // preview. They must never overlap the selectable skin list.
-            let layer_top = preview_rect[3] + 5.0;
+            let layer_top = if wide_preview { default_y + 40.0 } else { preview_rect[3] + 5.0 };
             ui.text(Face::Regular, 12.0, content_left, layer_top, color::MUTED, "Visible skin layers");
             let layer_gap = 5.0;
             let layer_width = ((content_width - layer_gap * 5.0) / 6.0).max(0.0);
