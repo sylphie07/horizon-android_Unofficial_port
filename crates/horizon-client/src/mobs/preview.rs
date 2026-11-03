@@ -114,6 +114,7 @@ impl PlayerPreview {
         atlas: &crate::hud::HudAtlas,
         rect: [f32; 4],
         rotation: [f32; 2],
+        hidden_model_parts: u8,
         skin: Option<(&str, bool)>,
     ) {
         let [x0, y0, x1, y1] = rect;
@@ -123,6 +124,7 @@ impl PlayerPreview {
         let mut mob = self.mob.clone();
         mob.skin = skin.map(|(name, _)| name.to_owned());
         mob.slim = skin.is_some_and(|(_, slim)| slim);
+        mob.extra.hidden_model_parts = hidden_model_parts;
         mob.extra.model_scale = 0.0;
         mob.previous = mob.position;
         mob.body_yaw = 180.0 + yaw;
