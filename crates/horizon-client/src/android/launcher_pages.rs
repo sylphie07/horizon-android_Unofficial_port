@@ -177,8 +177,8 @@ impl LauncherLayout {
                 ),
                 NavigationMode::Sidebar => (
                     [240.0, 28.0],
-                    [(width - 320.0).max(240.0), 24.0, 288.0, 46.0],
-                    [16.0, 82.0, 208.0, (height - 112.0).max(0.0)],
+                    [28.0, 24.0, 184.0, 58.0],
+                    [16.0, 96.0, 208.0, (height - 126.0).max(0.0)],
                     144.0,
                     [240.0, 144.0, (width - 260.0).max(0.0), (height - 244.0).max(0.0)],
                 ),
@@ -370,10 +370,10 @@ impl Launcher {
         } else {
             32.0
         };
-        let title_width = if layout.navigation_mode == NavigationMode::Compact {
-            (w - 64.0).max(40.0)
-        } else {
-            (layout.account_rect[0] - layout.title_origin[0] - 12.0).max(40.0)
+        let title_width = match layout.navigation_mode {
+            NavigationMode::Compact => (w - 64.0).max(40.0),
+            NavigationMode::Expanded => (layout.account_rect[0] - layout.title_origin[0] - 12.0).max(40.0),
+            NavigationMode::Sidebar => (w - layout.title_origin[0] - 320.0).max(40.0),
         };
         let title = ui.fit_text(
             Face::Medium,
@@ -446,9 +446,10 @@ impl Launcher {
             let installed = horizon_client::official_install::ready(&self.home);
             let installing = self.worker.is_some();
             let progress = *self.install.lock().unwrap();
-            // Give the Play page its own framed hero surface without changing shared
-            // theme tokens or any installation/account behaviour.
+            // Sylphra home: Java-launcher-inspired hero composition, with a
+            // distinct layout and no changes to gameplay or shared Horizon HUD.
             let content_x = layout.content_rect[0] + 12.0;
+            let content_right = layout.content_rect[0] + layout.content_rect[2] - 12.0;
             let content_width = (layout.content_rect[2] - 24.0).max(0.0);
             let panel = [layout.content_rect[0], layout.content_top, layout.content_rect[2].max(0.0), (h - layout.content_top - 24.0).max(0.0)];
             ui.rounded(
@@ -467,8 +468,18 @@ impl Launcher {
                 1.0,
                 color::HOVER,
             );
-            let top = layout.content_top + 16.0;
-            ui.rounded(layout.content_rect[0], top, 4.0, 42.0, 2.0, color::ACCENT);
+            let top = layout.content_top + 22.0;
+            if layout.navigation_mode == NavigationMode::Sidebar {
+                button(
+                    &mut ui,
+                    &mut self.targets,
+                    [content_right - 124.0, top, 112.0, 38.0],
+                    "FILES",
+                    Action::Page(Page::Installed),
+                    false,
+                );
+            }
+            ui.rounded(layout.content_rect[0], top, 5.0, 48.0, 2.0, color::ACCENT);
             // Keep the hero readable on narrow phones and in landscape-sized windows.
             let title_size = if compact { 25.0 } else { 32.0 };
             let subtitle_size = if compact { 14.0 } else { 17.0 };
@@ -492,7 +503,7 @@ impl Launcher {
                 Face::Regular,
                 subtitle_size,
                 content_x,
-                top + if compact { 40.0 } else { 47.0 },
+                top + if compact { 44.0 } else { 56.0 },
                 color::MUTED,
                 &format!("Minecraft 26.3  /  Profile {}", self.catalog.config.profile),
             );
@@ -617,10 +628,15 @@ impl Launcher {
                 );
             } else {
                 let play_width = content_width.clamp(0.0, 320.0);
+                let play_x = if layout.navigation_mode == NavigationMode::Sidebar {
+                    content_right - play_width
+                } else {
+                    content_x
+                };
                 button(
                     &mut ui,
                     &mut self.targets,
-                    [content_x, layout.content_rect[1] + layout.content_rect[3], play_width, 60.0],
+                    [play_x, layout.content_rect[1] + layout.content_rect[3], play_width, 64.0],
                     if installed {
                         "Play"
                     } else if self.error.is_some() {
@@ -630,6 +646,37 @@ impl Launcher {
                     },
                     Action::Play,
                     true,
+                );
+            }
+        } else if page == Page::News && crate::catalog::SHOW_DEVELOPMENT_NEWS {
+            let left = layout.content_rect[0] + 12.0;
+            let right = layout.content_rect[0] + layout.content_rect[2] - 12.0;
+            let top = layout.content_top + 58.0;
+            let bottom = (h - 20.0).max(top + 1.0);
+            let lines: Vec<&str> = include_str!("../../../../docs/SYLPHRA_DEVELOPMENT_NEWS.md")
+                .lines()
+                .collect();
+            let line_height = 32.0;
+            let maximum = (lines.len() as f32 * line_height - (bottom - top)).max(0.0);
+            self.catalog.scroll = self.catalog.scroll.clamp(0.0, maximum);
+            self.list_view = Some([left, top, right, bottom, maximum]);
+            ui.text(Face::Medium, 25.0, left, layout.content_top + 12.0, color::TEXT, "Sylphra development");
+            ui.text(Face::Regular, 14.0, left, layout.content_top + 40.0, color::MUTED,
+                &format!("{} build  •  Experimental notes for testers and contributors", crate::catalog::BUILD_CHANNEL));
+            for (index, raw) in lines.iter().enumerate() {
+                if raw.trim().is_empty() { continue; }
+                let y = top + index as f32 * line_height - self.catalog.scroll;
+                if y + line_height < top || y > bottom { continue; }
+                let heading = raw.starts_with('#');
+                let label = raw.trim_start_matches('#').trim_start_matches("- ").trim();
+                let label = ui.fit_text(Face::Regular, if heading { 17.0 } else { 14.0 }, label, (right - left).max(0.0));
+                ui.text(
+                    if heading { Face::Medium } else { Face::Regular },
+                    if heading { 17.0 } else { 14.0 },
+                    left + if heading { 0.0 } else { 12.0 },
+                    y,
+                    if heading { color::ACCENT } else { color::MUTED },
+                    &label,
                 );
             }
         } else if page.is_catalog() {
