@@ -143,7 +143,7 @@ fn body_visible(invisible: bool, team: Option<&horizon_client::scoreboard::Team>
 }
 /// The player's model type for each resource root, shared with the launcher preview.
 pub(super) fn player_type(root: &Path) -> Option<Arc<MobType>> {
-    horizon_client::mobs::preview::player_type(root)
+    horizon_client::mobs::preview::player_type(root).ok()
 }
 fn wrap(d: f32) -> f32 {
     let d = d % 360.0;
