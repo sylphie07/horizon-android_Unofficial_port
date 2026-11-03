@@ -165,3 +165,10 @@
 - Skin list overlap fix is included on this branch: separate six-button layer strip and compact clipped list below it.
 - Source workflow #214 (41698244902) was queued for the latest code commit; verify its final result before proceeding. Native ABI matrix, APK and device test remain unverified.
 - Required next action: obtain the exact diagnostic from a test run and fix the root cause; do not introduce blind launch retries. Integrate the fork tip into Sylphra only after source/native checks and document the exact gitlink.
+
+
+## Verification update — source CI green (2026-11-03)
+- The latest documented branch tip `708f42cfcffc74804f680ad33291644550a13d24` completed Android source checks successfully in run #216 (`41698337604`). Every step in the source job passed, including diff check, public-tree history check, Android Python tests, diagnostics, performance, content and workflow-export parity. Native job was skipped because the workflow was not manually dispatched with `native_checks=true`.
+- Runs #213 and #214 were cancelled by concurrency; they are not evidence of code failure. Run #216 checked out the latest branch tip, including both preview diagnostic code commits, so source-level validation applies to the documented tree.
+- The preview is still not device-verified. Diagnostic code now reports exact file/model-key errors, but the actual cause and successful 3D rendering remain unconfirmed.
+- Next required action: manually dispatch Android source checks on branch `android` with `native_checks=true`; after all four ABI checks pass, dispatch the isolated test APK workflow, audit its artifact, then request user device testing. Do not sync the Horizon submodule into Sylphra yet.
