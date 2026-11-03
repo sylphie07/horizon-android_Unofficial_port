@@ -6,8 +6,8 @@ pub(super) fn contains_origin(view: [f32; 5], x: f64, y: f64) -> bool {
 }
 //! Track total drag distance separately from per-event scroll deltas.
 /// Scroll only enough to reveal the selected row, retaining the current offset.
-pub(super) fn reveal(scroll: f32, row: [f32; 4], view: [f32; 3]) -> f32 {
-    let [top, bottom, maximum] = view;
+pub(super) fn reveal(scroll: f32, row: [f32; 4], view: [f32; 5]) -> f32 {
+    let [_, top, _, bottom, maximum] = view;
     let adjustment = if row[1] < top {
         row[1] - top
     } else if row[1] + row[3] > bottom {
