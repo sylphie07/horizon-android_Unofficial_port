@@ -667,3 +667,10 @@
 - Native matrix was skipped (workflow condition requires manual dispatch with `native_checks=true`). Earlier code-triggered runs #213/#214 were cancelled due to concurrency; #216 checked out the current branch tip, so do not interpret those cancellations as failures.
 - Preview diagnostics are implemented but not device verified. The root cause of the missing 3D model is still unknown until the diagnostic is seen on an APK/device.
 - Next: run four-ABI native checks manually, then build/audit isolated arm64 test APK, then test on device. Keep Sylphra submodule unchanged until these validations pass.
+
+
+## Native CI failure analysis and fix (2026-11-03)
+- Manual workflow run #219 (`41715591765`) on commit `6c5670a4bcd0c0edbc690d62944e57d2a6bea442`: source job succeeded; native jobs for x86_64, arm64-v8a, armeabi-v7a and x86 failed identically.
+- Compiler error E0308 at `crates/horizon-client/src/game/perspective.rs:146`: wrapper promised `Option<Arc<MobType>>` but returned `Result<Arc<MobType>, Box<dyn Error>>` after making preview loading fallible for diagnostics.
+- Fixed in `88850c1afa60c386a63af38ec37caf78686834f9` by mapping `.ok()` at the gameplay compatibility boundary. This preserves the old gameplay Option contract and leaves Skin Studio's `Result` error reporting intact.
+- Verification pending: source CI and all four native ABI checks must rerun. No APK or device result is claimed.
