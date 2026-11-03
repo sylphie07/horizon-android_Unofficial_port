@@ -787,6 +787,17 @@ impl Launcher {
             let top = layout.content_rect[1] + 12.0;
             let bottom = layout.content_rect[1] + layout.content_rect[3];
             let row_height = if compact { 110.0 } else { 72.0 };
+            // Derive horizontal controls and hitboxes from shared content bounds.
+            let content_left = layout.content_rect[0] + 12.0;
+            let content_right = layout.content_rect[0] + layout.content_rect[2] - 12.0;
+            let import_x = content_right - 133.0;
+            let section_width = import_x - content_left - 13.0;
+            let toggle_x = import_x - 135.0;
+            let title_width = if compact {
+                content_right - content_left
+            } else {
+                toggle_x - content_left - 32.0
+            };
             let total = Kind::ALL
                 .iter()
                 .enumerate()
@@ -816,14 +827,14 @@ impl Launcher {
                     kind.label()
                 );
                 self.list_targets
-                    .push(([32.0, y, w - 210.0, 40.0], Action::ToggleSection(section)));
+                    .push(([content_left, y, section_width, 40.0], Action::ToggleSection(section)));
                 self.list_targets
-                    .push(([w - 165.0, y, 133.0, 40.0], Action::Import(kind)));
+                    .push(([import_x, y, 133.0, 40.0], Action::Import(kind)));
                 if y >= top && y + 40.0 <= bottom {
                     button(
                         &mut ui,
                         &mut self.targets,
-                        [32.0, y, w - 210.0, 40.0],
+                        [content_left, y, section_width, 40.0],
                         &label,
                         Action::ToggleSection(section),
                         false,
@@ -831,7 +842,7 @@ impl Launcher {
                     button(
                         &mut ui,
                         &mut self.targets,
-                        [w - 165.0, y, 133.0, 40.0],
+                        [import_x, y, 133.0, 40.0],
                         "Import",
                         Action::Import(kind),
                         false,
@@ -852,7 +863,7 @@ impl Launcher {
                     offset += row_height;
                     self.list_targets.push((
                         [
-                            if compact { 32.0 } else { w - 300.0 },
+                            if compact { content_left } else { toggle_x },
                             y,
                             120.0,
                             row_height - 4.0,
@@ -860,7 +871,7 @@ impl Launcher {
                         Action::ToggleLocal(i),
                     ));
                     self.list_targets.push((
-                        [w - 165.0, y, 133.0, row_height - 4.0],
+                        [import_x, y, 133.0, row_height - 4.0],
                         Action::DeleteLocal(i),
                     ));
                     if y < top || y + row_height - 4.0 > bottom {
@@ -870,13 +881,13 @@ impl Launcher {
                         Face::Medium,
                         19.0,
                         &item.title,
-                        if compact { w - 64.0 } else { w - 364.0 },
+                        title_width,
                     );
-                    ui.text(Face::Medium, 19.0, 32.0, y, color::TEXT, &title);
+                    ui.text(Face::Medium, 19.0, content_left, y, color::TEXT, &title);
                     ui.text(
                         Face::Regular,
                         14.0,
-                        32.0,
+                        content_left,
                         y + 28.0,
                         color::MUTED,
                         kind.label(),
@@ -885,7 +896,7 @@ impl Launcher {
                         ui.text(
                             Face::Regular,
                             14.0,
-                            if compact { 32.0 } else { w - 300.0 },
+                            if compact { content_left } else { toggle_x },
                             y + if compact { 62.0 } else { 12.0 },
                             color::MUTED,
                             "64-bit required",
@@ -895,7 +906,7 @@ impl Launcher {
                             &mut ui,
                             &mut self.targets,
                             [
-                                if compact { 32.0 } else { w - 300.0 },
+                                if compact { content_left } else { toggle_x },
                                 y + if compact { 55.0 } else { 0.0 },
                                 120.0,
                                 40.0,
@@ -907,7 +918,7 @@ impl Launcher {
                     button(
                         &mut ui,
                         &mut self.targets,
-                        [w - 165.0, y + if compact { 55.0 } else { 0.0 }, 133.0, 40.0],
+                        [import_x, y + if compact { 55.0 } else { 0.0 }, 133.0, 40.0],
                         "Remove",
                         Action::DeleteLocal(i),
                         false,
