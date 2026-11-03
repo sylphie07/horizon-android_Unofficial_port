@@ -4,10 +4,9 @@
 fn main() {
     println!("cargo:rerun-if-env-changed=SYLPHRA_BUILD_CHANNEL");
     let channel = std::env::var("SYLPHRA_BUILD_CHANNEL").unwrap_or_else(|_| "stable".into());
-    let channel = match channel.as_str() {
-        "stable" | "beta" | "development" => channel,
-        _ => panic!("SYLPHRA_BUILD_CHANNEL must be stable, beta, or development"),
-    };
+    if !matches!(channel.as_str(), "stable" | "beta" | "development") {
+        panic!("SYLPHRA_BUILD_CHANNEL must be stable, beta, or development");
+    }
     println!("cargo:rustc-env=SYLPHRA_BUILD_CHANNEL={channel}");
     let dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_default();
     let ico = format!("{dir}/../../packaging/icons/horizon.ico");
