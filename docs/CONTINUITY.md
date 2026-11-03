@@ -17,9 +17,10 @@
 ## Latest applied work
 - Play page responsive pass: code commit `4fba2f5335730e049ddecd561a6d10915b2dc948`.
 - Settings compact-layout pass: code commit `d19f7c8fcf71676777b618261d965f6770f4c10c`.
-- Main navigation now includes the existing Skin Studio page as **Skins**; desktop-facing Installed label is **Installations**. Code commits: `5e4146cf14921e17bd2753dc06ffc69b162ca031` and `f00f9602f6fc2e0908ecf42f83414c3866534cb1`.
+- Main navigation includes **Play**, **Installations**, **Skins**, **Mods**, **Packs**, **Shaders**, and **Settings**, in that priority order. Compact phone labels include **Files**, **Skins**, **FX**, and **Setup** where applicable. Latest navigation commits: `ccb89774e6db8192c2420ed2d5525598fa7ca5f7` and `ddb17228df9c194bd7317be96bcf442c09490654`.
 - Detailed chronological record: `docs/DEVELOPMENT_LOG.md`.
 - The Skins navigation entry only exposes existing Skin Studio functionality; it does not add new skin runtime or multiplayer-sharing behaviour.
+- This navigation pass only changes page order and the compact Shaders label. The renderer still uses a single horizontal tab row; a Java-style wide-screen sidebar and a more spacious phone navigation pattern are not implemented yet.
 
 ## Verification state
 - Android source-check run `41523801686` passed on commit `2b1f4e43afbe753dab9be12a8a4f6e717e236cd0`.
