@@ -159,12 +159,13 @@ pub enum Page {
     SkinStudio,
 }
 impl Page {
-    pub const ALL: [Self; 6] = [
+    pub const ALL: [Self; 7] = [
         Self::Play,
         Self::Mods,
         Self::Packs,
         Self::Shaders,
         Self::Installed,
+        Self::SkinStudio,
         Self::Settings,
     ];
     pub fn name(self) -> &'static str {
@@ -173,9 +174,9 @@ impl Page {
             Self::Mods => "Mods",
             Self::Packs => "Packs",
             Self::Shaders => "Shaders",
-            Self::Installed => "Installed",
+            Self::Installed => "Installations",
             Self::Settings => "Settings",
-            Self::SkinStudio => "Skin Studio",
+            Self::SkinStudio => "Skins",
         }
     }
     pub fn is_catalog(self) -> bool {
