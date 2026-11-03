@@ -136,3 +136,14 @@
 - This run validates native Rust code checks for all four configured ABIs. It explicitly does **not** build an APK. No installation, manifest inspection, visual/touch/gamepad/orientation device test, or release signing verification is claimed.
 - Test-only APK workflow remains `.github/workflows/sylphra-test-apk.yml`, manually dispatched on `android`; it checks out this branch, builds arm64 with isolated ID `dev.sylphra.android.test`, label `Sylphra Launcher`, and uploads a seven-day artifact without creating a GitHub Release.
 - Next: run the isolated test APK workflow, audit the produced artifact and package metadata, then request physical-device acceptance. Keep background image/GIF/video customization deferred until the base design is accepted.
+
+
+## Current work: Skin Studio responsive preview (2026-11-03)
+
+- Active code branch: `android` in `sylphie07/horizon-android_Unofficial_port`.
+- Applied commits: `170326f09ca0e19641925fb256a9c9ce25fad1e6` (responsive layout) and `7218728c11abbb39b977c7e1149a830a382deae5` (preview scale).
+- The preview column now uses 40% of content width on sufficiently wide screens; narrow screens stack the preview instead of hiding it. Controls were reordered to remove a compact-mode overlap. The mannequin scales to the preview rectangle.
+- Not verified yet: formatting, compilation, tests, Android ABI CI, APK, and device layout. The user will need to install/test an APK after CI passes.
+- Layer toggles are deferred because player/avatar rendering currently has no extra render layers exposed by the generic layer function. Implement them only with a proper renderer-level visibility model; do not add decorative controls.
+- Pointer-follow preview rotation remains unchanged; cumulative touch rotation is a separate next task.
+- Next: inspect CI result; fix any source failures; then implement safe, cumulative drag rotation isolated to the preview hitbox and test it. After that, design real model-part visibility controls and synchronize the verified Horizon gitlink into Sylphra's authorized branch.
