@@ -1023,7 +1023,7 @@ impl Launcher {
             // Reserve a true 40% preview column only when both columns remain
             // comfortable. Narrow phones use a full-width stacked preview.
             let wide_preview = w >= 640.0 && content_width >= 560.0;
-            let preview_width = if wide_preview { content_width * 0.40 } else { content_width };
+            let preview_width = if wide_preview { content_width * 0.42 } else { content_width };
             let column_gap = if wide_preview { 16.0 } else { 0.0 };
             let control_width = if wide_preview {
                 (content_width - preview_width - column_gap).max(240.0)
@@ -1062,13 +1062,14 @@ impl Launcher {
             ui.text(Face::Regular, 15.0, content_left, selected_y, color::MUTED, &selected_text);
             button(&mut ui, &mut self.targets, [content_left, default_y, control_width, 34.0], "Use default skin", Action::DefaultSkin, false);
             let preview_height = if wide_preview {
-                (h * 0.42).clamp(260.0, 340.0)
+                (layout.content_rect[3] - 12.0).max(180.0)
             } else {
                 (h * 0.30).clamp(180.0, 260.0)
             };
             let preview_rect = if wide_preview {
                 let left = content_left + control_width + column_gap;
-                [left, title_y + 8.0, content_right, title_y + 8.0 + preview_height]
+                let top = layout.content_rect[1] + 4.0;
+                [left, top, content_right, top + preview_height]
             } else {
                 let preview_top = default_y + 118.0;
                 let width = preview_width.min(300.0);
@@ -1165,12 +1166,12 @@ impl Launcher {
                 let rect = [content_left, y, content_right - content_left, row_surface];
                 self.list_targets.push((rect, Action::SelectSkin(i)));
                 let active = self.catalog.skin_library.active_skin().is_some_and(|current| current.id == skin.id);
-                let label = ui.fit_text(
-                    Face::Regular,
-                    15.0,
-                    &format!("{}{}  ({}×{})", if active { "✓ " } else { "" }, skin.name, skin.width, skin.height),
-                    (content_right - content_left - 24.0).max(0.0),
-                );
+                let raw_label = format!("{}{}  ({}×{})", if active { "✓ " } else { "" }, skin.name, skin.width, skin.height);
+                let available_width = (control_width - 8.0).max(0.0);
+                let natural_width = ui.measure(Face::Medium, 15.0, &raw_label) + 28.0;
+                let row_width = natural_width.min(available_width).max(96.0);
+                let rect = [content_left, y, row_width, row_surface];
+                let label = ui.fit_text(Face::Regular, 15.0, &raw_label, (row_width - 24.0).max(0.0));
                 button(&mut ui, &mut self.targets, rect, &label, Action::SelectSkin(i), active);
             }
         } else if self.about_visible {
