@@ -1061,8 +1061,9 @@ impl Launcher {
             let selected_text = ui.fit_text(Face::Regular, 15.0, &format!("Selected: {selected}"), control_width);
             ui.text(Face::Regular, 15.0, content_left, selected_y, color::MUTED, &selected_text);
             button(&mut ui, &mut self.targets, [content_left, default_y, control_width, 34.0], "Use default skin", Action::DefaultSkin, false);
+            let studio_bottom = (h - 12.0).max(layout.content_rect[1] + 180.0);
             let preview_height = if wide_preview {
-                (layout.content_rect[3] - 12.0).max(180.0)
+                (studio_bottom - (layout.content_rect[1] + 4.0)).max(180.0)
             } else {
                 (h * 0.30).clamp(180.0, 260.0)
             };
@@ -1149,7 +1150,11 @@ impl Launcher {
             // bottom. Compact rows avoid wasting height and keep names inside
             // their own selection surface.
             let top = layer_top + 54.0;
-            let bottom = (layout.content_rect[1] + layout.content_rect[3] - 10.0).max(top + 1.0);
+            let bottom = if wide_preview {
+                studio_bottom
+            } else {
+                (layout.content_rect[1] + layout.content_rect[3] - 10.0).max(top + 1.0)
+            };
             let row_height = 48.0;
             let row_gap = 4.0;
             let row_surface = row_height - row_gap;
