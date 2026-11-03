@@ -688,3 +688,20 @@
 - Exact cause: `tools/android_prepare.py` selected the live Mojang version-catalog entry for 26.3 and downloaded its current JSON (SHA-1 `80608ff6753705b6a82e2cb86a5937d4d233abd4`). `horizon-prepare` rejected it because it is not among the engine's accepted manifests. The repository lock already pins the canonical manifest SHA-1 `11f1aefe473eefba0af62e3286c33b692807b2eb` and Mojang immutable package URL.
 - Correction applied in commit `8cbd2ead693b8e03bcedad3e6ef251fbab39d88a`: preparation now downloads the version JSON from the immutable package URL constructed from `research-lock.json`'s `manifest_sha1`, and verifies it against that same pin. This removes dependence on a mutable version-catalog URL while preserving checksum verification and the existing client/server jar pins.
 - Status: source edit applied; no rerun or APK build has yet verified the correction. Next: run source checks / Python syntax and then dispatch the isolated test APK workflow. Do not sync the submodule into Sylphra or publish a release until the APK and device gates pass.
+
+
+## Skin Studio — larger 3D viewport and persistent load diagnostics (2026-11-03)
+
+**User device result:** the test APK built and installed successfully. The user confirmed the skin list/control layout is more orderly, but the preview remains too small and still displays the generic “Player model is not loaded yet” message. Screenshot shows a 1536×691 launcher view; the wide preview rectangle was only 194 logical units high, and the renderer capped the model transform at 112 units.
+
+**Applied on branch `android`:**
+- `crates/horizon-client/src/android/launcher_pages.rs`: wide preview height is now responsive (42% of viewport height, bounded 260–340); stacked preview also uses a responsive height (30%, bounded 180–260). The preview-load error is read from dedicated state rather than the general catalog status, so unrelated status updates cannot hide the diagnostic.
+- `crates/horizon-client/src/android/launcher.rs`: added `skin_preview_error` state, initialized independently from the general page status.
+- `crates/horizon-client/src/mobs/preview.rs`: increased preview mannequin scale to use up to 72% of preview height and raised its maximum transform scale from 112 to 220 units.
+- Load success clears the dedicated error; load failure stores and logs the full resource-root/error diagnostic.
+
+**Code commits:** `81d6dc29457b127de3af02b0d0fee8607091c4fb` (diagnostic state), `e7a64827dfa56ce795eb732275884104614d5f55` (model scaling), `6c4ac1d99932a5d6587d27d44b3a22cf1baa8c17` and `91aa7a24dac5cae75cdb455b88fe66881b435a1e` (responsive viewport and persistent diagnostic display).
+
+**Verification:** edits are committed, but no formatter, Rust compile, unit test, Android source/native CI, APK build, or device test has yet verified this pass. The device screenshot is evidence of the preceding APK's appearance only; it does not verify these new changes. The exact player-resource loading failure remains unknown until the next test APK displays the persistent diagnostic.
+
+**Next:** run source checks and the four-ABI native matrix, build the isolated arm64 test APK, then inspect the exact diagnostic shown on device. Do not sync the submodule into Sylphra or publish a Release until validation gates pass.
