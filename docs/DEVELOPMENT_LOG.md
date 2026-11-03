@@ -748,3 +748,19 @@
 **Static verification:** fetched the updated branch files and confirmed the News route is conditional on the injected channel, the test APK workflow sets development, the feed path resolves in source, and launcher colors are local to the launcher page module. No rustfmt, Rust compilation, tests, Android source/native CI, APK build, install, or visual device test has run for this pass. The current test workflow is a development build; a separate beta workflow has not been created.
 
 **Next:** run source checks and all four native ABI jobs. Fix any compiler/format/test issues before building the isolated development APK. On device, review the sidebar/profile placement, green palette, Play hero/button, and News page scrolling. Beta workflow wiring can be added when a beta distribution path is authorized. Do not sync the Sylphra submodule or publish a Release during this validation stage.
+
+
+## GitHub destination and project independence clarification (2026-11-03)
+
+**User concern:** the old footer GitHub button opened the upstream Horizon Android repository, which could mislead visitors into thinking Sylphra is an official Horizon project or is endorsed by Horizon.
+
+**Applied on authorized branch `android`:**
+- `crates/horizon-client/src/android/launcher_pages.rs`: changed the persistent footer destination from the generic `Action::Repository` / `open_repository()` path to the explicit `Sylphra GitHub` label and `Action::SylphraRepository`, which opens `https://github.com/sylphie07/Sylphra-Android`.
+- Expanded the About Sylphra notice: Sylphra is independent and unofficial, uses Horizon Android as its technical foundation, is not affiliated with/sponsored by/endorsed by Horizon or the original Android port author, does not speak for them and does not know their position on Sylphra. It also explicitly expresses respect and thanks for the original Android port author and the substantial foundation Horizon provided.
+- Existing license and attribution notices remain in place.
+
+**Commit:** `9f1b3e5d39728f0b3bd1e848303bb7078bd4e744`.
+
+**Static verification:** fetched the updated source and confirmed the footer no longer contains the generic `GitHub` / `Action::Repository` button; the only remaining `Action::Repository` occurrence is its now-unreferenced legacy handler. The About text and explicit Sylphra repository action are present. No formatter, compile, tests, CI, APK build, install or device tap test has run yet.
+
+**Next:** validate through the already planned Android source/native CI and isolated development APK; on device, tap the footer button and confirm it opens the Sylphra repository. Do not change Horizon attribution or remove required third-party notices.
