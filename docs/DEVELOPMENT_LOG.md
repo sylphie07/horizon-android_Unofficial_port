@@ -409,3 +409,20 @@
 **Verification:** both changed source files were fetched again from branch `android` after their commits. No formatter, compiler, unit test, CI run, APK build, install, or visual device test has yet been run for this navigation change. The push should trigger source CI; all-ABI native checks still require manual dispatch with `native_checks=true`.
 
 **Next:** inspect the source CI result; then design the responsive Java-style navigation shell as a separate pass, keeping compact phone navigation usable and avoiding a global theme or game UI change.
+
+
+## 2026-11-02 — Navigation priority and compact labels
+
+**Preflight:** confirmed repository `sylphie07/horizon-android_Unofficial_port`, authorized branch `android`, HEAD `8485d724ee6e6940422984ac1dee15f916bf0799`, and reviewed `docs/CONTINUITY.md`, this log, `catalog.rs`, and the Android launcher page renderer. No changes were made to `main`.
+
+**Applied:**
+- `crates/horizon-client/src/android/catalog.rs`: reordered the existing seven primary pages to `Play`, `Installed`, `SkinStudio`, `Mods`, `Packs`, `Shaders`, `Settings`, placing the core launcher destinations first.
+- `crates/horizon-client/src/android/launcher_pages.rs`: shortened the compact `Shaders` navigation label to `FX`; existing full-width label remains unchanged.
+
+**Scope:** navigation presentation/order only. No page actions, content installation, account/authentication, game engine, profiles, worlds, storage, network protocol, or shared theme tokens were changed.
+
+**Commits:** catalog reorder ccb89774e6db8192c2420ed2d5525598fa7ca5f7; compact label update ddb17228df9c194bd7317be96bcf442c09490654.
+
+**Verification:** GitHub accepted both source updates on `android`. No formatter, compiler, unit test, CI, APK build, installation, or device visual test has run for these changes. The previously recorded CI results do not validate this new commit.
+
+**Next:** verify both files on the branch, complete the continuity record, then run Android source checks with `native_checks=true` before any test APK build.
