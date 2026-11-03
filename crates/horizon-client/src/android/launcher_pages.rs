@@ -281,6 +281,7 @@ impl Launcher {
                 if w < 700.0 {
                     match page {
                         Page::Installed => "Files",
+                        Page::SkinStudio => "Skins",
                         Page::Settings => "Setup",
                         _ => page.name(),
                     }
