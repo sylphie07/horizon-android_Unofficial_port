@@ -185,3 +185,11 @@
 - Confirmed source job plus all four native jobs passed: x86/i686, arm64-v8a/aarch64, x86_64, and armeabi-v7a/armv7. This validates native compilation for the matrix on that commit, including the compatibility fix mapping the detailed preview Result to the gameplay Option boundary.
 - Run #220 was cancelled by concurrency and is not the positive run. Run #223 is the authoritative successful verification.
 - Next: inspect and dispatch the isolated test APK workflow on branch android, then audit the artifact before asking the user to install/test it. No device-level 3D preview verification yet; no Sylphra submodule update or public release.
+
+
+## Test APK manifest mismatch — current continuation state (2026-11-03)
+- The isolated APK workflow run #9 (`41720733718`) failed before APK compilation, at `Prepare pinned Minecraft-derived engine tables`. The live Mojang catalog served 26.3 JSON SHA-1 `80608ff6753705b6a82e2cb86a5937d4d233abd4`, which the engine correctly rejected as unrecognized.
+- Applied correction in `tools/android_prepare.py`, commit `8cbd2ead693b8e03bcedad3e6ef251fbab39d88a`: download the immutable manifest package URL derived from `research-lock.json:minecraft.manifest_sha1` and verify against that pinned SHA-1 (`11f1aefe473eefba0af62e3286c33b692807b2eb`) instead of following the mutable live catalog entry.
+- Development log records the exact failed run and correction in commit `1906443271fe3a430e655fc7ed3938f2a23fcf3c`.
+- Current status: correction committed; not yet rerun or CI-verified. Branch remains `android`; no Sylphra submodule sync, APK artifact, install, or public release has occurred.
+- Next: run the Android source checks to validate Python tests/workflow consistency, then manually dispatch `Sylphra Launcher test APK` on branch `android`. Inspect artifact/signature/manifest before asking for device validation.
