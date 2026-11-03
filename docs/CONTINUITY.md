@@ -204,3 +204,13 @@
 - Next: run source checks and native matrix, build/audit the isolated arm64 test APK, then read the persistent diagnostic from the device and fix the actual resource path/load issue. No Sylphra submodule sync or Release publication.
 
 - Follow-up scale-fit correction committed as `2534eb6f03f5487f470703b6850b03c83edf46ba`: model scale now uses 42% of preview height (rather than 72%) and 46% of preview width, with a 220-unit ceiling. This keeps the full 1.8-unit player model inside the taller viewport instead of enlarging it beyond the clip bounds. Still uncompiled/unverified.
+
+
+## Skin Studio — full-height preview and first-install model validation (2026-11-03)
+- User supplied a layout reference: the 3D player should fill the entire right-hand content column; skin selector rows should shrink to the displayed name; the skin list should use the remaining left-column vertical space with scrolling.
+- Applied on branch `android`: `launcher_pages.rs` now allocates 42% of wide content width to a full-height preview, keeps controls and layer toggles in the left column, sizes skin rows to measured text width (bounded by the column), and retains the scroll viewport below the layers.
+- Applied on branch `android`: `official_install.rs` preflights `PlayerPreview::load(&stage)` during first official resource installation. Successful preflight writes `skin-preview-ready.json`; failure logs the exact cause but does not block game installation. This reuses the existing pinned engine resource bundle rather than downloading a duplicate model.
+- Code commits: `a51b97c80e15bcafa97be9090076126403073644`, `ce95e3ec38fadacdab2f83a1b17ee79b0cd7ea2e`, `a71b0bcaead6f0642a8ac86bd49885add156aab7`.
+- Development log update: `b131ab6aee93a48a99ac42f9b41a6ca1baa227ee`.
+- **Not yet verified:** formatter, compile, unit tests, source/native CI, APK build, APK install, and on-device layout/model behavior. The new installer preflight has not yet confirmed the model exists in the staged APK resources.
+- Next: source checks + all four native ABIs; then isolated arm64 test APK and device check. No Sylphra submodule sync or Release publication.
