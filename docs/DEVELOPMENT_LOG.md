@@ -642,3 +642,12 @@
 **Technical basis:** `MobExtra.hidden_model_parts` already represents the vanilla `PlayerModelPart` bit flags, and `mobs/anim.rs::player_model_visibility` maps bits 1..6 to jacket, left/right sleeves, left/right pants and hat. The Skin Studio now controls those bits on its private preview clone only. This is preferable to inventing separate render layers.
 
 **Verification:** code is applied, but formatting, Rust compilation, unit tests, Android ABI CI and physical-device testing have not yet been verified. Push-triggered source runs were cancelled by subsequent rapid commits; a clean run must be observed on the final documented tip. Native four-ABI checks require the manual `native_checks=true` workflow dispatch.
+
+
+## Skin Studio visual correction (2026-11-03)
+
+- **Applied on `android`:** `crates/horizon-client/src/android/launcher_pages.rs` moves the six layer toggles into a dedicated full-width strip below the preview, so they no longer overlap the skin list. The list begins after that strip, extends to the bottom of the available content viewport, uses 44-unit selection surfaces with compact spacing, and fits long names to the available width. Only fully visible rows receive drawing and hit targets, preventing partial rows from spilling past the viewport.
+- **Commit:** `2325973ad65b53cfcb671ca10a703024b0545087`.
+- **Still under investigation:** the 3D preview reports that the player model must be installed via Play. Its current load is attempted when entering Skin Studio from `home/.local/horizon-client/<VANILLA_VERSION>`. Need verify the actual model/resource path and why the current device still requires repeated launches. Do not claim fixed yet.
+- **Verification:** no CI result or APK/device check has been confirmed for this commit yet.
+- **Next:** inspect the model document loader and installation path, add a bounded retry only if the install timing requires it, then verify source/native CI before updating Sylphra's submodule.
