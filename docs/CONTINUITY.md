@@ -59,3 +59,13 @@
 - Source commits: `72b99bcd8920e8a7cf221ab05e0e3f91526aa1c8` and `36891d928fcf82917849a1a29a8e650793f237b0`.
 - Static source fetch confirmed the geometry consumers. No formatter, compile, tests, CI, APK, install, or device test has run for this stage.
 - Next: migrate page families and their hitboxes/list viewports/anchors to shared content bounds before enabling a sidebar.
+
+
+## Shared Installed-page viewport geometry — stage 2 (2026-11-03)
+- Added `content_rect` to the launcher-local `LauncherLayout`, based on the post-inset UI dimensions.
+- The Installed page now derives its scroll viewport top/bottom from that rectangle. Scroll clamping, `list_view`, visible-row checks, and list hitbox Y positions still share the same bounds.
+- Current visual coordinates and horizontal anchors are intentionally unchanged. No sidebar or expanded navigation is active.
+- Code commits: `67bbd8015b558441f456b654a796472e6f45aa85` and `29134294339fdefd810df7503df268f1aa9ddea2`.
+- Static fetch verified the geometry fields and Installed viewport consumers. No formatter, compile, unit tests, CI, APK, install, or device test has run for this stage.
+- Next: migrate Installed horizontal anchors with drawing and hitboxes together, then migrate catalog page geometry. Do not enable the sidebar before page-family input and scroll migration plus successful CI.
+- Latest development log entry is in `docs/DEVELOPMENT_LOG.md`; documentation commit follows this continuity update.
