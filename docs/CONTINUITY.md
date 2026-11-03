@@ -235,3 +235,9 @@
 - Commit: `9f1b3e5d39728f0b3bd1e848303bb7078bd4e744`; development log update: `f0969b9cb87c5feed7d2aa3d1cbc6072d0e6fc79`.
 - Static source inspection confirms the footer no longer creates the legacy generic GitHub action. The legacy handler remains but has no call site. No compile, CI, APK or device verification yet.
 - Next: include this in source/native CI and the next isolated development APK; tap-test the footer link and review About text on device. Preserve upstream attribution and third-party licenses.
+
+
+## Public repository destination correction (2026-11-03)
+- Corrected the Sylphra GitHub button target from private `sylphie07/Sylphra-Android` to public `sylphie07/Sylphra-Android-Public` after verifying repository visibility through GitHub metadata.
+- Public target: `https://github.com/sylphie07/Sylphra-Android-Public`. Private implementation repository remains private and is not linked from the launcher.
+- Code commit: `7ce3d959b4461107ea37d4980fc496a87c0f5022`. Not yet compiled or device-tested.
