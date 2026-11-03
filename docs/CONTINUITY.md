@@ -149,3 +149,11 @@
 - Next: run/inspect source CI on the final tip, then manually dispatch native checks with `native_checks=true`. Fix any failures before building the isolated test APK. Do not publish a Release.
 - After successful validation, synchronize the verified Horizon gitlink into Sylphra's authorized branch `sylphra/horizon-foundation`; request device acceptance before declaring Skin Studio complete.
 - Keep optional launcher background image/GIF/video customization deferred until the base design is accepted.
+
+
+## Current task — Skin Studio overlap correction (2026-11-03)
+- Active branch: `android`; code commit `2325973ad65b53cfcb671ca10a703024b0545087`.
+- Six layer controls moved to a dedicated strip under the preview. Skin list starts below that strip, fills remaining content height, uses compact rows and fitted labels, and only draws/adds hit targets for rows fully inside its viewport.
+- The screenshot's original failure was confirmed in geometry: layer buttons were drawn at y≈default_y+56..+83 and +86..+113, while the list began at preview bottom +16; on wide layout those ranges intersected. New ordering removes that intersection.
+- User also reports 3D player preview remains unavailable after several game launches. Current code tries `PlayerPreview::load(home/.local/horizon-client/VANILLA_VERSION)` only on entering Skin Studio. Verify `EntityModelDocument::load` expected root and actual installer output before changing lifecycle; avoid a per-frame disk-load loop.
+- No APK or physical-device validation yet. Do not sync to Sylphra until source/native CI passes.
