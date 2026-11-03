@@ -428,3 +428,16 @@
 **Post-change inspection:** fetched both source files again from branch `android`; confirmed the requested page order and compact `FX` label are present. Updated `docs/CONTINUITY.md` with the exact commits and verification boundary.
 
 **Next:** manually dispatch Android source checks with `native_checks=true` on branch `android`; inspect the source job and all four ABI jobs before any test APK build.
+
+
+## 2026-11-02 — Primary navigation surface
+
+**Preflight:** confirmed only branch `android` exists in the branch search; latest HEAD before this change was `a2f4e977fb1072b9de880e74e9b217e9d6f8f52c`. Re-read `docs/CONTINUITY.md`, `docs/DEVELOPMENT_LOG.md`, `catalog.rs`, and `launcher_pages.rs`. `docs/PROJECT_CONTEXT.md` is not present at that path (404); continuity and development log are the active documentation sources.
+
+**Applied:** `crates/horizon-client/src/android/launcher_pages.rs` now draws a restrained raised/bordered container behind the seven primary navigation buttons. Existing button rectangles, page actions, content coordinates, and touch/gamepad targets are unchanged. This is a visual grouping step, not yet a Java-style sidebar.
+
+**Commit:** 995cb7f6967435a88d5c3edd50cdce055b6720ef.
+
+**Verification:** GitHub accepted the source update on `android`. No formatter, compiler, unit test, CI, APK build, installation, or device visual check has run for this change.
+
+**Next:** inspect the resulting diff and layout constraints; the full sidebar requires a coordinated content-layout refactor so hit-testing and page content remain aligned. Run source/native CI before preparing a test APK.
