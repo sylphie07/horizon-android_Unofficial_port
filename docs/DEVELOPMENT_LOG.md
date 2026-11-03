@@ -727,3 +727,5 @@
 **Verification:** GitHub file fetch confirms the edits are present on `android`. No formatter, Rust compile, tests, Android source/native CI, APK build, install, or device visual test has run for this pass. The installer preflight is a code change, not yet evidence that the staged bundle contains a loadable player model on device.
 
 **Next:** run source checks and all four native ABI jobs. If green, dispatch the isolated arm64 test APK, install it, and inspect both the full-height preview layout and the new `skin-preview-ready.json`/diagnostic behavior. Do not sync the Sylphra submodule or publish a Release before these validation gates.
+
+- Follow-up viewport fill correction committed as `c88c2a7601c5016577d7bdf73bde3d161b7d1e02`: wide Skin Studio preview and skin-list viewport now extend to `h - 12` rather than stopping at the generic page content rectangle, reclaiming the unused lower area visible in the screenshot. Still uncompiled/unverified.
