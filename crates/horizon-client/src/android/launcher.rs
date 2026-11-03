@@ -46,7 +46,7 @@ pub(super) struct Launcher {
     skin_preview: Option<horizon_client::mobs::preview::PlayerPreview>,
     targets: Vec<([f32; 4], pages::Action)>,
     list_targets: Vec<([f32; 4], pages::Action)>,
-    list_view: Option<[f32; 3]>,
+    list_view: Option<[f32; 5]>,
     pending_focus: Option<pages::Action>,
     drag: Option<gesture::Drag>,
     chooser: Option<chooser::Chooser>,
