@@ -932,10 +932,13 @@ impl Launcher {
         } else if page == Page::SkinStudio {
             let studio_compact = h < 560.0;
             let has_preview_panel = w >= 400.0;
+            let content_left = layout.content_rect[0] + 12.0;
+            let content_right = layout.content_rect[0] + layout.content_rect[2] - 12.0;
+            let preview_left = content_right - 144.0;
             let control_width = if has_preview_panel {
-                (w - 240.0).max(160.0)
+                (preview_left - content_left - 32.0).max(160.0)
             } else {
-                w - 64.0
+                content_right - content_left
             };
             let title_y = if studio_compact { 128.0 } else { 156.0 };
             let profile_y = if studio_compact { 157.0 } else { 190.0 };
@@ -943,7 +946,7 @@ impl Launcher {
             let import_y = if studio_compact { 244.0 } else { 270.0 };
             let selected_y = if studio_compact { 290.0 } else { 328.0 };
             let default_y = if studio_compact { 278.0 } else { 352.0 };
-            ui.text(Face::Medium, 24.0, 32.0, title_y, color::TEXT, "Skin Studio");
+            ui.text(Face::Medium, 24.0, content_left, title_y, color::TEXT, "Skin Studio");
             let profile = self.catalog.skin_library.profiles
                 .iter()
                 .find(|p| p.id == self.catalog.skin_library.active_profile)
@@ -956,29 +959,29 @@ impl Launcher {
                 crate::catalog::skin_library::SkinModel::Classic => "Classic",
                 crate::catalog::skin_library::SkinModel::Slim => "Slim",
             };
-            ui.text(Face::Regular, 16.0, 32.0, profile_y, color::MUTED, &format!("Appearance profile: {profile}"));
+            ui.text(Face::Regular, 16.0, content_left, profile_y, color::MUTED, &format!("Appearance profile: {profile}"));
             if let Some(error) = &self.catalog.skin_library_error {
-                ui.text(Face::Regular, 14.0, 32.0, profile_y + 18.0, color::MUTED, &ui.fit_text(Face::Regular, 14.0, &format!("Read-only: {error}"), control_width));
+                ui.text(Face::Regular, 14.0, content_left, profile_y + 18.0, color::MUTED, &ui.fit_text(Face::Regular, 14.0, &format!("Read-only: {error}"), control_width));
             }
             let half = (control_width - 8.0) * 0.5;
-            button(&mut ui, &mut self.targets, [32.0, profile_buttons_y, half, 42.0], "Next", Action::NextAppearanceProfile, false);
-            button(&mut ui, &mut self.targets, [40.0 + half, profile_buttons_y, half, 42.0], "New", Action::NewAppearanceProfile, false);
-            button(&mut ui, &mut self.targets, [32.0, import_y, half, 42.0], "Import PNG", Action::ImportSkin, true);
-            button(&mut ui, &mut self.targets, [40.0 + half, import_y, half, 42.0], model, Action::ToggleSkinModel, false);
+            button(&mut ui, &mut self.targets, [content_left, profile_buttons_y, half, 42.0], "Next", Action::NextAppearanceProfile, false);
+            button(&mut ui, &mut self.targets, [content_left + 8.0 + half, profile_buttons_y, half, 42.0], "New", Action::NewAppearanceProfile, false);
+            button(&mut ui, &mut self.targets, [content_left, import_y, half, 42.0], "Import PNG", Action::ImportSkin, true);
+            button(&mut ui, &mut self.targets, [content_left + 8.0 + half, import_y, half, 42.0], model, Action::ToggleSkinModel, false);
             let selected_width = if studio_compact { control_width * 0.52 } else { control_width };
             let selected_text = ui.fit_text(Face::Regular, 15.0, &format!("Selected: {selected}"), selected_width);
-            ui.text(Face::Regular, 15.0, 32.0, selected_y, color::MUTED, &selected_text);
+            ui.text(Face::Regular, 15.0, content_left, selected_y, color::MUTED, &selected_text);
             if studio_compact {
-                button(&mut ui, &mut self.targets, [32.0 + control_width * 0.55, default_y, control_width * 0.45, 34.0], "Default", Action::DefaultSkin, false);
+                button(&mut ui, &mut self.targets, [content_left + control_width * 0.55, default_y, control_width * 0.45, 34.0], "Default", Action::DefaultSkin, false);
             } else {
-                button(&mut ui, &mut self.targets, [32.0, default_y, control_width, 34.0], "Default skin", Action::DefaultSkin, false);
+                button(&mut ui, &mut self.targets, [content_left, default_y, control_width, 34.0], "Default skin", Action::DefaultSkin, false);
             }
 
             if has_preview_panel {
                 let preview_rect = [
-                    w - 176.0,
+                    preview_left,
                     if studio_compact { 155.0 } else { 160.0 },
-                    w - 32.0,
+                    content_right,
                     if studio_compact { 295.0 } else { 320.0 },
                 ];
                 ui.text(Face::Regular, 14.0, preview_rect[0], preview_rect[1] - 18.0, color::MUTED, "3D preview");
@@ -1023,21 +1026,21 @@ impl Launcher {
             }
 
             let top = if studio_compact { 320.0 } else { 410.0 };
-            let bottom = if studio_compact { h - 12.0 } else { h - 110.0 };
+            let bottom = if studio_compact { layout.content_rect[1] + layout.content_rect[3] } else { layout.content_rect[1] + layout.content_rect[3] - 98.0 };
             let row_height = 64.0;
             let count = self.catalog.skin_library.skins.len();
             let maximum = (count as f32 * row_height - (bottom - top).max(0.0)).max(0.0);
             self.catalog.scroll = self.catalog.scroll.clamp(0.0, maximum);
             self.list_view = Some([top, bottom.max(top + 1.0), maximum]);
             if count == 0 {
-                ui.text(Face::Regular, 16.0, 32.0, top + 16.0, color::MUTED, "No imported skins yet. Choose Import PNG skin.");
+                ui.text(Face::Regular, 16.0, content_left, top + 16.0, color::MUTED, "No imported skins yet. Choose Import PNG skin.");
             }
             for (i, skin) in self.catalog.skin_library.skins.iter().enumerate() {
                 let y = top + i as f32 * row_height - self.catalog.scroll;
-                self.list_targets.push(([32.0, y, w - 64.0, 56.0], Action::SelectSkin(i)));
+                self.list_targets.push(([content_left, y, content_right - content_left, 56.0], Action::SelectSkin(i)));
                 if y < top || y + 56.0 > bottom.max(top + 1.0) { continue; }
                 let active = self.catalog.skin_library.active_skin().is_some_and(|current| current.id == skin.id);
-                button(&mut ui, &mut self.targets, [32.0, y, w - 64.0, 56.0], &format!("{}{}  ({}×{})", if active { "✓ " } else { "" }, skin.name, skin.width, skin.height), Action::SelectSkin(i), active);
+                button(&mut ui, &mut self.targets, [content_left, y, content_right - content_left, 56.0], &format!("{}{}  ({}×{})", if active { "✓ " } else { "" }, skin.name, skin.width, skin.height), Action::SelectSkin(i), active);
             }
         } else if self.about_visible {
             ui.text(
