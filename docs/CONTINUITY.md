@@ -202,3 +202,5 @@
 - Documentation log entry committed as `5e8257aba72563761e4ba21203489bca4ff9296b`.
 - **Not yet verified:** formatting, Rust compile, tests, source CI, four-ABI native CI, APK build, or device behavior for these changes. The underlying player-model resource failure is still unknown.
 - Next: run source checks and native matrix, build/audit the isolated arm64 test APK, then read the persistent diagnostic from the device and fix the actual resource path/load issue. No Sylphra submodule sync or Release publication.
+
+- Follow-up scale-fit correction committed as `2534eb6f03f5487f470703b6850b03c83edf46ba`: model scale now uses 42% of preview height (rather than 72%) and 46% of preview width, with a 220-unit ceiling. This keeps the full 1.8-unit player model inside the taller viewport instead of enlarging it beyond the clip bounds. Still uncompiled/unverified.
