@@ -214,3 +214,5 @@
 - Development log update: `b131ab6aee93a48a99ac42f9b41a6ca1baa227ee`.
 - **Not yet verified:** formatter, compile, unit tests, source/native CI, APK build, APK install, and on-device layout/model behavior. The new installer preflight has not yet confirmed the model exists in the staged APK resources.
 - Next: source checks + all four native ABIs; then isolated arm64 test APK and device check. No Sylphra submodule sync or Release publication.
+
+- Final geometry follow-up: commit `c88c2a7601c5016577d7bdf73bde3d161b7d1e02` extends the wide preview and skin-list viewport to `h - 12`, instead of the shorter generic content rectangle, to reclaim the unused lower area shown in the reference screenshot. Not yet compiled or device-verified.
