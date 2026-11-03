@@ -118,7 +118,7 @@ pub(super) fn button(
     targets.push((rect, action));
 }
 /// Navigation treatment selected from the post-inset launcher viewport.
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum NavigationMode {
     Compact,
     Expanded,
@@ -206,10 +206,13 @@ impl LauncherLayout {
                 let button_height = 42.0;
                 let gap = ((self.nav_rect[3] - 24.0 - count * button_height)
                     / (count - 1.0))
-                    .clamp(4.0, 16.0);
+                    .clamp(4.0, 32.0);
+                let group_height = count * button_height + (count - 1.0) * gap;
+                let top = self.nav_rect[1]
+                    + ((self.nav_rect[3] - group_height) * 0.5).max(12.0);
                 [
                     self.nav_rect[0] + 12.0,
-                    self.nav_rect[1] + 12.0 + index as f32 * (button_height + gap),
+                    top + index as f32 * (button_height + gap),
                     self.nav_rect[2] - 24.0,
                     button_height,
                 ]
