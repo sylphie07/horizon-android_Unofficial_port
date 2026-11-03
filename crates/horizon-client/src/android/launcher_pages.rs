@@ -1,5 +1,19 @@
 use super::*;
-use horizon_client::{osk::Output, ui_theme::color};
+use horizon_client::{osk::Output, ui_theme::color as base_color};
+
+/// Sylphra's launcher-only palette: Minecraft Java-inspired greens over charcoal.
+/// The in-game HUD continues using Horizon's original global theme.
+mod color {
+    use super::base_color;
+    pub const BG: u32 = base_color::hex(0x111512, 255);
+    pub const RAISED: u32 = base_color::hex(0x202722, 255);
+    pub const HOVER: u32 = base_color::hex(0x303b33, 255);
+    pub const BORDER: u32 = base_color::hex(0x414b43, 255);
+    pub const TEXT: u32 = base_color::hex(0xf1f5f1, 255);
+    pub const MUTED: u32 = base_color::hex(0xaeb8af, 255);
+    pub const ACCENT: u32 = base_color::hex(0x36a832, 255);
+    pub const ON_ACCENT: u32 = base_color::hex(0xffffff, 255);
+}
 use winit::{
     event::{KeyEvent, Touch},
     keyboard::{KeyCode, PhysicalKey},
