@@ -117,6 +117,37 @@ pub(super) fn button(
     );
     targets.push((rect, action));
 }
+/// Shared geometry for the launcher shell. Page content is migrated to this
+/// model incrementally so drawing and input hitboxes keep identical coordinates.
+#[derive(Clone, Copy)]
+struct LauncherLayout {
+    title_origin: [f32; 2],
+    account_rect: [f32; 4],
+    nav_rect: [f32; 4],
+    tab_rect_y: f32,
+    tab_rect_height: f32,
+    content_top: f32,
+}
+impl LauncherLayout {
+    fn new(width: f32, _height: f32) -> Self {
+        let compact = width < 700.0;
+        let margin = if compact { 16.0 } else { 32.0 };
+        Self {
+            title_origin: [32.0, if compact { 12.0 } else { 28.0 }],
+            account_rect: [
+                if compact { 32.0 } else { width - 320.0 },
+                if compact { 47.0 } else { 24.0 },
+                if compact { width - 64.0 } else { 288.0 },
+                if compact { 34.0 } else { 46.0 },
+            ],
+            nav_rect: [margin, 82.0, (width - 2.0 * margin).max(0.0), 54.0],
+            tab_rect_y: 88.0,
+            tab_rect_height: 42.0,
+            content_top: 144.0,
+        }
+    }
+}
+
 fn toggle(
     ui: &mut Ui,
     targets: &mut Vec<([f32; 4], Action)>,
@@ -242,6 +273,7 @@ impl Launcher {
         let scale = ui.density / ui.batch.scale;
         ui.batch
             .fill(&gui.atlas, 0.0, 0.0, w * scale, h * scale, color::BG);
+        let layout = LauncherLayout::new(w, h);
         ui.text(
             Face::Medium,
             if w < 400.0 {
@@ -251,34 +283,29 @@ impl Launcher {
             } else {
                 32.0
             },
-            32.0,
-            if w < 700.0 { 12.0 } else { 28.0 },
+            layout.title_origin[0],
+            layout.title_origin[1],
             color::TEXT,
             &format!("Sylphra Launcher {}", crate::backend::VERSION),
         );
         button(
             &mut ui,
             &mut self.targets,
-            [
-                if w < 700.0 { 32.0 } else { w - 320.0 },
-                if w < 700.0 { 47.0 } else { 24.0 },
-                if w < 700.0 { w - 64.0 } else { 288.0 },
-                if w < 700.0 { 34.0 } else { 46.0 },
-            ],
+            layout.account_rect,
             &self.login.status(&self.catalog.config.name),
             Action::Account,
             self.login.signed_in,
         );
         let tabs = Page::ALL.len() as f32;
-        let tab_margin = if w < 700.0 { 16.0 } else { 32.0 };
+        let tab_margin = layout.nav_rect[0];
         // Group the primary destinations into a distinct launcher navigation surface.
         // Keep the existing tab rectangles unchanged so pointer, touch, and gamepad
         // hit targets remain aligned with the current page layout.
         ui.rounded(
-            tab_margin,
-            82.0,
-            (w - 2.0 * tab_margin).max(0.0),
-            54.0,
+            layout.nav_rect[0],
+            layout.nav_rect[1],
+            layout.nav_rect[2],
+            layout.nav_rect[3],
             4.0,
             color::RAISED,
         );
@@ -296,7 +323,7 @@ impl Launcher {
             button(
                 &mut ui,
                 &mut self.targets,
-                [x, 88.0, tab_width - 4.0, 42.0],
+                [x, layout.tab_rect_y, tab_width - 4.0, layout.tab_rect_height],
                 if w < 700.0 {
                     match page {
                         Page::Installed => "Files",
@@ -322,7 +349,7 @@ impl Launcher {
             let progress = *self.install.lock().unwrap();
             // Give the Play page its own framed hero surface without changing shared
             // theme tokens or any installation/account behaviour.
-            let panel = [20.0, 144.0, (w - 40.0).max(0.0), (h - 168.0).max(0.0)];
+            let panel = [20.0, layout.content_top, (w - 40.0).max(0.0), (h - layout.content_top - 24.0).max(0.0)];
             ui.rounded(
                 panel[0],
                 panel[1],
