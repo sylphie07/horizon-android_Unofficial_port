@@ -501,3 +501,22 @@
 **Not verified:** no formatter, compiler, unit tests, GitHub Actions run, APK build, installation, or Android device test was executed.
 
 **Next:** migrate catalog-page horizontal/vertical content bounds and keep catalog row rendering, list hitboxes, pagination and scroll viewport synchronized. Then continue through Skin Studio and Settings before enabling the adaptive sidebar.
+
+
+## 2026-11-03 — Catalog page shared content geometry (stage 4)
+
+**Preflight:** verified only branch `android`; read continuity, development log, adaptive layout plan, and current renderer before editing.
+
+**Applied in `crates/horizon-client/src/android/launcher_pages.rs`:**
+- Migrated catalog page title/search/source selectors/hints/import controls and row action columns to shared content-left/right values.
+- Migrated catalog row text widths and action positions, preserving matching `list_targets` action rectangles.
+- Derived catalog list viewport top/bottom and pagination Y from `layout.content_rect`; scroll clamping and `list_view` use the same viewport.
+- Corrected derived offsets to preserve the prior numerical spacing at current viewport sizes. No visual redesign or adaptive sidebar is claimed yet.
+
+**Code commits:** `62de6b668537b6face24c9c7f7fe8e9b11ac17a0` (horizontal anchors), `d8ed8bbb89d50e4fe8ff51953c4525931f5b6767` (viewport), and `ebf780dc119cee3aa23ffd35352668f4e21b7655` (preserve existing spacing).
+
+**Static source inspection:** fetched final source and checked that previous hard-coded width/position anchors are absent from the catalog block and shared content bounds, row hitboxes, list viewport and pagination are present.
+
+**Not verified:** no formatter, compiler, unit tests, GitHub Actions, APK build, installation, or Android device test was executed. Long-line formatting and compiler correctness remain unverified.
+
+**Next:** inspect and migrate Skin Studio and Settings page families, including their scrollbars, bottom/right anchors and all corresponding targets. Then audit dialogs and input focus before enabling adaptive navigation.
