@@ -172,3 +172,9 @@
 - Runs #213 and #214 were cancelled by concurrency; they are not evidence of code failure. Run #216 checked out the latest branch tip, including both preview diagnostic code commits, so source-level validation applies to the documented tree.
 - The preview is still not device-verified. Diagnostic code now reports exact file/model-key errors, but the actual cause and successful 3D rendering remain unconfirmed.
 - Next required action: manually dispatch Android source checks on branch `android` with `native_checks=true`; after all four ABI checks pass, dispatch the isolated test APK workflow, audit its artifact, then request user device testing. Do not sync the Horizon submodule into Sylphra yet.
+
+
+## Native CI failure and correction (2026-11-03)
+- Manual native matrix run #219 (`41715591765`) failed on all four ABIs at the same Rust type mismatch. The source job passed. Root cause: `mobs::preview::player_type` now returns `crate::Result<Arc<MobType>>` to preserve diagnostics, while the existing gameplay camera wrapper in `game/perspective.rs` intentionally exposes `Option<Arc<MobType>>`.
+- Applied compatibility-boundary fix in commit `88850c1afa60c386a63af38ec37caf78686834f9`: convert the fallible preview loader result with `.ok()` only in the gameplay wrapper. Skin Studio continues to receive and display the detailed error; existing gameplay callers retain their Option contract.
+- No APK/device verification. Next: confirm source CI, rerun manual native matrix, then proceed to isolated test APK only if all ABIs pass.
