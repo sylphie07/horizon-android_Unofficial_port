@@ -660,3 +660,10 @@
 - The immediately preceding Skin Studio layout fix remains in the same branch: dedicated six-toggle layer strip, compact skin rows, fitted labels, and list viewport bounds.
 - Source workflow run #214 (41698244902) was queued for the UI diagnostic commit when this entry was written. Native ABI validation has not been run for the new changes. No APK or device verification is claimed.
 - Next: wait for source checks, inspect the exact error shown by a test APK/device, then fix the real resource-path/installation mismatch rather than adding blind retries. Before integrating to Sylphra, run the required native matrix when the workflow can be manually dispatched.
+
+
+## Verification — source checks passed (2026-11-03)
+- Run #216 (`41698337604`) on branch `android`, tip `708f42cfcffc74804f680ad33291644550a13d24`: source job succeeded. Confirmed all source steps passed: git diff check, public-tree history audit, Android unit tests, diagnostics, performance, content, and workflow export parity.
+- Native matrix was skipped (workflow condition requires manual dispatch with `native_checks=true`). Earlier code-triggered runs #213/#214 were cancelled due to concurrency; #216 checked out the current branch tip, so do not interpret those cancellations as failures.
+- Preview diagnostics are implemented but not device verified. The root cause of the missing 3D model is still unknown until the diagnostic is seen on an APK/device.
+- Next: run four-ABI native checks manually, then build/audit isolated arm64 test APK, then test on device. Keep Sylphra submodule unchanged until these validations pass.
