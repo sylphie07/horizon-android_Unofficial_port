@@ -674,3 +674,10 @@
 - Compiler error E0308 at `crates/horizon-client/src/game/perspective.rs:146`: wrapper promised `Option<Arc<MobType>>` but returned `Result<Arc<MobType>, Box<dyn Error>>` after making preview loading fallible for diagnostics.
 - Fixed in `88850c1afa60c386a63af38ec37caf78686834f9` by mapping `.ok()` at the gameplay compatibility boundary. This preserves the old gameplay Option contract and leaves Skin Studio's `Result` error reporting intact.
 - Verification pending: source CI and all four native ABI checks must rerun. No APK or device result is claimed.
+
+
+## Full Android native matrix green (2026-11-03)
+- Authoritative run #223 (`41717605149`), branch `android`, commit `9abc241e5f73b2ef9d12bef96018beb7ce76cc69`: all jobs succeeded.
+- Source checks: success. Native ABI checks: x86 (i686-linux-android), arm64-v8a (aarch64-linux-android), x86_64 (x86_64-linux-android), armeabi-v7a (armv7-linux-androideabi) all success.
+- Confirms the previous E0308 mismatch is corrected at the gameplay compatibility boundary while retaining the detailed Result in the Skin Studio preview loader.
+- Next: run isolated test APK workflow, audit APK contents/signature/metadata and only then request device test. The 3D preview itself remains unverified on-device.
