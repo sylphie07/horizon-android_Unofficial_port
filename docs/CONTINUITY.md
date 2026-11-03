@@ -88,3 +88,12 @@
 - Static source inspection confirms old catalog hard-coded position/width anchors were replaced. No formatter, compiler, tests, CI, APK or device test has run.
 - Next: migrate Skin Studio and Settings, then audit dialogs, scrollbars, focus and touch gestures before implementing wide-screen sidebar/adaptive phone navigation.
 - Development log updated in commit `12cb1b6c9187cfda04a2dede50cb6e8de2212397`.
+
+
+## Skin Studio shared content geometry — stage 5 (2026-11-03)
+- Migrated Skin Studio control-column positions/widths, profile and selection labels, profile/import/model/default buttons, preview panel edges, and skin-list row rectangles to `LauncherLayout.content_rect`.
+- Skin-list row drawing and `list_targets` share the same rectangle. Its lower viewport edge is now derived from the shared content bottom while preserving the prior compact/non-compact endpoints.
+- Code commits: `bb356f49be3c57328c0c03c449bfc5863cfda14a` and `24aba85afd45d518743ef74264cb7d3d5f1c4129`.
+- Static source fetch confirmed the migrated geometry and matching skin row hitboxes. No formatter, compiler, tests, CI, APK or device test has run.
+- Next: migrate Settings page content/list targets/viewport; then audit About, dialogs, scrollbars and input gestures/focus before activating adaptive navigation.
+- Development log updated in commit `a4878abb98e38284b48ae7e6ab378eb007fcda1b`.
