@@ -567,3 +567,22 @@
 **Not verified:** Rust formatting/compile, native ABI matrix, APK, installation or visual/touch behaviour on device.
 
 **Next:** migrate list viewport hit regions to include X bounds, update drag-origin checks, then audit dialogs, scrollbar position, focus navigation and touch gestures before enabling adaptive navigation.
+
+
+## 2026-11-03 — Responsive navigation and bounded list input
+
+**Preflight:** branch `android` checked at `a784adcc24727cc45160e2b0a97e2c9c702f98c9`; continuity, development log and adaptive layout plan reread before final polish.
+
+**Applied files:**
+- `crates/horizon-client/src/android/launcher.rs`: list view stores full horizontal/vertical bounds; mouse-wheel input only scrolls when the pointer is inside the active list.
+- `crates/horizon-client/src/android/launcher_pages.rs`: `NavigationMode` and `LauncherLayout::tab_rect` provide compact, expanded 4+3 phone/tablet, and wide sidebar navigation. Title/account header, content rectangle, tab hitboxes and footer follow the selected mode. Added layout unit tests.
+- `crates/horizon-client/src/android/chooser.rs`: chooser exposes a horizontal viewport as well as vertical bounds.
+- `crates/horizon-client/src/android/launcher_gesture.rs`: origin containment and updated focus reveal viewport; tests cover both horizontal and vertical boundaries and density scaling.
+
+**Code commits:** `45493c0a6fad782ff93c225ea9a8dde5542ad728`, `a784adcc24727cc45160e2b0a97e2c9c702f98c9`, and `f629757e008003561d14704c4aae25ae123c5be3`.
+
+**Verification:** source CI #185 (`41583666042`) completed successfully on `f629757e008003561d14704c4aae25ae123c5be3`. All configured source steps passed: diff, public-tree history, Android Python unit tests, diagnostics, performance, content and workflow-export consistency.
+
+**Limitations:** this push workflow does not run Rust Android compilation or the four-ABI matrix. No APK, install, physical-device rendering, touch, gamepad or orientation validation is claimed. The manual native workflow input `native_checks=true` is still required.
+
+**Next:** synchronize into Sylphra's authorized branch; request manual native matrix and device validation. Keep app background image/GIF/video feature out of scope until the user approves the next design stage.

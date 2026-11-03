@@ -116,3 +116,15 @@
 - Static review caught a footer-bound variable declared inside a conditional but used after it; moved the bounds into the enclosing draw scope in `b1980e9`. No compiler failure is claimed; the initial run #174 was cancelled by overlapping push delivery. Run #175 (`41581418514`) passed source checks on the preceding `9c04410` commit, not the corrected HEAD.
 - Current branch HEAD `b1980e9` requires a fresh source run. Native Rust/ABI, APK and device validation remain unverified.
 - Next: make list viewport hit regions X-aware, then audit modal/focus/scrollbar/touch behaviour before enabling the phone and sidebar navigation modes.
+
+
+## Responsive navigation and bounded scrolling — stages 9–10 (2026-11-03)
+
+- List viewports now carry left/top/right/bottom/maximum bounds. Touch drags and mouse-wheel scrolling only scroll when the gesture/pointer starts inside the active list viewport. Scrollbar tracks follow the viewport's right edge.
+- Chooser viewport bounds now include its horizontal range. Gamepad focus reveal uses the updated viewport shape and keeps its vertical reveal/clamp behaviour.
+- Added geometry modes in `LauncherLayout`: compact single-row fallback for narrow/short viewports; two-row phone/tablet navigation for width >= 380 and height >= 500; Java-style left sidebar for width >= 900 and height >= 480.
+- The seven destinations keep their existing order and actions. The exact same tab rectangles are used to draw buttons and register input targets. Expanded phone mode places the account control in the header row and uses a 4+3 tab grid. Sidebar mode shifts the page content and footer into the right-hand content rectangle.
+- Code commits: bounded viewport implementation `45493c0a6fad782ff93c225ea9a8dde5542ad728`; responsive navigation and wheel bounds `a784adcc24727cc45160e2b0a97e2c9c702f98c9`; sidebar spacing/test assertion correction `f629757e008003561d14704c4aae25ae123c5be3`.
+- Source CI #185 (`41583666042`) passed on `f629757e008003561d14704c4aae25ae123c5be3`: diff check, public-tree history, Android Python unit tests, diagnostics, performance, content and workflow-export consistency.
+- **Not verified:** Rust formatting/compilation, four-ABI native checks, APK build/install, or visual/touch behaviour on a physical device. The native matrix requires manually dispatching Android source checks with `native_checks=true`.
+- Next: synchronize this Horizon tip into Sylphra's authorized foundation branch, then obtain the native matrix and physical-device review before declaring the design phase fully verified. Background image/GIF/video customization remains deferred.

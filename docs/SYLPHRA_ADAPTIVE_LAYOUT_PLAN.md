@@ -56,3 +56,14 @@ The original preflight status above is historical. Current progress:
 - **Applied correction:** static review found the footer bounds were scoped inside a conditional despite being used by the GitHub action outside it. Commit `b1980e9` moved the declarations to the enclosing scope. This was corrected before claiming a successful check.
 - **CI:** source run #175 (`41581418514`) passed on preceding commit `9c04410`; it does not validate the corrected HEAD. Run #174 was cancelled during overlapping push delivery. Fresh source CI required.
 - **Next:** X-aware list viewport and drag-origin checks, then final modal/scrollbar/focus/gamepad/touch audit. Sidebar and expanded phone navigation remain disabled until those steps and native checks pass.
+
+
+## Implementation status — adaptive navigation (2026-11-03)
+
+- **Applied:** shared page geometry migrations cover Play, Installed, catalog pages, Skin Studio, Settings, About and footer/status.
+- **Applied:** viewport bounds include X/Y; touch and wheel scroll origins are constrained to the active list; scrollbar placement follows viewport right edge; chooser has its own horizontal viewport.
+- **Applied:** compact fallback, two-row 4+3 phone/tablet navigation, and wide-screen Java-style sidebar. Navigation button rectangles are shared by drawing and input targets.
+- **Source CI:** #185 (`41583666042`) passed for code HEAD `f629757e008003561d14704c4aae25ae123c5be3`.
+- **Still required before declaring the design fully verified:** manual native four-ABI matrix (`workflow_dispatch` with `native_checks=true`), Rust Android compile, and physical-device review of portrait/landscape, touch, mouse-wheel, gamepad focus, dialogs and scrollbars.
+- **Not done:** APK build/install or user visual acceptance. Do not publish a release.
+- **Deferred:** static image/GIF/video background customization.
