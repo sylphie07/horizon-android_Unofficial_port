@@ -729,3 +729,22 @@
 **Next:** run source checks and all four native ABI jobs. If green, dispatch the isolated arm64 test APK, install it, and inspect both the full-height preview layout and the new `skin-preview-ready.json`/diagnostic behavior. Do not sync the Sylphra submodule or publish a Release before these validation gates.
 
 - Follow-up viewport fill correction committed as `c88c2a7601c5016577d7bdf73bde3d161b7d1e02`: wide Skin Studio preview and skin-list viewport now extend to `h - 12` rather than stopping at the generic page content rectangle, reclaiming the unused lower area visible in the screenshot. Still uncompiled/unverified.
+
+
+## Sylphra Java-inspired launcher identity and development-only news (2026-11-03)
+
+**User reference and intent:** adapt the Minecraft Java Launcher visual language (charcoal panels, bright green Play action, profile in the sidebar, broad home/hero area) without copying its artwork or replacing Sylphra's own layout. The News destination should be absent from stable builds and available only to beta/development APKs for release notes, known issues, proposals, testing guidance and contributor information.
+
+**Applied on authorized branch `android`:**
+- `crates/horizon-client/src/android/launcher_pages.rs`: introduced a launcher-local charcoal/green palette. This affects launcher pages only; the shared Horizon theme and in-game HUD remain unchanged. The wide sidebar now places the account/profile control above the navigation. The Play page has a Java-inspired hero composition, a Files shortcut, and a prominent right-aligned green Play action on wide layouts.
+- `crates/horizon-client/src/android/catalog.rs`: added a build-channel constant and News page. Stable/release channel page navigation excludes News; beta/development channels include it.
+- `crates/horizon-client/build.rs`: validates `SYLPHRA_BUILD_CHANNEL` (stable, beta, development) and injects it at compile time; omitted environment defaults to stable.
+- `.github/workflows/sylphra-test-apk.yml`: isolated test APK workflow now sets `SYLPHRA_BUILD_CHANNEL=development`.
+- `docs/SYLPHRA_DEVELOPMENT_NEWS.md`: created the source feed compiled into the development News view, with explicit PROPOSED / IN PROGRESS / APPLIED-UNVERIFIED / VERIFIED semantics and safe tester-reporting guidance.
+- `launcher_pages.rs` renders the feed as a scrollable page only when the build channel exposes News.
+
+**Commits:** `ec75e42585a62b730b24bd86d9af66addf1e0f0e` (build-channel-gated News route), `df7b9d5f8b3789a3a9a088c903968e32a8cd0cb4` (build channel injection), `51364b6eaabc3b103a1edddb4161edd182ba488a` (development APK channel), `427a9803d5864318aa013fdcd67e8f35fcbc4179` (development feed), `351aea1d323dd6cc85c7adf39fadba310b8dbbcd` (local green palette), `e3762924902159ee1d1f1675983a0c30cf1133b5` (home layout and News rendering), `e8c9c5e424cf74d9671b1c25177f5002c3bfeb95` (build-script validation correction).
+
+**Static verification:** fetched the updated branch files and confirmed the News route is conditional on the injected channel, the test APK workflow sets development, the feed path resolves in source, and launcher colors are local to the launcher page module. No rustfmt, Rust compilation, tests, Android source/native CI, APK build, install, or visual device test has run for this pass. The current test workflow is a development build; a separate beta workflow has not been created.
+
+**Next:** run source checks and all four native ABI jobs. Fix any compiler/format/test issues before building the isolated development APK. On device, review the sidebar/profile placement, green palette, Play hero/button, and News page scrolling. Beta workflow wiring can be added when a beta distribution path is authorized. Do not sync the Sylphra submodule or publish a Release during this validation stage.
