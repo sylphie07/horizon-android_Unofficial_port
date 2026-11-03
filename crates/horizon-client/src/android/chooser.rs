@@ -292,9 +292,11 @@ impl Chooser {
             })
             .collect()
     }
-    pub(super) fn viewport(&self, height: f32) -> [f32; 3] {
+    pub(super) fn viewport(&self, width: f32, height: f32) -> [f32; 5] {
         [
+            32.0,
             137.0,
+            (width - 32.0).max(32.0),
             height - 100.0,
             (self.choices.len() as f32 * 84.0 - (height - 237.0)).max(0.0),
         ]
