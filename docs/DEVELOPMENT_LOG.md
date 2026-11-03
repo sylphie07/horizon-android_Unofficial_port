@@ -707,3 +707,23 @@
 **Next:** run source checks and the four-ABI native matrix, build the isolated arm64 test APK, then inspect the exact diagnostic shown on device. Do not sync the submodule into Sylphra or publish a Release until validation gates pass.
 
 - Follow-up scale-fit correction committed as `2534eb6f03f5487f470703b6850b03c83edf46ba`: model scale now uses 42% of preview height (rather than 72%) and 46% of preview width, with a 220-unit ceiling. This keeps the full 1.8-unit player model inside the taller viewport instead of enlarging it beyond the clip bounds. Still uncompiled/unverified.
+
+
+## Skin Studio — full-height preview, compact skin rows, first-install model validation (2026-11-03)
+
+**User design reference:** the 1536×691 screenshot marks the complete right-hand column for the 3D player and requests skin-selection rows sized to their names, with the remaining skins/layers using scrollable space below the controls.
+
+**Applied on authorized branch `android`:**
+- `crates/horizon-client/src/android/launcher_pages.rs`:
+  - Wide layouts now allocate 42% of the content width to the 3D preview and stretch it from the top to the bottom of the available content area.
+  - Profile/import/default controls and skin-layer toggles remain in the left column; layer controls are anchored below the controls rather than below the full-height preview.
+  - Skin rows now use measured label width plus padding, capped to the left column, instead of stretching across the full page. Existing vertical list viewport and scroll calculations continue to use the remaining space below the layer strip.
+- `crates/horizon-client/src/official_install.rs`:
+  - During the first official resource installation, the installer now attempts to load the player preview from the staged engine resource directory. On success it writes `skin-preview-ready.json`; on failure it logs the exact resource error but does not block normal game installation.
+  - This deliberately reuses the same pinned engine resource bundle already downloaded/extracted for the game; it does not download a duplicate model or add another remote dependency.
+
+**Code commits:** `a51b97c80e15bcafa97be9090076126403073644` (wide preview and measured rows), `ce95e3ec38fadacdab2f83a1b17ee79b0cd7ea2e` (first-install preview resource validation), `a71b0bcaead6f0642a8ac86bd49885add156aab7` (keep layer controls in left column).
+
+**Verification:** GitHub file fetch confirms the edits are present on `android`. No formatter, Rust compile, tests, Android source/native CI, APK build, install, or device visual test has run for this pass. The installer preflight is a code change, not yet evidence that the staged bundle contains a loadable player model on device.
+
+**Next:** run source checks and all four native ABI jobs. If green, dispatch the isolated arm64 test APK, install it, and inspect both the full-height preview layout and the new `skin-preview-ready.json`/diagnostic behavior. Do not sync the Sylphra submodule or publish a Release before these validation gates.
