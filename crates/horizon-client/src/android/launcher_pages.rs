@@ -1117,11 +1117,18 @@ impl Launcher {
             );
         } else {
             let c = &self.catalog.config;
+            let settings_left = layout.content_rect[0] + 12.0;
+            let settings_right = layout.content_rect[0] + layout.content_rect[2] - 12.0;
+            let settings_top = layout.content_rect[1] + 51.0;
+            let settings_bottom = layout.content_rect[1] + layout.content_rect[3] - 30.0;
+            // Preserve the current wide-screen column while deriving it from the
+            // shared content rectangle; compact rows use the full content width.
+            let settings_split = layout.content_rect[0] + layout.content_rect[2] * 0.36 - 5.6;
             ui.text(
                 Face::Medium,
                 if compact { 21.0 } else { 24.0 },
-                32.0,
-                if compact { 150.0 } else { 156.0 },
+                settings_left,
+                layout.content_rect[1] + if compact { 6.0 } else { 12.0 },
                 color::TEXT,
                 "Launch settings",
             );
@@ -1132,15 +1139,10 @@ impl Launcher {
             } else {
                 66.0
             };
-            self.catalog.scroll = self
-                .catalog
-                .scroll
-                .clamp(0.0, (21.0 * row_height - (h - 130.0 - 195.0)).max(0.0));
-            self.list_view = Some([
-                195.0,
-                h - 130.0,
-                (21.0 * row_height - (h - 130.0 - 195.0)).max(0.0),
-            ]);
+            let settings_maximum =
+                (21.0 * row_height - (settings_bottom - settings_top)).max(0.0);
+            self.catalog.scroll = self.catalog.scroll.clamp(0.0, settings_maximum);
+            self.list_view = Some([settings_top, settings_bottom, settings_maximum]);
             for (i, (title, value, action)) in [
                 ("Rendering", c.renderer.label().to_owned(), Action::Renderer),
                 (
@@ -1270,23 +1272,25 @@ impl Launcher {
             .into_iter()
             .enumerate()
             {
-                let y = 195.0 + i as f32 * row_height - self.catalog.scroll;
+                let y = settings_top + i as f32 * row_height - self.catalog.scroll;
                 self.list_targets.push((
                     [
-                        if compact { 32.0 } else { w * 0.36 },
+                        if compact { settings_left } else { settings_split },
                         y,
-                        if compact { w - 64.0 } else { w * 0.64 - 32.0 },
+                        if compact { settings_right - settings_left } else { settings_right - settings_split },
                         if compact { 70.0 } else { 46.0 },
                     ],
                     action,
                 ));
-                if y < 185.0 || y + if compact { 70.0 } else { 46.0 } > h - 130.0 {
+                if y < settings_top - 10.0
+                    || y + if compact { 70.0 } else { 46.0 } > settings_bottom
+                {
                     continue;
                 }
                 ui.text(
                     Face::Regular,
                     16.0,
-                    32.0,
+                    settings_left,
                     y + if compact { 0.0 } else { 13.0 },
                     color::MUTED,
                     title,
@@ -1299,13 +1303,13 @@ impl Launcher {
                         &mut ui,
                         &mut self.targets,
                         [
-                            if compact { 32.0 } else { w * 0.36 },
+                            if compact { settings_left } else { settings_split },
                             y + if compact {
                                 if h < 520.0 { 20.0 } else { 24.0 }
                             } else {
                                 0.0
                             },
-                            if compact { w - 64.0 } else { w * 0.64 - 32.0 },
+                            if compact { settings_right - settings_left } else { settings_right - settings_split },
                             if compact && h < 520.0 { 42.0 } else { 46.0 },
                         ],
                         match action {
@@ -1321,13 +1325,13 @@ impl Launcher {
                         &mut ui,
                         &mut self.targets,
                         [
-                            if compact { 32.0 } else { w * 0.36 },
+                            if compact { settings_left } else { settings_split },
                             y + if compact {
                                 if h < 520.0 { 20.0 } else { 24.0 }
                             } else {
                                 0.0
                             },
-                            if compact { w - 64.0 } else { w * 0.64 - 32.0 },
+                            if compact { settings_right - settings_left } else { settings_right - settings_split },
                             if compact && h < 520.0 { 42.0 } else { 46.0 },
                         ],
                         &format!(
@@ -1353,13 +1357,13 @@ impl Launcher {
                     );
                 }
                 ui.rounded(
-                    32.0,
+                    settings_left,
                     y + if compact {
                         if h < 520.0 { 70.0 } else { 78.0 }
                     } else {
                         62.0
                     },
-                    w - 64.0,
+                    settings_right - settings_left,
                     1.0,
                     0.0,
                     color::BORDER,
@@ -1368,7 +1372,12 @@ impl Launcher {
             button(
                 &mut ui,
                 &mut self.targets,
-                [w * 0.5 + 6.0, h - 114.0, w * 0.5 - 38.0, 42.0],
+                [
+                    settings_left + (settings_right - settings_left + 12.0) / 2.0,
+                    settings_bottom + 16.0,
+                    (settings_right - settings_left - 12.0) / 2.0,
+                    42.0,
+                ],
                 "Microsoft / Xbox account",
                 Action::Account,
                 true,
@@ -1376,7 +1385,12 @@ impl Launcher {
             button(
                 &mut ui,
                 &mut self.targets,
-                [32.0, h - 114.0, w * 0.5 - 38.0, 42.0],
+                [
+                    settings_left,
+                    settings_bottom + 16.0,
+                    (settings_right - settings_left - 12.0) / 2.0,
+                    42.0,
+                ],
                 "Diagnostics",
                 Action::Logs,
                 false,
