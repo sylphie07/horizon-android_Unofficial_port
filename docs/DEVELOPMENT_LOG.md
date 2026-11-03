@@ -586,3 +586,16 @@
 **Limitations:** this push workflow does not run Rust Android compilation or the four-ABI matrix. No APK, install, physical-device rendering, touch, gamepad or orientation validation is claimed. The manual native workflow input `native_checks=true` is still required.
 
 **Next:** synchronize into Sylphra's authorized branch; request manual native matrix and device validation. Keep app background image/GIF/video feature out of scope until the user approves the next design stage.
+
+
+## 2026-11-03 — Four-ABI native validation for responsive navigation
+
+**Workflow:** Android source checks #188, run `41584912109`, manually dispatched on `android` with native checks enabled.
+
+**Validated revision:** `b22e97b2ca0b3e16537e57efafc04a513abe4851` (responsive-navigation code is `f629757e008003561d14704c4aae25ae123c5be3`).
+
+**Result:** overall `success`. Jobs `source`, `native (arm64-v8a)`, `native (armeabi-v7a)`, `native (x86)`, and `native (x86_64)` all completed successfully. Each native job passed Android SDK command-line setup, Android toolchain installation and `tools/android_build.py --check --public` for its ABI. Source checks passed diff, public-tree history, Android Python tests, diagnostics, performance, content and workflow-export comparison.
+
+**Boundary:** this workflow checks native Rust code; it does not produce an APK. No APK build, artifact, manifest/package audit, install or physical-device interaction has been run or verified.
+
+**Next:** use the separate manual test-only APK workflow on branch `android`; do not publish a Release. After artifact audit, request device validation. Background image/GIF/video remains deferred.
