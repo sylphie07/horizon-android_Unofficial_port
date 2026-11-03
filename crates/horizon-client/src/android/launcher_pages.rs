@@ -1072,7 +1072,7 @@ impl Launcher {
                 for (column, (bit, label)) in layers.iter().enumerate() {
                     let x = content_left + column as f32 * (layer_width + layer_gap);
                     let y = default_y + 56.0 + row as f32 * 30.0;
-                    let visible = self.skin_preview_hidden_parts & bit == 0;
+                    let visible = self.skin_preview_hidden_parts & *bit == 0;
                     button(
                         &mut ui,
                         &mut self.targets,
