@@ -507,14 +507,26 @@ impl ApplicationHandler for Launcher {
                 if self.exit_confirmation {
                     return;
                 }
-                let y = match delta {
-                    winit::event::MouseScrollDelta::LineDelta(_, y) => y * 42.0,
-                    winit::event::MouseScrollDelta::PixelDelta(p) => p.y as f32 / self.ui_density(),
-                };
-                if let Some(chooser) = &mut self.chooser {
-                    chooser.scroll = (chooser.scroll - y).max(0.0);
-                } else {
-                    self.catalog.scroll = (self.catalog.scroll - y).max(0.0);
+                let density = self.ui_density() as f64;
+                let pointer_inside_list = self.list_view.is_some_and(|view| {
+                    gesture::contains_origin(
+                        view,
+                        self.cursor.0 / density,
+                        self.cursor.1 / density,
+                    )
+                });
+                if pointer_inside_list {
+                    let y = match delta {
+                        winit::event::MouseScrollDelta::LineDelta(_, y) => y * 42.0,
+                        winit::event::MouseScrollDelta::PixelDelta(p) => {
+                            p.y as f32 / density as f32
+                        }
+                    };
+                    if let Some(chooser) = &mut self.chooser {
+                        chooser.scroll = (chooser.scroll - y).max(0.0);
+                    } else {
+                        self.catalog.scroll = (self.catalog.scroll - y).max(0.0);
+                    }
                 }
                 Ok(())
             }

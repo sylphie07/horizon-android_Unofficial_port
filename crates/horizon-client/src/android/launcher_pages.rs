@@ -117,35 +117,103 @@ pub(super) fn button(
     );
     targets.push((rect, action));
 }
-/// Shared geometry for the launcher shell. Page content is migrated to this
-/// model incrementally so drawing and input hitboxes keep identical coordinates.
+/// Navigation treatment selected from the post-inset launcher viewport.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum NavigationMode {
+    Compact,
+    Expanded,
+    Sidebar,
+}
+
+/// Shared geometry for the launcher shell and all page content.
 #[derive(Clone, Copy)]
 struct LauncherLayout {
+    navigation_mode: NavigationMode,
     title_origin: [f32; 2],
     account_rect: [f32; 4],
     nav_rect: [f32; 4],
-    tab_rect_y: f32,
-    tab_rect_height: f32,
     content_top: f32,
     content_rect: [f32; 4],
 }
 impl LauncherLayout {
     fn new(width: f32, height: f32) -> Self {
-        let compact = width < 700.0;
-        let margin = if compact { 16.0 } else { 32.0 };
+        let navigation_mode = if width >= 900.0 && height >= 480.0 {
+            NavigationMode::Sidebar
+        } else if width >= 380.0 && height >= 500.0 {
+            NavigationMode::Expanded
+        } else {
+            NavigationMode::Compact
+        };
+        let (title_origin, account_rect, nav_rect, content_top, content_rect) =
+            match navigation_mode {
+                NavigationMode::Compact => (
+                    [32.0, 12.0],
+                    [32.0, 47.0, (width - 64.0).max(0.0), 34.0],
+                    [16.0, 82.0, (width - 32.0).max(0.0), 54.0],
+                    144.0,
+                    [20.0, 144.0, (width - 40.0).max(0.0), (height - 244.0).max(0.0)],
+                ),
+                NavigationMode::Expanded => (
+                    [24.0, 14.0],
+                    [(width - 152.0).max(24.0), 12.0, 136.0, 36.0],
+                    [16.0, 58.0, (width - 32.0).max(0.0), 78.0],
+                    146.0,
+                    [20.0, 146.0, (width - 40.0).max(0.0), (height - 246.0).max(0.0)],
+                ),
+                NavigationMode::Sidebar => (
+                    [240.0, 28.0],
+                    [(width - 320.0).max(240.0), 24.0, 288.0, 46.0],
+                    [16.0, 82.0, 208.0, (height - 112.0).max(0.0)],
+                    144.0,
+                    [240.0, 144.0, (width - 260.0).max(0.0), (height - 244.0).max(0.0)],
+                ),
+            };
         Self {
-            title_origin: [32.0, if compact { 12.0 } else { 28.0 }],
-            account_rect: [
-                if compact { 32.0 } else { width - 320.0 },
-                if compact { 47.0 } else { 24.0 },
-                if compact { width - 64.0 } else { 288.0 },
-                if compact { 34.0 } else { 46.0 },
-            ],
-            nav_rect: [margin, 82.0, (width - 2.0 * margin).max(0.0), 54.0],
-            tab_rect_y: 88.0,
-            tab_rect_height: 42.0,
-            content_top: 144.0,
-            content_rect: [20.0, 144.0, (width - 40.0).max(0.0), (height - 244.0).max(0.0)],
+            navigation_mode,
+            title_origin,
+            account_rect,
+            nav_rect,
+            content_top,
+            content_rect,
+        }
+    }
+
+    fn tab_rect(&self, index: usize) -> [f32; 4] {
+        match self.navigation_mode {
+            NavigationMode::Compact => {
+                let cell = self.nav_rect[2] / Page::ALL.len() as f32;
+                [
+                    self.nav_rect[0] + index as f32 * cell,
+                    self.nav_rect[1] + 6.0,
+                    (cell - 4.0).max(0.0),
+                    42.0,
+                ]
+            }
+            NavigationMode::Expanded => {
+                let columns = 4;
+                let cell = (self.nav_rect[2] - 16.0).max(0.0) / columns as f32;
+                let column = index % columns;
+                let row = index / columns;
+                [
+                    self.nav_rect[0] + 8.0 + column as f32 * cell,
+                    self.nav_rect[1] + 6.0 + row as f32 * 38.0,
+                    (cell - 4.0).max(0.0),
+                    32.0,
+                ]
+            }
+            NavigationMode::Sidebar => {
+                let count = Page::ALL.len() as f32;
+                let button_height = 42.0;
+                let gap = ((self.nav_rect[3] - 24.0 - count * button_height)
+                    / (count - 1.0))
+                    .clamp(4.0, 16.0);
+                [
+                    self.nav_rect[0] + 12.0,
+                    self.nav_rect[1] + 12.0 + index as f32 * (button_height + gap),
+                    self.nav_rect[2] - 24.0,
+                    button_height,
+                ]
+            }
         }
     }
 }
@@ -276,19 +344,31 @@ impl Launcher {
         ui.batch
             .fill(&gui.atlas, 0.0, 0.0, w * scale, h * scale, color::BG);
         let layout = LauncherLayout::new(w, h);
+        let title_size = if w < 400.0 {
+            20.0
+        } else if w < 700.0 {
+            24.0
+        } else {
+            32.0
+        };
+        let title_width = if layout.navigation_mode == NavigationMode::Compact {
+            (w - 64.0).max(40.0)
+        } else {
+            (layout.account_rect[0] - layout.title_origin[0] - 12.0).max(40.0)
+        };
+        let title = ui.fit_text(
+            Face::Medium,
+            title_size,
+            &format!("Sylphra Launcher {}", crate::backend::VERSION),
+            title_width,
+        );
         ui.text(
             Face::Medium,
-            if w < 400.0 {
-                20.0
-            } else if w < 700.0 {
-                24.0
-            } else {
-                32.0
-            },
+            title_size,
             layout.title_origin[0],
             layout.title_origin[1],
             color::TEXT,
-            &format!("Sylphra Launcher {}", crate::backend::VERSION),
+            &title,
         );
         button(
             &mut ui,
@@ -298,11 +378,8 @@ impl Launcher {
             Action::Account,
             self.login.signed_in,
         );
-        let tabs = Page::ALL.len() as f32;
-        let tab_margin = layout.nav_rect[0];
-        // Group the primary destinations into a distinct launcher navigation surface.
-        // Keep the existing tab rectangles unchanged so pointer, touch, and gamepad
-        // hit targets remain aligned with the current page layout.
+        // The same tab rectangles drive drawing, touch targets and gamepad focus
+        // in compact, two-row phone, and wide-screen sidebar navigation modes.
         ui.rounded(
             layout.nav_rect[0],
             layout.nav_rect[1],
@@ -319,24 +396,25 @@ impl Launcher {
             4.0,
             color::HOVER,
         );
-        let tab_width = (w - 2.0 * tab_margin) / tabs;
         for (i, page) in Page::ALL.iter().enumerate() {
-            let x = tab_margin + i as f32 * tab_width;
+            let label = if layout.navigation_mode == NavigationMode::Sidebar {
+                page.name()
+            } else if w < 700.0 {
+                match page {
+                    Page::Installed => "Files",
+                    Page::SkinStudio => "Skins",
+                    Page::Shaders => "FX",
+                    Page::Settings => "Setup",
+                    _ => page.name(),
+                }
+            } else {
+                page.name()
+            };
             button(
                 &mut ui,
                 &mut self.targets,
-                [x, layout.tab_rect_y, tab_width - 4.0, layout.tab_rect_height],
-                if w < 700.0 {
-                    match page {
-                        Page::Installed => "Files",
-                        Page::SkinStudio => "Skins",
-                        Page::Shaders => "FX",
-                        Page::Settings => "Setup",
-                        _ => page.name(),
-                    }
-                } else {
-                    page.name()
-                },
+                layout.tab_rect(i),
+                label,
                 Action::Page(*page),
                 *page == self.catalog.page,
             );
@@ -2195,5 +2273,39 @@ impl Launcher {
         if let Some(out) = out {
             self.catalog.edit(out, &self.home);
         }
+    }
+}
+
+
+#[cfg(test)]
+mod launcher_layout_tests {
+    use super::*;
+
+    #[test]
+    fn expanded_phone_navigation_uses_two_rows_above_content() {
+        let layout = LauncherLayout::new(393.0, 820.0);
+        assert_eq!(layout.navigation_mode, NavigationMode::Expanded);
+        assert!(layout.tab_rect(4)[1] > layout.tab_rect(0)[1]);
+        assert!(layout.content_rect[1] >= layout.nav_rect[1] + layout.nav_rect[3]);
+    }
+
+    #[test]
+    fn wide_layout_places_sidebar_beside_the_content_area() {
+        let layout = LauncherLayout::new(1280.0, 800.0);
+        assert_eq!(layout.navigation_mode, NavigationMode::Sidebar);
+        assert!(layout.nav_rect[0] + layout.nav_rect[2] < layout.content_rect[0]);
+        assert!(layout.tab_rect(Page::ALL.len() - 1)[1] > layout.tab_rect(0)[1]);
+    }
+
+    #[test]
+    fn narrow_or_short_viewports_keep_compact_navigation() {
+        assert_eq!(
+            LauncherLayout::new(360.0, 800.0).navigation_mode,
+            NavigationMode::Compact
+        );
+        assert_eq!(
+            LauncherLayout::new(393.0, 460.0).navigation_mode,
+            NavigationMode::Compact
+        );
     }
 }
