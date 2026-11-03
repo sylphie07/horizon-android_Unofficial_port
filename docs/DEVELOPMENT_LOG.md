@@ -486,3 +486,18 @@
 **Not verified:** no formatter, Rust compiler, unit tests, GitHub Actions run, APK build, install, or Android device test was executed. No runtime or visual equivalence is claimed.
 
 **Next:** migrate the Installed page's horizontal content anchors (including matching draw and hitbox rectangles) to the same content model, then continue with catalog pages. Enable a sidebar only after page families and their input/scroll geometry have been migrated and CI passes.
+
+
+## 2026-11-03 — Installed page horizontal content anchors (stage 3)
+
+**Preflight:** branch search returned only `android`; starting HEAD was `1e145c01a7d2fdf5fd72891c87c2fe0a953a59f1`. Re-read continuity, development log, adaptive layout plan, and current launcher renderer before editing.
+
+**Applied:** in `crates/horizon-client/src/android/launcher_pages.rs`, migrated Installed-page horizontal positions to values derived from `layout.content_rect`: section headers, import buttons, local-item enable/disable controls, remove buttons, text origins and title widths. The corresponding `self.list_targets` rectangles use the same derived positions as the drawn controls. Existing numerical geometry is preserved at current viewport sizes; no visual redesign is claimed.
+
+**Code commit:** `a6d661a987459ae9114c123490098c29ecf26f30`.
+
+**Static source inspection:** fetched the updated source and confirmed the old hard-coded Installed horizontal anchors are absent in that page block, while the shared left/right/import/toggle/title geometry and list viewport remain present. This is a source-level check only.
+
+**Not verified:** no formatter, compiler, unit tests, GitHub Actions run, APK build, installation, or Android device test was executed.
+
+**Next:** migrate catalog-page horizontal/vertical content bounds and keep catalog row rendering, list hitboxes, pagination and scroll viewport synchronized. Then continue through Skin Studio and Settings before enabling the adaptive sidebar.
