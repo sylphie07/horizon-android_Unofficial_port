@@ -520,3 +520,20 @@
 **Not verified:** no formatter, compiler, unit tests, GitHub Actions, APK build, installation, or Android device test was executed. Long-line formatting and compiler correctness remain unverified.
 
 **Next:** inspect and migrate Skin Studio and Settings page families, including their scrollbars, bottom/right anchors and all corresponding targets. Then audit dialogs and input focus before enabling adaptive navigation.
+
+
+## 2026-11-03 — Skin Studio shared content geometry (stage 5)
+
+**Applied in `crates/horizon-client/src/android/launcher_pages.rs`:**
+- Skin Studio control column, profile/error labels, profile/import/model/default buttons and selected-skin label now derive horizontal positions and widths from the shared content rectangle.
+- The 3D preview panel is positioned from the shared content right edge; the existing preview width and control-column spacing are preserved.
+- Skin list row drawing and `list_targets` now use the same shared horizontal rectangle.
+- Skin list lower viewport bounds are expressed relative to the shared content bottom while preserving the existing compact and non-compact viewport endpoints.
+
+**Code commits:** `bb356f49be3c57328c0c03c449bfc5863cfda14a` and `24aba85afd45d518743ef74264cb7d3d5f1c4129`.
+
+**Static source inspection:** fetched the final Skin Studio block and confirmed old hard-coded horizontal anchors are absent, the preview uses shared edges, and the skin-row draw/hitbox rectangles match. No runtime equivalence is claimed.
+
+**Not verified:** no formatter, compiler, tests, CI, APK build, install, or Android device test was run.
+
+**Next:** migrate Settings page content and its list targets/viewport, then review About, dialogs, scrollbars and gesture/focus handling before implementing the actual adaptive navigation.
