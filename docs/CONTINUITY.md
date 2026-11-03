@@ -178,3 +178,10 @@
 - Manual native matrix run #219 (`41715591765`) failed on all four ABIs at the same Rust type mismatch. The source job passed. Root cause: `mobs::preview::player_type` now returns `crate::Result<Arc<MobType>>` to preserve diagnostics, while the existing gameplay camera wrapper in `game/perspective.rs` intentionally exposes `Option<Arc<MobType>>`.
 - Applied compatibility-boundary fix in commit `88850c1afa60c386a63af38ec37caf78686834f9`: convert the fallible preview loader result with `.ok()` only in the gameplay wrapper. Skin Studio continues to receive and display the detailed error; existing gameplay callers retain their Option contract.
 - No APK/device verification. Next: confirm source CI, rerun manual native matrix, then proceed to isolated test APK only if all ABIs pass.
+
+
+## Native matrix passed (2026-11-03)
+- Run #223 (`41717605149`) completed successfully on branch android, commit `9abc241e5f73b2ef9d12bef96018beb7ce76cc69`.
+- Confirmed source job plus all four native jobs passed: x86/i686, arm64-v8a/aarch64, x86_64, and armeabi-v7a/armv7. This validates native compilation for the matrix on that commit, including the compatibility fix mapping the detailed preview Result to the gameplay Option boundary.
+- Run #220 was cancelled by concurrency and is not the positive run. Run #223 is the authoritative successful verification.
+- Next: inspect and dispatch the isolated test APK workflow on branch android, then audit the artifact before asking the user to install/test it. No device-level 3D preview verification yet; no Sylphra submodule update or public release.
