@@ -392,3 +392,20 @@
 **Verification status:** source edit committed and fetched back from branch `android`; no formatter, compiler, unit tests, CI, APK build, or Android device check has yet run for this pass. The prior source CI success on commit `2b1f4e4` does not validate this new change. The all-ABI native matrix remains a manual workflow dispatch requirement.
 
 **Next:** run source CI plus `native_checks=true` for all four ABIs; if green, group any remaining launcher-only refinements before building the isolated arm64 test APK. No APK or device result is claimed.
+
+
+## 2026-11-02 — Sylphra launcher navigation: Skin Studio entry
+
+**Preflight:** confirmed the only authorized branch is `android`, and the branch HEAD before this change was `951850d0c5904b79aa7897f9536b90698eaf4924`. Re-read `docs/CONTINUITY.md`, this development log, the Android catalog page enum, and the launcher tab renderer. No changes were made to `main`.
+
+**Applied:**
+- `crates/horizon-client/src/android/catalog.rs`: added the existing `SkinStudio` page to the primary `Page::ALL` navigation list; renamed the desktop-facing `Installed` label to `Installations` and the `SkinStudio` label to `Skins`.
+- `crates/horizon-client/src/android/launcher_pages.rs`: added the compact navigation label for the Skin Studio tab. Existing Skin Studio actions, skin library, PNG import, model selection, profiles, and preview remain the same.
+
+**Scope:** this is the first navigation integration step, not the complete Java-launcher redesign. It exposes the existing Skins page directly in the main navigation. No engine, authentication, account identity, UUID, world, storage, catalog source, protocol, or rendering behaviour was intentionally changed.
+
+**Commits:** catalog navigation `5e4146cf14921e17bd2753dc06ffc69b162ca031`; compact tab label `f00f9602f6fc2e0908ecf42f83414c3866534cb1`.
+
+**Verification:** both changed source files were fetched again from branch `android` after their commits. No formatter, compiler, unit test, CI run, APK build, install, or visual device test has yet been run for this navigation change. The push should trigger source CI; all-ABI native checks still require manual dispatch with `native_checks=true`.
+
+**Next:** inspect the source CI result; then design the responsive Java-style navigation shell as a separate pass, keeping compact phone navigation usable and avoiding a global theme or game UI change.
