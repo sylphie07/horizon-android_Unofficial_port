@@ -1,10 +1,11 @@
+//! Track total drag distance separately from per-event scroll deltas.
+
 /// A touch drag may scroll a list only when it began inside the list's
 /// horizontal and vertical viewport. Coordinates are in logical UI units.
 pub(super) fn contains_origin(view: [f32; 5], x: f64, y: f64) -> bool {
     let [left, top, right, bottom, _] = view;
     x >= left as f64 && x <= right as f64 && y >= top as f64 && y <= bottom as f64
 }
-//! Track total drag distance separately from per-event scroll deltas.
 /// Scroll only enough to reveal the selected row, retaining the current offset.
 pub(super) fn reveal(scroll: f32, row: [f32; 4], view: [f32; 5]) -> f32 {
     let [_, top, _, bottom, maximum] = view;
