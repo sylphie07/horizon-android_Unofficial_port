@@ -676,8 +676,8 @@ impl Launcher {
                 })
                 .collect();
             let row_count = bundled.len() + catalog_rows.len();
-            let top = 296.0;
-            let bottom = h - 112.0;
+            let top = layout.content_rect[1] + 152.0;
+            let bottom = layout.content_rect[1] + layout.content_rect[3] - 12.0;
             self.catalog.scroll = self
                 .catalog
                 .scroll
@@ -773,7 +773,7 @@ impl Launcher {
             button(
                 &mut ui,
                 &mut self.targets,
-                [content_left, h - 100.0, 120.0, 40.0],
+                [content_left, layout.content_rect[1] + layout.content_rect[3], 120.0, 40.0],
                 "Previous",
                 Action::Previous,
                 false,
@@ -781,7 +781,7 @@ impl Launcher {
             button(
                 &mut ui,
                 &mut self.targets,
-                [content_left + 134.0, h - 100.0, 120.0, 40.0],
+                [content_left + 134.0, layout.content_rect[1] + layout.content_rect[3], 120.0, 40.0],
                 "Next",
                 Action::Next,
                 false,
