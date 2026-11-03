@@ -150,8 +150,11 @@ impl PlayerPreview {
             &mut vertices,
         );
         let height = if mob.extra.crouching { 1.5 } else { 1.8 };
+        // Scale the mannequin with the available preview area instead of
+        // keeping the old fixed 78-unit model on every screen size.
+        let model_scale = ((x1 - x0) * 0.46).min((y1 - y0) * 0.58).clamp(48.0, 112.0);
         let gui = glam::Mat4::from_translation(glam::Vec3::new(cx, cy, 0.0))
-            * glam::Mat4::from_scale(glam::Vec3::new(78.0, 78.0, -78.0))
+            * glam::Mat4::from_scale(glam::Vec3::new(model_scale, model_scale, -model_scale))
             * glam::Mat4::from_translation(glam::Vec3::new(0.0, height / 2.0, 0.0))
             * glam::Mat4::from_rotation_z(std::f32::consts::PI)
             * glam::Mat4::from_rotation_x((y_angle * 20.0).to_radians());
