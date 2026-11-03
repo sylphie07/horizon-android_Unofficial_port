@@ -315,6 +315,7 @@ impl Launcher {
     }
 
     pub(super) fn draw_pages(&mut self) -> Result<()> {
+        self.skin_preview_rect = None;
         let (Some(r), Some(gui)) = (&mut self.renderer, &self.gui) else {
             return Ok(());
         };
@@ -1069,7 +1070,8 @@ impl Launcher {
                 let left = content_left + (content_width - width) * 0.5;
                 [left, preview_top, left + width, preview_top + 156.0]
             };
-            ui.text(Face::Regular, 14.0, preview_rect[0], preview_rect[1] - 18.0, color::MUTED, "3D preview");
+            self.skin_preview_rect = Some(preview_rect);
+            ui.text(Face::Regular, 14.0, preview_rect[0], preview_rect[1] - 18.0, color::MUTED, "3D preview · drag to rotate");
             ui.rounded(preview_rect[0], preview_rect[1], preview_rect[2] - preview_rect[0], preview_rect[3] - preview_rect[1], 8.0, color::RAISED);
             let skin_pixels = match self.catalog.skin_preview_rgba(&self.home) {
                 Ok(pixels) => pixels.map(|pixels| pixels.to_vec()),
@@ -1094,15 +1096,11 @@ impl Launcher {
                     });
                     selected_texture = Some(("horizon/skin0", skin_model));
                 }
-                let cursor = [
-                    self.cursor.0 as f32 / ui.density,
-                    self.cursor.1 as f32 / ui.density,
-                ];
                 preview.draw(
                     &mut *ui.batch,
                     &gui.atlas,
                     preview_rect,
-                    cursor,
+                    self.skin_preview_rotation,
                     selected_texture,
                 );
             } else {
@@ -2212,13 +2210,34 @@ impl Launcher {
             window.request_redraw();
         }
         self.cursor = (t.location.x, t.location.y);
+        let density = self.ui_density().max(0.01) as f64;
         match t.phase {
             TouchPhase::Started => {
-                self.drag = Some(super::gesture::Drag::new(t.location.x, t.location.y));
+                let x = t.location.x / density;
+                let y = t.location.y / density;
+                let in_preview = self.skin_preview_rect.is_some_and(|[left, top, right, bottom]| {
+                    x >= left as f64 && x <= right as f64
+                        && y >= top as f64 && y <= bottom as f64
+                }) && self.skin_preview.is_some();
+                if in_preview {
+                    self.skin_preview_touch = Some((t.id, t.location.x, t.location.y));
+                    self.drag = None;
+                } else if self.skin_preview_touch.is_none() {
+                    self.drag = Some(super::gesture::Drag::new(t.location.x, t.location.y));
+                }
             }
             TouchPhase::Moved => {
-                let density = self.ui_density() as f64;
-                if let Some(drag) = &mut self.drag {
+                if let Some((touch_id, previous_x, previous_y)) = self.skin_preview_touch {
+                    if touch_id == t.id {
+                        let dx = ((t.location.x - previous_x) / density) as f32;
+                        let dy = ((t.location.y - previous_y) / density) as f32;
+                        self.skin_preview_rotation[0] =
+                            (self.skin_preview_rotation[0] + dx * 0.8).rem_euclid(360.0);
+                        self.skin_preview_rotation[1] =
+                            (self.skin_preview_rotation[1] + dy * 0.55).clamp(-35.0, 35.0);
+                        self.skin_preview_touch = Some((touch_id, t.location.x, t.location.y));
+                    }
+                } else if let Some(drag) = &mut self.drag {
                     let delta = drag.update(t.location.x, t.location.y, density);
                     if drag.moved
                         && self.list_view.is_some_and(|view| {
@@ -2238,11 +2257,16 @@ impl Launcher {
                 }
             }
             TouchPhase::Ended => {
-                if self.drag.take().is_some_and(|drag| !drag.moved) {
+                if self.skin_preview_touch.is_some_and(|(touch_id, _, _)| touch_id == t.id) {
+                    self.skin_preview_touch = None;
+                } else if self.drag.take().is_some_and(|drag| !drag.moved) {
                     self.activate(events)?;
                 }
             }
             TouchPhase::Cancelled => {
+                if self.skin_preview_touch.is_some_and(|(touch_id, _, _)| touch_id == t.id) {
+                    self.skin_preview_touch = None;
+                }
                 self.drag = None;
             }
         }
