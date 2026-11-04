@@ -818,3 +818,9 @@
 - Diagnosis: a string replacement in the prior change had inserted the Skin Studio viewport condition into the Installed page's `self.list_view` assignment, rather than the Skin Studio block. The failed scope was unrelated to the new player transform.
 - Applied correction commit `2a5342e2e186268021f0bc3054770af5bf1699b7` in `crates/horizon-client/src/android/launcher_pages.rs`: Installed page viewport restored; Skin Studio viewport now uses `list_right` within its own scope, and skin row hitbox/render width uses that same bound.
 - Not yet verified. Need rerun source + native CI against current branch head. APK must wait until all four ABI checks pass. No Release publication or submodule sync.
+## Skin Studio native validation passed; APK handoff (2026-11-04)
+- User reported the latest manual CI completed positively. Verified Android source/native workflow run #285 (`41777706392`) on branch `android`, commit `a07f1151df91605a1ed97c4e2c3c16bced5e4fe5`.
+- All five jobs passed: source checks plus native Rust checks for `x86`, `armeabi-v7a`, `x86_64`, and `arm64-v8a`. This establishes successful compilation checks, not physical-device rendering.
+- Reviewed isolated APK workflow `.github/workflows/sylphra-test-apk.yml`: development channel, `arm64-v8a` only, package ID `dev.sylphra.android.test`, release-candidate audit, seven-day Actions artifact; no GitHub Release publication.
+- No APK run exists for this latest commit; old run #10 (`41765962850`) is stale and must not be used to test these fixes.
+- Next: user manually dispatches APK workflow on `android`; then inspect audit/artifact and request device validation of model, skin texture, rotation/layers, and column layout. Do not publish a Release or sync submodule.
