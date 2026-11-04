@@ -384,6 +384,15 @@ impl HudAtlas {
         for i in 0..SKIN_SLOTS {
             images.push((format!("horizon/skin{i}"), 64, 64, vec![0; 64 * 64 * 4]));
         }
+        // Skin Studio's mannequin uses a dedicated slot. Its atlas is built
+        // from installer resources before the full game texture atlas exists,
+        // so the vanilla entity/player texture is not guaranteed to be present.
+        images.push((
+            "horizon/skin-preview".into(),
+            64,
+            64,
+            vec![0; 64 * 64 * 4],
+        ));
         for i in 0..TRIM_SLOTS {
             images.push((
                 format!("horizon/trim{i}"),
