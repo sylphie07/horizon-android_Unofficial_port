@@ -117,7 +117,7 @@ impl PlayerPreview {
         rotation: [f32; 2],
         hidden_model_parts: u8,
         skin: Option<(&str, bool)>,
-    ) {
+    ) -> (usize, usize) {
         let [x0, y0, x1, y1] = rect;
         let (cx, cy) = ((x0 + x1) / 2.0, (y0 + y1) / 2.0);
         let yaw = rotation[0];
@@ -165,12 +165,15 @@ impl PlayerPreview {
             * glam::Mat4::from_translation(glam::Vec3::new(0.0, height / 2.0, 0.0))
             * glam::Mat4::from_rotation_z(std::f32::consts::PI)
             * glam::Mat4::from_rotation_x(pitch.to_radians());
+        let vertex_count = vertices.len();
         let quads = player_preview_quads(vertices, gui, None, &atlas.sprites);
+        let quad_count = quads.len();
         let start = batch.vertices.len();
         for (_, positions, uv, color) in quads {
             batch.quad_3d(positions, uv, color);
         }
         batch.depth_since(start, rect);
+        (vertex_count, quad_count)
     }
 }
 
