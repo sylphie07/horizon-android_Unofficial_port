@@ -1249,11 +1249,10 @@ impl Launcher {
             let layer_top = if wide_preview { default_y + 40.0 } else { preview_rect[3] + 5.0 };
             ui.text(Face::Regular, 12.0, content_left, layer_top, color::MUTED, "Visible skin layers");
             let layer_gap = 5.0;
-            // In the two-column layout, layer controls belong to the left
-            // control column only; using content_width would draw them over
-            // the 3D preview on the right.
+            // Two rows of three keep every layer label readable on phones
+            // while remaining inside the left column on wide layouts.
             let layer_area_width = if wide_preview { control_width } else { content_width };
-            let layer_width = ((layer_area_width - layer_gap * 5.0) / 6.0).max(0.0);
+            let layer_width = ((layer_area_width - layer_gap * 2.0) / 3.0).max(0.0);
             let layers = [
                 (1u8 << 6, "Hat"),
                 (1u8 << 1, "Jacket"),
@@ -1262,9 +1261,11 @@ impl Launcher {
                 (1u8 << 4, "L pants"),
                 (1u8 << 5, "R pants"),
             ];
-            for (column, (bit, label)) in layers.iter().enumerate() {
+            for (index, (bit, label)) in layers.iter().enumerate() {
+                let column = index % 3;
+                let row = index / 3;
                 let x = content_left + column as f32 * (layer_width + layer_gap);
-                let y = layer_top + 18.0;
+                let y = layer_top + 18.0 + row as f32 * 32.0;
                 let visible = self.skin_preview_hidden_parts & *bit == 0;
                 button(
                     &mut ui,
@@ -1276,10 +1277,8 @@ impl Launcher {
                 );
             }
 
-            // The list owns the remaining vertical space down to the content
-            // bottom. Compact rows avoid wasting height and keep names inside
-            // their own selection surface.
-            let top = layer_top + 54.0;
+            // Leave enough room for both layer-control rows before the skin list.
+            let top = layer_top + 86.0;
             let bottom = if wide_preview {
                 studio_bottom
             } else {
