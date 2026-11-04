@@ -779,3 +779,11 @@
 - The source workflow does not run native Rust checks unless manually dispatched with `native_checks=true`. No native ABI checks or APK build have run for the latest launcher changes.
 - The code in the tested commit includes the public GitHub destination `Sylphra-Android-Public`, About/independence wording, green launcher palette, News channel gating, and Java-inspired home layout.
 - Next gate: manually dispatch `.github/workflows/android-source.yml` on branch `android` with `native_checks=true`. If all four ABI jobs pass, manually dispatch `.github/workflows/sylphra-test-apk.yml` to build the isolated development APK. No release or submodule sync.
+
+
+## Native CI failure analysis and build-channel correction (2026-11-03)
+- Source checks #264 passed on commit `d767c088b9db69b2398ca113b72b142645c221e0`, but all four native ABI jobs failed at Rust compilation.
+- Logs identified two common root causes in `crates/horizon-client/src/android/catalog.rs`: `SYLPHRA_BUILD_CHANNEL` was not defined for the `horizon-android` crate because it had been injected from the unrelated `horizon-client` build script; and comparing string literals in a const `matches!` expression is not supported by the pinned Rust toolchain.
+- Applied correction: `crates/horizon-android/build.rs` now validates and injects the channel for the crate that actually compiles the Android launcher, and emits `cfg(sylphra_development)` for beta/development. `catalog.rs` now uses `env!(..., "stable")`, `cfg!` for the boolean, and a cfg-attributed News array entry rather than const string matching.
+- Commits: `0b0bd77bdd0578b9d630a0a1e24ea9cd4e12c33b` (catalog compatibility), `d65b792f7fe229f4cca5e46bf8d12bd0016d3efb` (correct Android build script).
+- Source checks #261 passed; #264 source job passed but its four native jobs failed as described. The correction has not yet been compiled or CI-verified. Next: rerun source checks with `native_checks=true`, then continue only if all ABI jobs pass.
