@@ -787,3 +787,10 @@
 - Applied correction: `crates/horizon-android/build.rs` now validates and injects the channel for the crate that actually compiles the Android launcher, and emits `cfg(sylphra_development)` for beta/development. `catalog.rs` now uses `env!(..., "stable")`, `cfg!` for the boolean, and a cfg-attributed News array entry rather than const string matching.
 - Commits: `0b0bd77bdd0578b9d630a0a1e24ea9cd4e12c33b` (catalog compatibility), `d65b792f7fe229f4cca5e46bf8d12bd0016d3efb` (correct Android build script).
 - Source checks #261 passed; #264 source job passed but its four native jobs failed as described. The correction has not yet been compiled or CI-verified. Next: rerun source checks with `native_checks=true`, then continue only if all ABI jobs pass.
+
+## Native Android CI success and APK handoff (2026-11-03)
+- User reported the rerun had finished positively; independently inspected GitHub Actions run #269 (41764300816) on branch `android`, tested commit `1eed09d156fb0f41b37cd05acf400ecfd6187273`.
+- Verified all five jobs passed: source checks and native Rust checks for `x86_64`, `x86`, `arm64-v8a`, and `armeabi-v7a`. The native checks compiled/checked Android Rust code without building an APK.
+- This confirms the previous build-channel/const-compatibility correction. It does not establish APK creation, installation, or physical-device UI behaviour.
+- Reviewed `.github/workflows/sylphra-test-apk.yml`: it builds an isolated arm64 development test APK (`dev.sylphra.android.test`) with `SYLPHRA_BUILD_CHANNEL=development`, performs the release-candidate audit, and uploads an Actions artifact for seven days. It does not create a GitHub Release.
+- No run of the APK workflow was present in the latest Actions history. Next action: manually dispatch that workflow on `android`; inspect the artifact and audit, then install and test the launcher on the Android device. Do not publish a Release or sync the Sylphra submodule.
