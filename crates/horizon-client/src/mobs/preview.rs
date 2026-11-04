@@ -157,7 +157,11 @@ impl PlayerPreview {
         // keeping the old fixed 78-unit model on every screen size.
         let model_scale = ((x1 - x0) * 0.46).min((y1 - y0) * 0.42).clamp(48.0, 220.0);
         let gui = glam::Mat4::from_translation(glam::Vec3::new(cx, cy, 0.0))
-            * glam::Mat4::from_scale(glam::Vec3::new(model_scale, model_scale, -model_scale))
+            // Keep the transform orientation-preserving. A negative Z
+            // scale flips triangle winding, while player_preview_quads
+            // culls faces by the transformed normal; that combination can
+            // discard the entire mannequin in the GUI preview.
+            * glam::Mat4::from_scale(glam::Vec3::splat(model_scale))
             * glam::Mat4::from_translation(glam::Vec3::new(0.0, height / 2.0, 0.0))
             * glam::Mat4::from_rotation_z(std::f32::consts::PI)
             * glam::Mat4::from_rotation_x(pitch.to_radians());
