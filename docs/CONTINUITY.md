@@ -247,3 +247,9 @@
 - Android source checks #261 / run `41738307509` passed on commit `cc5ea8e5c5a599dce392ec3065eb6abd25f516d6`. All source, tests, diagnostics, performance/content checks and workflow-export comparison succeeded.
 - Native ABI matrix remains pending; dispatch `.github/workflows/android-source.yml` on branch `android` with `native_checks=true`. The workflow dispatch action is not available through the connected GitHub tools, so the user must start it from GitHub Actions.
 - After four ABI jobs pass, dispatch `.github/workflows/sylphra-test-apk.yml` (development APK only, not a Release). Then verify UI and public repository button on device.
+
+
+## Native CI correction checkpoint (2026-11-03)
+- Source run #264 source job passed, but all native ABI jobs failed because the channel env was injected by `horizon-client/build.rs` rather than `horizon-android/build.rs`; const string comparison also failed on the toolchain.
+- Fixed in `catalog.rs` and `crates/horizon-android/build.rs`: channel now injected by the actual Android crate; beta/development use a Cargo cfg; stable defaults safely.
+- Commits: `0b0bd77bdd0578b9d630a0a1e24ea9cd4e12c33b`, `d65b792f7fe229f4cca5e46bf8d12bd0016d3efb`. Not yet CI-verified. Rerun Android source checks with `native_checks=true`; do not build APK until the native matrix passes.
