@@ -852,3 +852,19 @@
 - Commits: `4a7c84ccfbdc4eb13108d906c921135893aaec4d` (page lifecycle loading) and `2dbc4daff58f6fdea53d7910e97410992a43e30e` (retry after game return / document import).
 - Verification status: code edits applied; no source-check workflow or APK build has yet been run for these two commits. Do not claim the device-side model rendering is fixed until CI passes, a fresh APK is installed, and the user confirms the preview.
 - If the next build shows a concrete `entity-models.json` read/parse/key error, investigate the installed resource ZIP contents and installer output. The existing installer preflight at `official_install.rs` lines 495–506 already logs whether `PlayerPreview::load(&stage)` succeeds during resource installation.
+
+
+## 2026-11-04 — Skin Studio preview geometry and layer-control correction
+**Preflight:** inspected `docs/CONTINUITY.md`, `docs/DEVELOPMENT_LOG.md`, authorized branch `android`, current HEAD `4d28bf60054a663a27f8faa2e04037957914100c`, and relevant preview/render/UI source. The user tested the corresponding APK and reported a blank preview panel despite the new loading lifecycle.
+
+**Investigation:** `PlayerPreview::draw` already invoked the shared mob renderer and converted its vertices to GUI quads. `player_preview_quads` then removed all quads with transformed normal Z >= 0. Because the exported model does not guarantee consistent face winding, this culling rule can reject all visible mannequin faces. The GUI path has a depth-tested pipeline, so winding-based face rejection is unnecessary for hiding rear faces.
+
+**Changes applied:**
+- `crates/horizon-client/src/mobs/preview.rs`: removed winding-dependent face rejection, retained both face orientations, and oriented lighting normals toward the viewer. Rear surfaces are left to the existing depth-tested GUI pipeline.
+- `crates/horizon-client/src/android/launcher_pages.rs`: changed the six layer toggles from one cramped row to two rows of three; moved the skin list down to keep it clear of the second row.
+
+**Commits:** preview geometry `0e2e0eb7e92349b2aeaaba2cd6bbb89f026a5c25`; layer layout `47826c3237f825cd126417564bc681ffa3559296`.
+
+**Validation status:** source edits are committed on branch `android`. No formatting, Rust compilation, unit tests, source/native CI, APK build, or physical-device validation has yet run on these new commits. This is a targeted correction based on a source-level failure mechanism, not proof that the model now renders. The preceding APK workflow #12 succeeded only on old commit `4d28bf6` and is not evidence for these changes.
+
+**Next:** obtain source CI for the new HEAD; dispatch native ABI checks and a fresh test APK if the workflow controls are available; inspect the device result and use vertex/quad diagnostics to distinguish geometry from atlas/depth rendering if the preview remains blank. Continue the broader responsive UI review afterward.
