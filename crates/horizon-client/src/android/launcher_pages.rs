@@ -337,6 +337,33 @@ impl Launcher {
         if r.suspended {
             return Ok(());
         }
+        // Load the player preview from the page lifecycle, not only from the
+        // Settings shortcut. The top navigation uses Action::Page(SkinStudio),
+        // and document-import callbacks can also navigate here directly.
+        if self.catalog.page == Page::SkinStudio
+            && self.skin_preview.is_none()
+            && self.skin_preview_error.is_none()
+        {
+            let root = self
+                .home
+                .join(".local/horizon-client")
+                .join(horizon_core::VANILLA_VERSION);
+            match horizon_client::mobs::preview::PlayerPreview::load(&root) {
+                Ok(preview) => {
+                    self.skin_preview = Some(preview);
+                    self.catalog.status = "3D player model loaded.".into();
+                }
+                Err(error) => {
+                    let diagnostic = format!(
+                        "3D preview could not load from {}: {error}",
+                        root.display()
+                    );
+                    log::warn!("{diagnostic}");
+                    self.skin_preview_error = Some(diagnostic.clone());
+                    self.catalog.status = diagnostic;
+                }
+            }
+        }
         self.targets.clear();
         self.list_targets.clear();
         self.list_view = None;
@@ -1212,7 +1239,7 @@ impl Launcher {
                 }
             } else {
                 let message = self.skin_preview_error.as_deref()
-                    .unwrap_or("Player model is not loaded yet. Open Play once, then return here.");
+                    .unwrap_or("Loading player model…");
                 let message = ui.fit_text(Face::Regular, 13.0, message, (preview_rect[2] - preview_rect[0] - 16.0).max(0.0));
                 ui.text(Face::Regular, 13.0, preview_rect[0] + 8.0, preview_rect[1] + 52.0, color::MUTED, &message);
             }
@@ -2144,6 +2171,11 @@ impl Launcher {
                     crate::platform::hide();
                 }
                 self.catalog.page = page;
+                if page == Page::SkinStudio && self.skin_preview.is_none() {
+                    // Re-entering Skin Studio permits a fresh attempt after
+                    // resources have been installed or repaired.
+                    self.skin_preview_error = None;
+                }
                 self.catalog.scroll = 0.0;
                 self.error = None;
                 self.catalog.offset = 0;
@@ -2157,24 +2189,7 @@ impl Launcher {
                 self.catalog.scroll = 0.0;
                 self.catalog.reload_skin_library(&self.home);
                 if self.skin_preview.is_none() {
-                    let root = self
-                        .home
-                        .join(".local/horizon-client")
-                        .join(horizon_core::VANILLA_VERSION);
-                    match horizon_client::mobs::preview::PlayerPreview::load(&root) {
-                        Ok(preview) => {
-                            self.skin_preview = Some(preview);
-                            self.skin_preview_error = None;
-                            self.catalog.status = "3D player model loaded.".into();
-                        }
-                        Err(error) => {
-                            self.skin_preview = None;
-                            let diagnostic = format!("3D preview could not load from {}: {error}", root.display());
-                            log::warn!("{diagnostic}");
-                            self.skin_preview_error = Some(diagnostic.clone());
-                            self.catalog.status = diagnostic;
-                        }
-                    }
+                    self.skin_preview_error = None;
                 }
             }
             Some(Action::ImportSkin) => {
