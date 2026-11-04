@@ -1156,18 +1156,27 @@ impl Launcher {
             if let Some(preview) = &self.skin_preview {
                 let skin_model = self.catalog.skin_library.active_model().unwrap_or_default()
                     == crate::catalog::skin_library::SkinModel::Slim;
+                // Reuse the vanilla player texture slot. The model renderer
+                // resolves Mob::skin through the atlas using this resource id;
+                // a private "horizon/skin0" name is not guaranteed to exist in
+                // the runtime atlas and silently leaves the selected skin unused.
+                const PLAYER_SKIN_TEXTURE: &str = "entity/player/wide/steve";
                 let mut selected_texture = None;
-                if let Some(pixels) = skin_pixels
-                    && let Some(slot) = gui.atlas.sprites.get("horizon/skin0").copied()
-                {
-                    ui.batch.patches.push(horizon_client::font::Patch {
-                        x: (slot.u0 * gui.atlas.width as f32).round() as u32,
-                        y: (slot.v0 * gui.atlas.height as f32).round() as u32,
-                        width: 64,
-                        height: 64,
-                        rgba: pixels,
-                    });
-                    selected_texture = Some(("horizon/skin0", skin_model));
+                if let Some(pixels) = skin_pixels {
+                    if let Some(slot) = gui.atlas.sprites.get(PLAYER_SKIN_TEXTURE).copied() {
+                        ui.batch.patches.push(horizon_client::font::Patch {
+                            x: (slot.u0 * gui.atlas.width as f32).round() as u32,
+                            y: (slot.v0 * gui.atlas.height as f32).round() as u32,
+                            width: 64,
+                            height: 64,
+                            rgba: pixels,
+                        });
+                        selected_texture = Some((PLAYER_SKIN_TEXTURE, skin_model));
+                    } else {
+                        let message = format!("Skin preview texture slot is missing: {PLAYER_SKIN_TEXTURE}");
+                        self.catalog.status = message.clone();
+                        log::warn!("{message}");
+                    }
                 }
                 preview.draw(
                     &mut *ui.batch,
