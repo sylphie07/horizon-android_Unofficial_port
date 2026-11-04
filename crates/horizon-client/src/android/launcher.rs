@@ -166,6 +166,7 @@ impl Launcher {
         self.catalog.config.input_host = horizon_client::android_runtime::input_mode();
         self.catalog.refresh(&self.home);
         self.skin_preview = None;
+        self.skin_preview_error = None;
         self.skin_preview_rect = None;
         self.skin_preview_touch = None;
         self.skin_preview_rotation = [0.0, 0.0];
@@ -648,6 +649,7 @@ impl ApplicationHandler for Launcher {
             if notice.skin_changed {
                 self.catalog.reload_skin_library(&self.home);
                 self.catalog.page = Page::SkinStudio;
+                self.skin_preview_error = None;
                 self.catalog.scroll = 0.0;
             } else if notice.changed {
                 self.catalog.refresh(&self.home);
