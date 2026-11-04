@@ -211,15 +211,16 @@ pub fn player_preview_quads(
     for (index, q) in verts.as_chunks::<4>().0.iter().enumerate() {
         let p: [glam::Vec3; 4] =
             std::array::from_fn(|i| gui.transform_point3(glam::Vec3::from_array(q[i].pos)));
-        let n = (p[1] - p[0]).cross(p[2] - p[0]);
-        if n.z >= 0.0 {
-            continue;
-        }
-        let n = n.normalize_or_zero();
+        let n = (p[1] - p[0]).cross(p[2] - p[0]).normalize_or_zero();
+        // The exported player model does not guarantee one consistent
+        // winding for every face. A one-sided GUI cull can therefore discard
+        // the whole mannequin on some resource/model exports. Keep both sides;
+        // the depth-tested preview pipeline hides the rear faces correctly.
+        let toward_viewer = if n.z < 0.0 { -n } else { n };
         let shade = if index * 4 >= flame_start {
             1.0
         } else {
-            entity_in_ui_shade(-n)
+            entity_in_ui_shade(toward_viewer)
         };
         let c = q[0].color;
         let ch = |shift: u32| ((((c >> shift) & 255) as f32 * shade) as u32) << shift;
