@@ -824,3 +824,11 @@
 - Reviewed isolated APK workflow `.github/workflows/sylphra-test-apk.yml`: development channel, `arm64-v8a` only, package ID `dev.sylphra.android.test`, release-candidate audit, seven-day Actions artifact; no GitHub Release publication.
 - No APK run exists for this latest commit; old run #10 (`41765962850`) is stale and must not be used to test these fixes.
 - Next: user manually dispatches APK workflow on `android`; then inspect audit/artifact and request device validation of model, skin texture, rotation/layers, and column layout. Do not publish a Release or sync submodule.
+
+## Isolated development APK build and device handoff (2026-11-04)
+- Inspected latest branch tip: `android`, HEAD `39037d3ebdd0d2e62d6a3b248e5a80cb95493995`. Read continuity, development log, adaptive layout plan, skin-library notes and current launcher/preview/install sources before proceeding.
+- Confirmed source workflow #287 (run `41778935887`) passed on the current HEAD.
+- Confirmed isolated test APK workflow #11 (run `41779254040`) passed on the same HEAD. The pinned Minecraft-derived resource preparation, arm64 APK build, release-candidate audit and artifact upload all succeeded.
+- Artifact `sylphra-launcher-arm64-test`: 36,454,569 bytes; SHA-256 `0c286d50ab8a61f90427c1dfea1927166ca6af0e4c9ffac23616d9038e86aaca`; seven-day retention (expires 2026-11-11). No GitHub Release was created.
+- Source inspection confirms the adaptive shell, Sylphra launcher palette, Java-inspired Play page, 3D preview, selected-skin atlas patch and six independent outer-layer visibility controls are present. The previous native matrix #285 passed all four Android ABIs. None of these build checks proves the 3D preview/layers render correctly on the user's device.
+- Required next step is physical-device review of model visibility, selected PNG skin, Classic/Slim, six layer toggles, touch rotation, scrolling/clipping and launcher navigation in portrait/landscape. Fix only defects demonstrated by that review; then rerun source/native checks and rebuild the test APK. Do not publish a Release or sync the Sylphra submodule before acceptance.
