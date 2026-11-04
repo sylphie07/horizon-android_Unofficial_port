@@ -285,3 +285,9 @@
 - Corrected in commit `2a5342e2e186268021f0bc3054770af5bf1699b7`: restored the Installed page viewport to `content_right`; moved the `wide_preview`/`control_width`-bounded viewport into Skin Studio and constrained each skin row rectangle to the same `list_right` boundary.
 - Existing model preview transform correction (`456c2cb213476a558e7412e3d5cdd48be62b33ba`) remains in the branch but has not been natively compiled or device-tested because the unrelated scope error stopped compilation.
 - Next: rerun source checks and native checks (`native_checks=true`) on latest `android` HEAD. If all four ABI checks pass, build isolated development APK and test. Do not publish Release or sync submodule.
+## Native CI passed after Skin Studio fixes — APK handoff (2026-11-04)
+- Manual Android source/native workflow run #285 (`41777706392`) completed successfully on branch `android`, commit `a07f1151df91605a1ed97c4e2c3c16bced5e4fe5`.
+- Independently inspected jobs: source checks passed and all four native Rust ABI jobs passed (`x86`, `armeabi-v7a`, `x86_64`, `arm64-v8a`).
+- This validates compilation of the Skin Studio layout scope correction, atlas texture slot correction, and orientation-preserving preview transform. It does not verify runtime rendering or device layout.
+- No newer run of `.github/workflows/sylphra-test-apk.yml` exists; prior successful run #10 (`41765962850`) is stale and built an earlier commit. The current APK workflow checks out `android`, builds only `arm64-v8a`, uses isolated application ID `dev.sylphra.android.test`, development channel, audits the artifact, and uploads a seven-day Actions artifact without publishing a Release.
+- Next: manually dispatch the isolated APK workflow on branch `android`; inspect build and audit jobs/artifact; install the test APK and verify preview model visibility, imported skin texture, layer controls, and list bounds. No Release publication or submodule sync.
