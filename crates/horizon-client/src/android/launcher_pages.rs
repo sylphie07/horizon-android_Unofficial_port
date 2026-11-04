@@ -1141,21 +1141,41 @@ impl Launcher {
             self.skin_preview_rect = Some(preview_rect);
             ui.text(Face::Regular, 14.0, preview_rect[0], preview_rect[1] - 18.0, color::MUTED, "3D preview · drag to rotate");
             ui.rounded(preview_rect[0], preview_rect[1], preview_rect[2] - preview_rect[0], preview_rect[3] - preview_rect[1], 8.0, color::RAISED);
-            let skin_pixels = match self.catalog.skin_preview_rgba(&self.home) {
+            let mut skin_pixels = match self.catalog.skin_preview_rgba(&self.home) {
                 Ok(pixels) => pixels.map(|pixels| pixels.to_vec()),
                 Err(error) => {
                     self.catalog.status = format!("Skin preview unavailable: {error}");
                     None
                 }
             };
+            // The launcher's compact atlas is built from installer resources,
+            // not the full in-game atlas. Load vanilla's default skin directly
+            // when no custom skin is selected, so the mannequin always has a
+            // valid texture to render against.
+            if skin_pixels.is_none() {
+                let default_skin = self
+                    .home
+                    .join(".local/horizon-client")
+                    .join(horizon_core::VANILLA_VERSION)
+                    .join("assets/minecraft/textures/entity/player/wide/steve.png");
+                skin_pixels = std::fs::read(&default_skin).ok().and_then(|bytes| {
+                    let (width, height, rgba) = horizon_client::hud::decode_bytes(&bytes).ok()?;
+                    horizon_client::skins::process_legacy_skin(width, height, &rgba)
+                });
+            }
+            // This dedicated 64x64 atlas slot is created by HudAtlas::slots,
+            // unlike the vanilla player texture which is not part of the
+            // launcher's installer-only atlas.
+            const PLAYER_SKIN_TEXTURE: &str = "horizon/skin-preview";
+            if skin_pixels.is_none() {
+                // Keep the geometry visible even if a resource install is
+                // incomplete; the status makes the placeholder explicit.
+                skin_pixels = Some(vec![190, 150, 120, 255].repeat(64 * 64));
+                self.catalog.status = "Default skin texture unavailable; showing a neutral preview.".into();
+            }
             if let Some(preview) = &self.skin_preview {
                 let skin_model = self.catalog.skin_library.active_model().unwrap_or_default()
                     == crate::catalog::skin_library::SkinModel::Slim;
-                // Reuse the vanilla player texture slot. The model renderer
-                // resolves Mob::skin through the atlas using this resource id;
-                // a private "horizon/skin0" name is not guaranteed to exist in
-                // the runtime atlas and silently leaves the selected skin unused.
-                const PLAYER_SKIN_TEXTURE: &str = "entity/player/wide/steve";
                 let mut selected_texture = None;
                 if let Some(pixels) = skin_pixels {
                     if let Some(slot) = gui.atlas.sprites.get(PLAYER_SKIN_TEXTURE).copied() {
@@ -1168,12 +1188,14 @@ impl Launcher {
                         });
                         selected_texture = Some((PLAYER_SKIN_TEXTURE, skin_model));
                     } else {
-                        let message = format!("Skin preview texture slot is missing: {PLAYER_SKIN_TEXTURE}");
-                        self.catalog.status = message.clone();
-                        log::warn!("{message}");
+                        let message = format!("Skin preview atlas slot is missing: {PLAYER_SKIN_TEXTURE}");
+                        if self.catalog.status != message {
+                            log::warn!("{message}");
+                            self.catalog.status = message;
+                        }
                     }
                 }
-                preview.draw(
+                let (vertices, quads) = preview.draw(
                     &mut *ui.batch,
                     &gui.atlas,
                     preview_rect,
@@ -1181,6 +1203,13 @@ impl Launcher {
                     self.skin_preview_hidden_parts,
                     selected_texture,
                 );
+                if quads == 0 {
+                    let message = format!("3D preview generated no visible faces (vertices: {vertices}, faces: {quads}). Check player model geometry and atlas upload.");
+                    if self.catalog.status != message {
+                        log::warn!("{message}");
+                        self.catalog.status = message;
+                    }
+                }
             } else {
                 let message = self.skin_preview_error.as_deref()
                     .unwrap_or("Player model is not loaded yet. Open Play once, then return here.");
