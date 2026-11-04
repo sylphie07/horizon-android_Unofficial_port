@@ -963,7 +963,12 @@ impl Launcher {
                 .sum::<f32>();
             let maximum = (total - (bottom - top)).max(0.0);
             self.catalog.scroll = self.catalog.scroll.clamp(0.0, maximum);
-            self.list_view = Some([content_left, top, content_right, bottom, maximum]);
+            let list_right = if wide_preview {
+                content_left + control_width
+            } else {
+                content_right
+            };
+            self.list_view = Some([content_left, top, list_right, bottom, maximum]);
             let mut offset = 0.0;
             for (section, kind) in Kind::ALL.into_iter().enumerate() {
                 let count = self.catalog.local.iter().filter(|e| e.kind == kind).count();
@@ -1184,7 +1189,11 @@ impl Launcher {
             let layer_top = if wide_preview { default_y + 40.0 } else { preview_rect[3] + 5.0 };
             ui.text(Face::Regular, 12.0, content_left, layer_top, color::MUTED, "Visible skin layers");
             let layer_gap = 5.0;
-            let layer_width = ((content_width - layer_gap * 5.0) / 6.0).max(0.0);
+            // In the two-column layout, layer controls belong to the left
+            // control column only; using content_width would draw them over
+            // the 3D preview on the right.
+            let layer_area_width = if wide_preview { control_width } else { content_width };
+            let layer_width = ((layer_area_width - layer_gap * 5.0) / 6.0).max(0.0);
             let layers = [
                 (1u8 << 6, "Hat"),
                 (1u8 << 1, "Jacket"),
