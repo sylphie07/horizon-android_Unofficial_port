@@ -253,3 +253,10 @@
 - Source run #264 source job passed, but all native ABI jobs failed because the channel env was injected by `horizon-client/build.rs` rather than `horizon-android/build.rs`; const string comparison also failed on the toolchain.
 - Fixed in `catalog.rs` and `crates/horizon-android/build.rs`: channel now injected by the actual Android crate; beta/development use a Cargo cfg; stable defaults safely.
 - Commits: `0b0bd77bdd0578b9d630a0a1e24ea9cd4e12c33b`, `d65b792f7fe229f4cca5e46bf8d12bd0016d3efb`. Not yet CI-verified. Rerun Android source checks with `native_checks=true`; do not build APK until the native matrix passes.
+
+## Native Android validation passed — APK build handoff (2026-11-03)
+- Manual Android source/native workflow run #269 (41764300816) completed successfully on branch `android`, commit `1eed09d156fb0f41b37cd05acf400ecfd6187273`.
+- All five jobs passed: source checks plus native Rust checks for `arm64-v8a`, `armeabi-v7a`, `x86_64`, and `x86`. The native steps completed `Check Android Rust code without building an APK`.
+- This verifies the build-channel correction and Android Rust compilation checks. It does **not** build an APK or verify launcher visuals/interactions on a physical device.
+- The isolated development APK workflow `.github/workflows/sylphra-test-apk.yml` is present and configured for `dev.sylphra.android.test`, `arm64-v8a`, `SYLPHRA_BUILD_CHANNEL=development`; it uploads a seven-day Actions artifact and does not publish a Release.
+- No APK workflow run was found after the native CI pass. Next: manually dispatch the APK workflow on branch `android`, inspect build/audit/artifact results, then install and device-test the resulting artifact. Keep Release publication and submodule sync disabled.
