@@ -963,12 +963,7 @@ impl Launcher {
                 .sum::<f32>();
             let maximum = (total - (bottom - top)).max(0.0);
             self.catalog.scroll = self.catalog.scroll.clamp(0.0, maximum);
-            let list_right = if wide_preview {
-                content_left + control_width
-            } else {
-                content_right
-            };
-            self.list_view = Some([content_left, top, list_right, bottom, maximum]);
+            self.list_view = Some([content_left, top, content_right, bottom, maximum]);
             let mut offset = 0.0;
             for (section, kind) in Kind::ALL.into_iter().enumerate() {
                 let count = self.catalog.local.iter().filter(|e| e.kind == kind).count();
@@ -1240,14 +1235,19 @@ impl Launcher {
             let count = self.catalog.skin_library.skins.len();
             let maximum = (count as f32 * row_height - (bottom - top).max(0.0)).max(0.0);
             self.catalog.scroll = self.catalog.scroll.clamp(0.0, maximum);
-            self.list_view = Some([content_left, top, content_right, bottom, maximum]);
+            let list_right = if wide_preview {
+                content_left + control_width
+            } else {
+                content_right
+            };
+            self.list_view = Some([content_left, top, list_right, bottom, maximum]);
             if count == 0 {
                 ui.text(Face::Regular, 16.0, content_left, top + 16.0, color::MUTED, "No imported skins yet. Choose Import PNG skin.");
             }
             for (i, skin) in self.catalog.skin_library.skins.iter().enumerate() {
                 let y = top + i as f32 * row_height - self.catalog.scroll;
                 if y < top || y + row_surface > bottom { continue; }
-                let rect = [content_left, y, content_right - content_left, row_surface];
+                let rect = [content_left, y, list_right - content_left, row_surface];
                 self.list_targets.push((rect, Action::SelectSkin(i)));
                 let active = self.catalog.skin_library.active_skin().is_some_and(|current| current.id == skin.id);
                 let raw_label = format!("{}{}  ({}×{})", if active { "✓ " } else { "" }, skin.name, skin.width, skin.height);
