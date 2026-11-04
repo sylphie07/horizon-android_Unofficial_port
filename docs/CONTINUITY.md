@@ -291,3 +291,11 @@
 - This validates compilation of the Skin Studio layout scope correction, atlas texture slot correction, and orientation-preserving preview transform. It does not verify runtime rendering or device layout.
 - No newer run of `.github/workflows/sylphra-test-apk.yml` exists; prior successful run #10 (`41765962850`) is stale and built an earlier commit. The current APK workflow checks out `android`, builds only `arm64-v8a`, uses isolated application ID `dev.sylphra.android.test`, development channel, audits the artifact, and uploads a seven-day Actions artifact without publishing a Release.
 - Next: manually dispatch the isolated APK workflow on branch `android`; inspect build and audit jobs/artifact; install the test APK and verify preview model visibility, imported skin texture, layer controls, and list bounds. No Release publication or submodule sync.
+
+## Isolated development APK built — device review required (2026-11-04)
+- Current branch HEAD: `39037d3ebdd0d2e62d6a3b248e5a80cb95493995` on authorized branch `android`.
+- Android source workflow #287 (run `41778935887`) completed successfully on this exact HEAD.
+- Isolated test APK workflow #11 (run `41779254040`) completed successfully on this exact HEAD. All steps passed, including pinned resource preparation, arm64 APK build, release-candidate audit and artifact upload.
+- Artifact: `sylphra-launcher-arm64-test`, 36,454,569 bytes, SHA-256 `0c286d50ab8a61f90427c1dfea1927166ca6af0e4c9ffac23616d9038e86aaca`, expires 2026-11-11. This is an Actions test artifact only; no GitHub Release was published.
+- The code includes the responsive launcher shell (compact phone, expanded phone/tablet and wide sidebar), Sylphra charcoal/green visual theme, Java-inspired Play page, and Skin Studio 3D preview with six independently toggled outer skin parts. These are source/build facts, not physical-device acceptance.
+- Next required user action: install the artifact from run #11 and inspect the actual 3D model, imported skin texture, Classic/Slim model, all six layer toggles, preview rotation, list clipping/scrolling, portrait/landscape layout, and general navigation. Report any visual defect with a screenshot. No Release publication or Sylphra submodule sync.
