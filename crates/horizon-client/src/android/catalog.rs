@@ -150,8 +150,8 @@ impl Config {
 }
 /// Build channel injected by the Android build workflow. Stable builds omit
 /// development-only navigation and notes.
-pub const BUILD_CHANNEL: &str = env!("SYLPHRA_BUILD_CHANNEL");
-pub const SHOW_DEVELOPMENT_NEWS: bool = !matches!(BUILD_CHANNEL, "stable" | "release");
+pub const BUILD_CHANNEL: &str = env!("SYLPHRA_BUILD_CHANNEL", "stable");
+pub const SHOW_DEVELOPMENT_NEWS: bool = cfg!(sylphra_development);
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum Page {
@@ -165,28 +165,17 @@ pub enum Page {
     SkinStudio,
 }
 impl Page {
-    pub const ALL: &'static [Self] = if SHOW_DEVELOPMENT_NEWS {
-        &[
-            Self::Play,
-            Self::News,
-            Self::Installed,
-            Self::SkinStudio,
-            Self::Mods,
-            Self::Packs,
-            Self::Shaders,
-            Self::Settings,
-        ]
-    } else {
-        &[
-            Self::Play,
-            Self::Installed,
-            Self::SkinStudio,
-            Self::Mods,
-            Self::Packs,
-            Self::Shaders,
-            Self::Settings,
-        ]
-    };
+    pub const ALL: &'static [Self] = &[
+        Self::Play,
+        #[cfg(sylphra_development)]
+        Self::News,
+        Self::Installed,
+        Self::SkinStudio,
+        Self::Mods,
+        Self::Packs,
+        Self::Shaders,
+        Self::Settings,
+    ];
     pub fn name(self) -> &'static str {
         match self {
             Self::Play => "Play",
