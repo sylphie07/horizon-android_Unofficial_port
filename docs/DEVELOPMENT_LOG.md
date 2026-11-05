@@ -1023,3 +1023,19 @@
 **Changes:** docs only: updated Cape design specification and continuity. No product source changes, tests, CI, APK or device checks.
 
 **Next:** inspect `mob_geometry`, `player_model_geometry` and `guest_model_geometry` implementations and the runtime atlas sprite patch path. Then settle the shared data flow for local player vs remote players, and only then implement profile storage/import, preview Cape geometry, game launch argument, and persistent tab layout in one coordinated change.
+
+
+## 2026-11-05 — Local player rendering and atlas audit
+**Preflight:** verified only authorized branch `android`; latest prior commit was `08c9be632b14707441e2505fb863fc5c0b89d9ae`. Re-read current docs and relevant source files.
+
+**Confirmed:** `Game::geometry` draws generic mobs, then local player geometry through `player_model_geometry`, then guest player geometry through `guest_model_geometry`. This confirms a distinct local-player stage suitable for a locally selected Cape, while remote/guest rendering must remain untouched. However, the method definitions are not directly present in the monolithic `game.rs` text exposed by the GitHub file connector; its available code search returned no definitions. Exact implementation and actual gameplay Cape call-site remain unresolved.
+
+`game/atlas_slots.rs` is a generic LRU slot allocator for dynamic GUI atlas images, not a Cape-specific slot. It forgets mappings after atlas replacement. Reuse is possible only with explicit pixel patching and a fresh UV lookup after eviction/reload.
+
+Android `LaunchRequest` currently includes `skin_file` and `skin_slim`; `Launcher` populates these from the active skin and the argument builder emits only skin flags. A Cape file can be transported as an independent optional argument, but the receiving parser and texture initialization must be traced first.
+
+Preview rendering generates body vertices, applies its GUI transform, then clips them. The Cape renderer requires a root transform and UV rectangle; the preview's body transform is currently internal to the renderer and its GUI transform is applied later. Correct matrix ordering needs a shared/factored transform API, not duplicated guessed math.
+
+**Changes:** documentation only. Updated Cape design specification, continuity and development log. No product code modified, no tests, CI, APK or device checks.
+
+**Next:** obtain complete source access/locate generated split implementations and the receiving CLI argument parser; trace atlas pixel patch/UV update API. Once these are known, implement local Cape data transport and renderer integration without modifying guest/remote players, then the independent Cape library/import and persistent Skins/Capes tabs.
