@@ -327,3 +327,11 @@
 - Applied in `crates/horizon-client/src/android/launcher_pages.rs`: arrange the six skin-layer toggles in two rows of three, with the skin-list viewport moved down to preserve spacing. Commit: `47826c3237f825cd126417564bc681ffa3559296`.
 - Verification boundary: source inspection confirmed both edits were applied to branch `android`. No compiler, Rust tests, CI run, new APK, or device verification has yet tested these commits. The user must not be told the model is fixed until a fresh build is installed and visually checked.
 - Next: run source checks for the new HEAD; if available, run the native ABI matrix and test-APK workflow. Inspect whether preview geometry is now visible; if still blank, use the vertex/quad counters and on-screen diagnostic to isolate atlas upload versus depth pipeline. Then tune preview sizing and clipped status text from a fresh device capture.
+
+
+## Skin Studio follow-up after device screenshot (2026-11-04)
+- User tested the APK built from `3e2192ed2b85ca62e5d07d71ac0d46da9f0a7639`. Screenshot confirms the two-row layer layout is improved and the status still says the model loaded, but the preview rectangle remains completely blank.
+- The current page only changes its status to a zero-face error when `PlayerPreview::draw` returns no quads. Since the screenshot still displayed the earlier generic loaded status, the next diagnostic needs to expose the actual submitted vertex/face counts and whether the dedicated skin texture was selected / queued for atlas upload.
+- Applied diagnostic instrumentation in `crates/horizon-client/src/android/launcher_pages.rs`: status and log now report preview vertices, faces, selected texture readiness, and batch atlas patch count. Commit: `f1cf21940eed9a9914fc163afde79633ba4550cb`.
+- The prior test APK run `41950724317` succeeded on `3e2192e` (artifact `sylphra-launcher-arm64-test`, SHA-256 `1845327a8114e522c436cb2850c413e90f691fb7cdd99695fe89e0a2d1e6cd29`); that APK did not yet contain this new instrumentation. New source checks and APK are pending for the diagnostic commit.
+- Do not assume the atlas or depth pipeline is fixed: use the next visible diagnostic to determine whether the mesh is empty, texture patch is missing, or non-empty geometry is submitted but not displayed. No main branch, Release, or other branch was changed.
