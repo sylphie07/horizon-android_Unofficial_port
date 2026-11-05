@@ -961,3 +961,21 @@
 **Verification boundary:** source edit committed; no CI/build/device confirmation yet. The original recording is evidence of the pre-fix defects and of the previously working model controls, not evidence that these new visual adjustments work.
 
 **Next:** check Android source CI; if successful, produce a fresh ARM64 test APK. On device, verify all short button labels, selected skin row text, no footer overlay over preview, and unchanged preview/skin interactions.
+
+
+## 2026-11-05 — Elytra/back texture import research (read-only)
+**User intent:** custom designs for the player's back/Elytra, independent from the six player skin overlay toggles. No implementation authorized by this research alone; user asked to continue investigating.
+
+**Repository state:** branch android, inspected code HEAD b3480f4ae2e9a253df76a14e4bed705947a97377. Research report committed as a docs-only change in a459449ae201887ebc61b458955e3942aa79c8ff: `docs/SYLPHRA_ELYTRA_IMPORT_RESEARCH.md`.
+
+**Important findings:**
+- `crates/horizon-client-render/src/skins.rs` parses ELYTRA profile metadata and has `Kind::Elytra`, but download completion discards its decoded image and atlas requeue only supports `skins/` and `capes/`.
+- Offline custom cape support exists via `HORIZON_OFFLINE_CAPE`; no offline Elytra variable or import category was found.
+- `PlayerPreview` loads `player#main`, `player_slim#main`, and `player#cape`; no `player#elytra` model layer is added in the inspected code.
+- `mobs/render.rs` has dedicated Cape pose/render logic, but no corresponding Elytra renderer was found in inspected code.
+- Android SAF import, bounded reads, PNG validation, SHA-256 storage and versioned manifest provide reusable infrastructure. Existing v1 library records only skins.
+- External references confirm Cape and Elytra are separate profile texture concepts; Mojang's wings layer can use the player's custom Elytra texture. This does not establish Horizon's exact runtime resource model or UV contract.
+
+**Changes:** docs only. No product source files modified. No Rust formatting, tests, CI, APK or device verification performed.
+
+**Next:** inspect prepared runtime resources for Elytra model key, geometry, UV and expected texture dimensions; locate Cape renderer call sites; design independent Elytra records/cache/SAF route and preview integration. Confirm whether requested UI should expose Elytra only or both Cape and Elytra as separate types.
