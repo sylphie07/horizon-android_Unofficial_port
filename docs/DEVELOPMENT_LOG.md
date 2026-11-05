@@ -993,3 +993,19 @@
 **Verification boundary:** documentation only. No product code modified; no formatter, unit tests, CI, APK or device test performed.
 
 **Next:** trace Cape atlas initialization and render call sites; implement profile-bound Cape import/equip and the responsive Skins/Capes UI while keeping the preview and rotation alive across tabs. Then run source/native CI and one grouped arm64 test APK. No other branch, PR merge or Release.
+
+
+## 2026-11-05 — Cape runtime and preview integration audit
+**Audit scope:** traced Cape normalization/cache, dedicated renderer, player preview, Android launch request, skin library, and Skin Studio geometry on authorized branch `android`.
+
+**Findings:**
+- `offline_cape()` reads `HORIZON_OFFLINE_CAPE` once through `OnceLock`; it cannot be treated as a live selection update path.
+- `process_cape` normalizes Cape images into a 64×64 RGBA slot, placing 64×32 content in the top half; standard 64×32 and legacy 22×17 are documented in the launcher crate. High-resolution input is downscaled by the existing function.
+- The player preview loads `player#cape`, but `PlayerPreview::draw` only submits the body via `render_with`; it does not submit the cape. The dedicated `mobs::render::cape` helper calculates the Cape pose and draws the cape model using a caller-supplied atlas UV rectangle. It is not automatically invoked by the inspected generic `render_visible` path.
+- Android `game_launch::LaunchRequest` currently carries skin path/model only and emits only `--sylphra-skin` / `--sylphra-skin-model`. The existing `launcher/src/skins.rs::env()` helper can produce `HORIZON_OFFLINE_CAPE` for a separate offline-account look route, but this helper is not connected to the Android launch request inspected here.
+- Skin Studio currently patches `horizon/skin-preview` in its compact GUI atlas each frame. Cape preview needs a dedicated atlas slot, normalized RGBA pixels, and explicit invocation of `render::cape` with the slot UV.
+- Current page-owned preview rect, touch hitbox and rotation can survive tab changes if preview rendering is kept outside the tab-specific content. Narrow screens need reflow to keep preview and useful controls visible together.
+
+**Changes:** documentation only. Updated `docs/SYLPHRA_CAPE_STUDIO_DESIGN.md` and `docs/CONTINUITY.md`. No product code modified, no tests/CI/APK/device verification.
+
+**Next:** inspect the actual game renderer's avatar-specific invocation path and atlas sprite registration/patch lifecycle, then implement the Cape data path. Keep selection explicit in the Android launch request rather than mutating global environment variables after `OnceLock` initialization. For the preview, provide Cape pixels and atlas UV directly to the preview renderer. Preserve remote players' server-provided Cape textures.
