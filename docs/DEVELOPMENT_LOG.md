@@ -904,3 +904,19 @@
 **Validation:** source change applied; CI/APK/device result pending. The diagnostic screenshot is not proof of rendering success. No Release was created and no other branch was changed.
 
 **Next:** inspect source CI, produce a fresh test APK if CI passes, then have the user open Skin Studio's Skins page. If still blank, instrument actual HUD run range, scissor dimensions and GPU backend/device errors before another rendering change.
+
+
+## 2026-11-05 — Fix preview dp/HUD coordinate mismatch
+**Independent audit:** Claudia's read-only audit identified that `preview_rect` was calculated in launcher dp coordinates but passed directly to `PlayerPreview::draw`, which emits coordinates in `HudBatch` space. Verified in `launcher_pages.rs` that ordinary UI drawing applies `ui.density / ui.batch.scale` before writing to the batch. This explains why non-empty geometry and texture were submitted but positioned outside the visible HUD coordinate range.
+
+**Preflight:** branch `android`; starting HEAD `09874dc661f499fa1aa97fdf2f5cf963989c5437`. Source CI run `41983998512` for that HEAD succeeded. No other branch modified.
+
+**Changes applied:**
+- `crates/horizon-client/src/android/launcher_pages.rs`: convert `preview_rect` from dp to HUD batch coordinates using `ui.density / ui.batch.scale` before calling `PlayerPreview::draw`. Commit `b90a53ba9c044a37dbc8ac0198a979a2172614e6`.
+- `crates/horizon-client/src/mobs/preview.rs`: retain the ordinary HUD alpha path and clip the submitted preview geometry with `HudBatch::clip_since` using the converted rectangle. Commit `66c33e35360555731f7ccee19a174f0da63e3bdb`.
+
+**Deferred:** did not change yaw/orientation; first make the mannequin visible, then evaluate its facing direction from device evidence.
+
+**Validation boundary:** code changes are committed; source CI, APK build, and device validation are pending. The old diagnostic values do not prove the coordinate fix. No Release created.
+
+**Next:** wait for source checks; if successful, create a new ARM64 test APK. Verify model visible, clipped to panel, facing forward and rotatable by touch. If not visible, report batch-space min/max vertex coordinates and compare with the converted panel bounds.
