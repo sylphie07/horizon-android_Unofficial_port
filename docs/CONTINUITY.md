@@ -390,3 +390,15 @@
 - Existing adaptive navigation, wide-screen sidebar, expanded phone navigation, and shared page geometry remain in place. Preserve drawing/input rectangle alignment and all already accepted Skin Studio behaviour.
 - No background media implementation has been applied in this session. The audit of gallery.rs, platform.rs, document_bridge.rs, launcher.rs, and launcher_pages.rs is exploratory only; Android gallery code currently documents screenshot publishing, not user media import.
 - Continue only on android; no changes to main, no PR merges, no Release publishing. Record elytra import as a separate feature track.
+
+
+## Skin Studio visual polish from video review (2026-11-05)
+- User supplied a 52-second device recording; user independently tested the working viewer, and Claudia's frame-by-frame review identified text clipping in compact controls, an unsupported checkmark glyph in active skin labels, the wide-preview footer GitHub button overlapping the preview, and truncated skin names.
+- Applied on authorized branch android, commit 7639734a34730aa067bb03a9c0f7efff8a9d017a, file crates/horizon-client/src/android/launcher_pages.rs:
+  - button labels now center vertically based on font line height; controls shorter than 36 dp use 13 dp text.
+  - removed the unsupported checkmark prefix from skin names; active state remains indicated by the green button surface.
+  - increased skin row natural width allowance from 28 to 36 dp while retaining 24 dp text-fit inset.
+  - hide the footer Sylphra GitHub button when the wide Skin Studio preview is active; it remains available elsewhere.
+- Status: source edits applied and committed. CI/build and device visual verification are pending; do not describe the visual defects as fixed on-device until the new APK is tested.
+- Preserve the user's device-verified model rendering, rotation, six skin layer toggles, imported/default skin switching, and Classic/Slim behaviour.
+- Next: inspect source-check workflow result; if successful, build a fresh arm64 test APK. Ask user to inspect button baselines, skin name rows, and preview corner after installing that artifact.
