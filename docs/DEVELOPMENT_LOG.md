@@ -880,3 +880,13 @@
 **Validation:** not yet built or tested. Prior source checks and APK success apply only to the preceding commit, not this diagnostic change. Prior APK artifact SHA-256: `1845327a8114e522c436cb2850c413e90f691fb7cdd99695fe89e0a2d1e6cd29`.
 
 **Next:** run source checks and create a new test APK. Interpret the visible counts to decide whether the issue is model geometry, texture/atlas upload, or GPU HUD/depth rendering. Keep changes on `android` only; no release.
+
+
+## 2026-11-05 — Diagnostic APK built successfully
+**Repository state:** authorized branch `android`; verified HEAD `9562171a6185009eaa64ef69593866882e7a6b00`. Diagnostic instrumentation commit `f1cf21940eed9a9914fc163afde79633ba4550cb` is present in this HEAD.
+
+**CI:** Android source checks run `41955558582` succeeded. Test APK workflow run `41955968685` succeeded; all build/audit/upload steps passed. Artifact `sylphra-launcher-arm64-test`, ID `13384211698`, SHA-256 `26647d0f64f1d41e75ce0a7f2d47106c2ea0c35c9d0dc11cbd5af06fd7be08f6`, expiry 2026-11-12 02:52 UTC. No GitHub Release was created.
+
+**Validation boundary:** this proves source checks and arm64 APK build succeeded, not that the player model renders on the user's device. The diagnostic status must be read from the new APK. It contains generated vertex/face counts, skin texture readiness, and atlas patch count. Do not make another rendering change until those values are known.
+
+**Next:** user installs the artifact from run `41955968685` and shares the full Skin Studio status text. If the old generic `3D player model loaded.` message remains, first confirm the installed app is the diagnostic artifact/isolated test package rather than a previously installed APK.
