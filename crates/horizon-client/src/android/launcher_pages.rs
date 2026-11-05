@@ -1222,6 +1222,8 @@ impl Launcher {
                         }
                     }
                 }
+                let skin_texture_ready = selected_texture.is_some();
+                let atlas_patch_count = ui.batch.patches.len();
                 let (vertices, quads) = preview.draw(
                     &mut *ui.batch,
                     &gui.atlas,
@@ -1230,12 +1232,18 @@ impl Launcher {
                     self.skin_preview_hidden_parts,
                     selected_texture,
                 );
-                if quads == 0 {
-                    let message = format!("3D preview generated no visible faces (vertices: {vertices}, faces: {quads}). Check player model geometry and atlas upload.");
-                    if self.catalog.status != message {
+                let message = if quads == 0 {
+                    format!("3D preview geometry empty: {vertices} vertices / {quads} faces; skin texture ready: {skin_texture_ready}; atlas patches: {atlas_patch_count}.")
+                } else {
+                    format!("3D preview submitted: {vertices} vertices / {quads} faces; skin texture ready: {skin_texture_ready}; atlas patches: {atlas_patch_count}.")
+                };
+                if self.catalog.status != message {
+                    if quads == 0 {
                         log::warn!("{message}");
-                        self.catalog.status = message;
+                    } else {
+                        log::info!("{message}");
                     }
+                    self.catalog.status = message;
                 }
             } else {
                 let message = self.skin_preview_error.as_deref()
