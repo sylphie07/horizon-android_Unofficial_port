@@ -413,3 +413,15 @@
 - No product code was modified, no compilation/tests run, and no APK built in this investigation.
 - Next research: inspect actual prepared game resources for Elytra geometry/UV and texture dimensions; locate all Cape render call sites and the best avatar-preview integration point. Then design separate profile-bound Elytra records, SAF import and renderer/cache support. Ask whether the user wants Elytra only or both Cape and Elytra as separate categories before finalizing UI.
 - Continue only on branch android. Preserve the existing verified Skin Studio model/rotation/skin layers/Classic-Slim behaviours.
+
+
+## Skin Studio — persistent Skins/Capes layout (2026-11-05)
+- User clarified with reference screenshots that the requested back cosmetic is a textile **Cape** (Aurora-style), not Elytra. The earlier Elytra interpretation was incorrect; Elytra remains a separate research note and is out of scope for this feature.
+- User approved a two-category “Skins & Wardrobe” design inspired by the supplied launcher: separate **Skins** and **Capes** tabs, with the 3D player preview always visible in both categories.
+- Preview must retain rotation and display the current skin/model plus currently equipped cape. Changing tabs must not reset either selection.
+- Skins retains current PNG import, appearance profiles, Classic/Slim, default skin and six skin-overlay toggles. Capes gets its own PNG import/library, active state and “None” option. Cape is independent from skin overlays and Elytra.
+- Design specification: `docs/SYLPHRA_CAPE_STUDIO_DESIGN.md`. Prior research correction appended to `docs/SYLPHRA_ELYTRA_IMPORT_RESEARCH.md`.
+- Source audit confirmed existing runtime primitives: `offline_cape()` reads `HORIZON_OFFLINE_CAPE`, player model loading includes `player#cape`, and `mobs/render.rs` has dedicated Cape pose/render code. Current Android skin library and SAF import only support skins; selected cape is not yet persisted or connected to preview atlas/rendering.
+- Repository preflight: branch `android` exists and is the only authorized branch. HEAD before this documentation update was `1774f348e521a67b8f6b8243a7ef944ca7508381`. Source file hashes and current docs were inspected from `android`. `docs/PROJECT_CONTEXT.md`, `docs/KNOWN_ISSUES.md` and `docs/DECISIONS.md` are not present at those paths (404); do not assume they exist.
+- Changes in this update are documentation only. No product source modified; no formatter, tests, CI, APK build or device validation performed.
+- Next: audit Cape atlas initialization/refresh and `render::cape` call sites, then implement independent profile-bound Cape storage/import/runtime integration and persistent-preview tab layout as one coherent feature. Preserve the device-verified model, rotation, skin overlays and Classic/Slim behaviour. Continue only on `android`; no PR merge or Release.
