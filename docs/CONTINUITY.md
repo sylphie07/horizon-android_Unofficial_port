@@ -378,3 +378,15 @@
 - Retained the coordinate conversion (`b90a53b`), clipping (`66c33e3`), and depth-free HUD submission (`73ca7db`). No yaw change.
 - Verification boundary: source edit committed to `android`; compilation, CI, APK build, and device orientation are pending. This is a source-level correction supported by transform and painter-order analysis, not proof of visual success.
 - Next: run source checks; if successful, build a fresh ARM64 test APK. Verify that the model appears front-facing, skin torso/front details are visible, layers toggle correctly, and touch rotation remains natural.
+
+
+## Skin Studio — device acceptance and next launcher redesign stage (2026-11-05)
+- User installed and tested the build on the Android device and explicitly confirmed: the 3D player model renders; touch rotation works; skin layer toggles work; Classic/Slim model selection works. This is physical-device acceptance for those listed behaviours, not for untested devices or layouts.
+- The user clarified the remaining Skin Studio feature: import elytra wing/cape layers, separate from the player's six skin overlay toggles. This feature is not implemented yet and must remain a distinct data/rendering path; do not reuse or rename Hat/Jacket/Sleeve/Pants controls.
+- Verified current authorized branch android HEAD: d51ea97e3fe9792c7f0eaf166506f78946c6d537.
+- Android source checks run #321 (41988650597) completed successfully on this HEAD.
+- Isolated test APK workflow #15 (41989130135) completed successfully; arm64 build job succeeded. Artifact sylphra-launcher-arm64-test, ID 13398296511, SHA-256 69fcfccf0866fbaa73d4eaff38a11239d7ce76296837885ea66b8c37616731bc, created 2026-11-05 07:56 UTC, expires 2026-11-12 07:56 UTC. No GitHub Release was created.
+- Next launcher redesign milestone: background media customization, previously deferred until adaptive navigation was completed. Begin with a source-level design/audit of Android document selection, safe URI/descriptor loading, image decoding/texture upload, and renderer lifecycle. Plan static image first, then GIF, then video only if the current renderer/platform architecture supports it without blocking the UI or leaking resources. Keep media optional and fall back cleanly to the existing theme.
+- Existing adaptive navigation, wide-screen sidebar, expanded phone navigation, and shared page geometry remain in place. Preserve drawing/input rectangle alignment and all already accepted Skin Studio behaviour.
+- No background media implementation has been applied in this session. The audit of gallery.rs, platform.rs, document_bridge.rs, launcher.rs, and launcher_pages.rs is exploratory only; Android gallery code currently documents screenshot publishing, not user media import.
+- Continue only on android; no changes to main, no PR merges, no Release publishing. Record elytra import as a separate feature track.
