@@ -890,3 +890,17 @@
 **Validation boundary:** this proves source checks and arm64 APK build succeeded, not that the player model renders on the user's device. The diagnostic status must be read from the new APK. It contains generated vertex/face counts, skin texture readiness, and atlas patch count. Do not make another rendering change until those values are known.
 
 **Next:** user installs the artifact from run `41955968685` and shares the full Skin Studio status text. If the old generic `3D player model loaded.` message remains, first confirm the installed app is the diagnostic artifact/isolated test package rather than a previously installed APK.
+
+
+## 2026-11-05 — Bypass Android HUD depth attachment for Skin Studio
+**Device evidence:** the diagnostic APK displayed `3D preview submitted: 288 vertices / 72 faces; skin texture ready: true; atlas patches: 1`, but the preview remained blank. Geometry and texture selection are therefore present before GPU submission.
+
+**Investigation:** traced the submission through `PlayerPreview::draw`, `HudBatch::quad_3d`, `HudBatch::depth_since`, and `HudRenderer::draw_range`. The model path alone depends on the `Depth32Float` attachment, depth clear/discard pass, and scissor. The ordinary HUD alpha path does not.
+
+**Change applied:** `crates/horizon-client/src/mobs/preview.rs` now submits preview faces as ordinary alpha HUD quads using their already computed back-to-front order, rather than using the depth-tested model run. This isolates the preview from the Android depth attachment/pipeline. Painter's-order rendering is a compatibility fallback and may be less exact for intersecting surfaces, but avoids the depth pass that may be failing on the target backend.
+
+**Commit:** `73ca7db94560a5b0d766b9fef6ed7a23b7ed285e` on branch `android`.
+
+**Validation:** source change applied; CI/APK/device result pending. The diagnostic screenshot is not proof of rendering success. No Release was created and no other branch was changed.
+
+**Next:** inspect source CI, produce a fresh test APK if CI passes, then have the user open Skin Studio's Skins page. If still blank, instrument actual HUD run range, scissor dimensions and GPU backend/device errors before another rendering change.
