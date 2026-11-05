@@ -168,11 +168,18 @@ impl PlayerPreview {
         let vertex_count = vertices.len();
         let quads = player_preview_quads(vertices, gui, None, &atlas.sprites);
         let quad_count = quads.len();
-        let start = batch.vertices.len();
+        // The launcher HUD's depth-tested pipeline is not reliable on all
+        // Android GPU backends. The preview quads are already sorted back-to-front
+        // by camera depth in player_preview_quads, so submit them through the
+        // ordinary alpha HUD pipeline (painter's order) instead of requiring a
+        // separate Depth32Float attachment/scissor pass.
         for (_, positions, uv, color) in quads {
-            batch.quad_3d(positions, uv, color);
+            batch.quad(
+                positions.map(|p| [p[0], p[1]]),
+                uv,
+                color,
+            );
         }
-        batch.depth_since(start, rect);
         (vertex_count, quad_count)
     }
 }
