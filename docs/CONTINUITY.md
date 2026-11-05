@@ -402,3 +402,14 @@
 - Status: source edits applied and committed. CI/build and device visual verification are pending; do not describe the visual defects as fixed on-device until the new APK is tested.
 - Preserve the user's device-verified model rendering, rotation, six skin layer toggles, imported/default skin switching, and Classic/Slim behaviour.
 - Next: inspect source-check workflow result; if successful, build a fresh arm64 test APK. Ask user to inspect button baselines, skin name rows, and preview corner after installing that artifact.
+
+
+## Elytra/back texture import investigation (2026-11-05)
+- User clarified the requested feature: import custom back designs (Elytra), separate from player skin overlays Hat/Jacket/L/R sleeve/L/R pants. Do not merge these controls or records.
+- Read-only source audit at HEAD b3480f4ae2e9a253df76a14e4bed705947a97377; detailed report created at docs/SYLPHRA_ELYTRA_IMPORT_RESEARCH.md, commit a459449ae201887ebc61b458955e3942aa79c8ff.
+- Findings: profile parser already recognizes ELYTRA and Kind::Elytra, but the texture download completion currently discards Elytra (Kind::Elytra => {}) and the atlas requeue path only recognizes skins/ and capes/. Local offline custom texture support exists for Cape via HORIZON_OFFLINE_CAPE; no corresponding offline Elytra path was found.
+- Player preview loads player#main plus player_slim#main and player#cape; it does not load player#elytra. The dedicated cape render function uses player#cape; no equivalent Elytra preview function was found in the inspected code.
+- Android SAF import, bounded PNG reads, SHA-256 storage and manifest persistence are reusable patterns. Current skin-library v1 supports only skin records and 64x64/64x32 skin images; it has no Cape/Elytra record category.
+- No product code was modified, no compilation/tests run, and no APK built in this investigation.
+- Next research: inspect actual prepared game resources for Elytra geometry/UV and texture dimensions; locate all Cape render call sites and the best avatar-preview integration point. Then design separate profile-bound Elytra records, SAF import and renderer/cache support. Ask whether the user wants Elytra only or both Cape and Elytra as separate categories before finalizing UI.
+- Continue only on branch android. Preserve the existing verified Skin Studio model/rotation/skin layers/Classic-Slim behaviours.
