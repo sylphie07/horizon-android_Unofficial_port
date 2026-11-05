@@ -108,3 +108,7 @@ Archivo: `crates/horizon-client/src/android/skin_library.rs`
 - `docs/SYLPHRA_SKIN_LIBRARY.md`
 
 **Cambios de producto:** ninguno. **Pruebas:** ninguna ejecutada en esta auditoría.
+
+## Scope correction — 2026-11-05
+
+The earlier interpretation of the user's request as Elytra was incorrect. The user supplied a reference image of a **cosmetic textile Cape** (Aurora-style cape), not Elytra wings. The requested feature is custom Cape PNG import/equip, independent from skin overlays. Elytra is explicitly out of scope for this implementation. See `docs/SYLPHRA_CAPE_STUDIO_DESIGN.md` for the corrected UI, persistence, rendering and validation plan. The technical findings above remain valid as a separate Elytra investigation but are not requirements for the Cape feature.
