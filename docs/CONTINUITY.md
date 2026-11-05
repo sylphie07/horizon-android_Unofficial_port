@@ -425,3 +425,13 @@
 - Repository preflight: branch `android` exists and is the only authorized branch. HEAD before this documentation update was `1774f348e521a67b8f6b8243a7ef944ca7508381`. Source file hashes and current docs were inspected from `android`. `docs/PROJECT_CONTEXT.md`, `docs/KNOWN_ISSUES.md` and `docs/DECISIONS.md` are not present at those paths (404); do not assume they exist.
 - Changes in this update are documentation only. No product source modified; no formatter, tests, CI, APK build or device validation performed.
 - Next: audit Cape atlas initialization/refresh and `render::cape` call sites, then implement independent profile-bound Cape storage/import/runtime integration and persistent-preview tab layout as one coherent feature. Preserve the device-verified model, rotation, skin overlays and Classic/Slim behaviour. Continue only on `android`; no PR merge or Release.
+
+
+## Cape runtime audit update (2026-11-05)
+- Verified the Android launch request only passes selected skin path/model; there is no Cape field or CLI argument in `game_launch::LaunchRequest`. Existing `launcher/src/skins.rs::env()` supports Cape for a separate offline-account look helper, but is not connected to the Android launch request inspected here.
+- Verified `offline_cape()` reads `HORIZON_OFFLINE_CAPE` once via `OnceLock`; this is not a suitable live tab-selection mechanism for the launcher library.
+- Verified the player preview loads `player#cape`, but its draw path only invokes `render_with` for the body; it does not invoke `render::cape`. The specialized Cape helper requires an atlas UV supplied by its caller. Generic `render_visible` does not automatically submit this helper.
+- The compact launcher atlas has a dedicated skin preview slot patched by the UI. Cape preview requires a parallel Cape slot and normalized RGBA data, plus a call to `render::cape` using that slot's UV.
+- Standard/legacy Cape normalization already exists: 64×32 and 22×17 map into the upper half of a 64×64 transparent slot; oversized inputs are downscaled. Android import should have a clear tested allowlist and retain the 1 MiB cap.
+- Current page-owned preview rect, touch hitbox and rotation state can be retained across tabs if preview drawing is moved outside the tab-specific controls. Narrow-screen layout requires a deliberate reflow to keep both the model and useful controls visible.
+- No product code or tests changed; no CI/APK/device validation.
