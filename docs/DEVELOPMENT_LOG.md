@@ -868,3 +868,15 @@
 **Validation status:** source edits are committed on branch `android`. No formatting, Rust compilation, unit tests, source/native CI, APK build, or physical-device validation has yet run on these new commits. This is a targeted correction based on a source-level failure mechanism, not proof that the model now renders. The preceding APK workflow #12 succeeded only on old commit `4d28bf6` and is not evidence for these changes.
 
 **Next:** obtain source CI for the new HEAD; dispatch native ABI checks and a fresh test APK if the workflow controls are available; inspect the device result and use vertex/quad diagnostics to distinguish geometry from atlas/depth rendering if the preview remains blank. Continue the broader responsive UI review afterward.
+
+
+## 2026-11-04 — Skin Studio blank preview follow-up diagnostics
+**Device result:** user tested APK from commit `3e2192ed2b85ca62e5d07d71ac0d46da9f0a7639`. The two-row layer layout is visibly improved. The panel remains blank even though the page still reports that the player model loaded.
+
+**Analysis:** the current code reports a zero-face condition only if the preview returns no quads. The screenshot's generic loaded status therefore does not prove geometry is being submitted, and it does not identify atlas patch state. A diagnostic readout is needed before another rendering-path change.
+
+**Change applied:** `crates/horizon-client/src/android/launcher_pages.rs` now exposes preview vertex count, face count, whether the dedicated skin texture was selected, and atlas patch count in the launcher status; it also logs the same summary once when it changes. Commit: `f1cf21940eed9a9914fc163afde79633ba4550cb`.
+
+**Validation:** not yet built or tested. Prior source checks and APK success apply only to the preceding commit, not this diagnostic change. Prior APK artifact SHA-256: `1845327a8114e522c436cb2850c413e90f691fb7cdd99695fe89e0a2d1e6cd29`.
+
+**Next:** run source checks and create a new test APK. Interpret the visible counts to decide whether the issue is model geometry, texture/atlas upload, or GPU HUD/depth rendering. Keep changes on `android` only; no release.
