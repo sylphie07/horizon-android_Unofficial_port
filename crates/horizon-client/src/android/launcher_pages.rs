@@ -1224,10 +1224,16 @@ impl Launcher {
                 }
                 let skin_texture_ready = selected_texture.is_some();
                 let atlas_patch_count = ui.batch.patches.len();
+                // Launcher layout and touch coordinates are expressed in dp,
+                // while HudBatch vertices use its scaled GUI coordinate space.
+                // Match the conversion used by Ui::fill/text before handing the
+                // preview rectangle to PlayerPreview::draw.
+                let preview_scale = ui.density / ui.batch.scale;
+                let preview_batch_rect = preview_rect.map(|value| value * preview_scale);
                 let (vertices, quads) = preview.draw(
                     &mut *ui.batch,
                     &gui.atlas,
-                    preview_rect,
+                    preview_batch_rect,
                     self.skin_preview_rotation,
                     self.skin_preview_hidden_parts,
                     selected_texture,
