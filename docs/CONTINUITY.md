@@ -335,3 +335,10 @@
 - Applied diagnostic instrumentation in `crates/horizon-client/src/android/launcher_pages.rs`: status and log now report preview vertices, faces, selected texture readiness, and batch atlas patch count. Commit: `f1cf21940eed9a9914fc163afde79633ba4550cb`.
 - The prior test APK run `41950724317` succeeded on `3e2192e` (artifact `sylphra-launcher-arm64-test`, SHA-256 `1845327a8114e522c436cb2850c413e90f691fb7cdd99695fe89e0a2d1e6cd29`); that APK did not yet contain this new instrumentation. New source checks and APK are pending for the diagnostic commit.
 - Do not assume the atlas or depth pipeline is fixed: use the next visible diagnostic to determine whether the mesh is empty, texture patch is missing, or non-empty geometry is submitted but not displayed. No main branch, Release, or other branch was changed.
+
+
+## Diagnostic build handoff status (2026-11-04)
+- Diagnostic code commit: `f1cf21940eed9a9914fc163afde79633ba4550cb`; documentation commits: `57fb3d5b4999c4356ef168e7adcb42e56c0508bf` and `389517f44a0994470e7ca37f505abf734b63be6f` (current HEAD at handoff).
+- Source checks run `41955511550` for the diagnostic code commit was cancelled when the documentation-only follow-up push superseded it; the source run for the intermediate docs commit `41955516794` was also cancelled. Therefore the diagnostic code has not yet passed source CI.
+- The test APK workflow `.github/workflows/sylphra-test-apk.yml` is `workflow_dispatch` only. The available GitHub connection exposes GET/read operations but no workflow-dispatch action, so no new APK can be triggered from this session. The previous successful artifact from run `41950724317` is for old commit `3e2192e` and does not include the new diagnostic.
+- Required handoff: manually run **Actions → Sylphra Launcher test APK → Run workflow**, selecting branch `android`. After installation, read the visible Skin Studio status for vertex/face counts, skin-texture readiness and atlas patch count. Then continue from that evidence; do not claim a rendering fix yet.
