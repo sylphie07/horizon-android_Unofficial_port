@@ -920,3 +920,15 @@
 **Validation boundary:** code changes are committed; source CI, APK build, and device validation are pending. The old diagnostic values do not prove the coordinate fix. No Release created.
 
 **Next:** wait for source checks; if successful, create a new ARM64 test APK. Verify model visible, clipped to panel, facing forward and rotatable by touch. If not visible, report batch-space min/max vertex coordinates and compare with the converted panel bounds.
+
+
+## 2026-11-05 — Restore front-facing Z orientation in Skin Studio
+**Review input:** Claudia's second read-only audit found that the GUI transform's positive Z scale left the vanilla player front pointing away from the HUD viewer. Independently verified `player_preview_quads` sorts transformed quad depths ascending, so near (+Z) faces must be submitted later in the depth-free painter's-order path.
+
+**Change applied:** in `crates/horizon-client/src/mobs/preview.rs`, changed GUI scale to `glam::Vec3::new(model_scale, model_scale, -model_scale)`. Kept `mob.body_yaw = 180.0 + yaw`; no yaw change was needed. Updated comments to reflect that winding is no longer culled and painter's-order sorting is now used. Commit `864ca42c69a7c4b3da7beaff6dfcaf5de716de0a`.
+
+**Preserved:** dp-to-HUD coordinate conversion (`b90a53b`), preview-only clipping (`66c33e3`), and depth-free HUD submission (`73ca7db`).
+
+**Validation boundary:** source change committed to branch `android`; CI, compilation, APK, and device validation pending. Do not mark the model fixed until tested on the user's phone.
+
+**Next:** source CI, then fresh ARM64 test APK if successful; inspect front-facing orientation, skin UVs, six layer toggles and touch rotation.
