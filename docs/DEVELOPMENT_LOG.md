@@ -979,3 +979,17 @@
 **Changes:** docs only. No product source files modified. No Rust formatting, tests, CI, APK or device verification performed.
 
 **Next:** inspect prepared runtime resources for Elytra model key, geometry, UV and expected texture dimensions; locate Cape renderer call sites; design independent Elytra records/cache/SAF route and preview integration. Confirm whether requested UI should expose Elytra only or both Cape and Elytra as separate types.
+
+
+## 2026-11-05 — Correct Cape feature scope and persistent preview design
+**User clarification:** the supplied Aurora reference is a cosmetic textile Minecraft Cape, not Elytra wings. The prior interpretation as Elytra was incorrect. The user then supplied a “Skins & Wardrobe” reference and approved separate Skins/Capes categories with the 3D preview permanently visible in both.
+
+**Repository preflight:** branch `android` confirmed; HEAD before documentation changes was `1774f348e521a67b8f6b8243a7ef944ca7508381`. Inspected `CONTINUITY.md`, `DEVELOPMENT_LOG.md`, the prior Elytra research, `launcher_pages.rs`, `skin_library.rs`, `documents.rs`, `mobs/preview.rs`, `mobs/render.rs`, `crates/horizon-client-render/src/skins.rs` and `launcher/src/skins.rs`. The expected `PROJECT_CONTEXT.md`, `KNOWN_ISSUES.md` and `DECISIONS.md` paths returned 404; they are not assumed to exist.
+
+**Confirmed source primitives:** offline Cape texture loading via `HORIZON_OFFLINE_CAPE`; player preview model layer `player#cape`; dedicated Cape pose/render function; existing SAF import and SHA-256 PNG storage patterns. Current Android library/profile and SAF import only support skins. Runtime refresh/atlas lifecycle still needs an audit; `offline_cape()` uses `OnceLock`, so changing a selected path alone may not refresh a loaded texture.
+
+**Documentation applied:** created `docs/SYLPHRA_CAPE_STUDIO_DESIGN.md` with the approved two-tab layout, persistent preview requirements, independent profile selection, storage/import/migration requirements, runtime integration sequence and device acceptance criteria. Added a scope-correction note to `docs/SYLPHRA_ELYTRA_IMPORT_RESEARCH.md`; Elytra research remains separate and is not part of this feature. Updated `docs/CONTINUITY.md`.
+
+**Verification boundary:** documentation only. No product code modified; no formatter, unit tests, CI, APK or device test performed.
+
+**Next:** trace Cape atlas initialization and render call sites; implement profile-bound Cape import/equip and the responsive Skins/Capes UI while keeping the preview and rotation alive across tabs. Then run source/native CI and one grouped arm64 test APK. No other branch, PR merge or Release.
