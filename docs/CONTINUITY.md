@@ -369,3 +369,12 @@
 - Deliberately did not change body yaw: the audit flagged a possible front/back orientation concern, but it is a separate visual question and should be assessed only after the coordinate fix makes the model visible.
 - Verification boundary: edits are committed to `android`; source CI and a new test APK are pending. Device rendering is not yet verified. The previous diagnostic values (288 vertices, 72 faces, texture ready, one atlas patch) came from the earlier APK and do not verify these changes.
 - Next: run source CI for the new code, then build a fresh ARM64 test APK if CI passes. On-device validation should confirm mannequin visibility, containment within the preview panel, initial front-facing orientation, and touch rotation. If still blank, inspect batch-space vertex bounds against the converted rectangle before investigating GPU state again.
+
+
+## Skin Studio front-facing depth orientation (2026-11-05)
+- Read Claudia's second read-only audit and independently rechecked current source at HEAD `174f5d56011ea3392a1ea639b1b32378526a2615`. Confirmed the GUI transform used positive Z scale while HUD coordinates define +Z toward the viewer. The vanilla rest yaw remains `180.0 + yaw`; changing yaw is unnecessary for this correction.
+- Confirmed `player_preview_quads` computes transformed face depth and sorts ascending (`quads.sort_by(|a, b| a.0.total_cmp(&b.0))`). With the depth-free painter's-order fallback, near (+Z) faces therefore need to be submitted later. Mirroring the model's Z axis places the vanilla front (-Z before GUI transform) toward +Z and restores expected front/back ordering.
+- Applied in `crates/horizon-client/src/mobs/preview.rs`: changed GUI scale from uniform positive scale to `(model_scale, model_scale, -model_scale)`; updated comments to explain +Z viewer direction and why winding no longer causes face rejection. Commit: `864ca42c69a7c4b3da7beaff6dfcaf5de716de0a`.
+- Retained the coordinate conversion (`b90a53b`), clipping (`66c33e3`), and depth-free HUD submission (`73ca7db`). No yaw change.
+- Verification boundary: source edit committed to `android`; compilation, CI, APK build, and device orientation are pending. This is a source-level correction supported by transform and painter-order analysis, not proof of visual success.
+- Next: run source checks; if successful, build a fresh ARM64 test APK. Verify that the model appears front-facing, skin torso/front details are visible, layers toggle correctly, and touch rotation remains natural.
