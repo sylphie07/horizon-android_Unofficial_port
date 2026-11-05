@@ -359,3 +359,13 @@
 - Commit: `73ca7db94560a5b0d766b9fef6ed7a23b7ed285e` on authorized branch `android`.
 - Verification boundary: change applied to source; source CI and a fresh test APK have not yet completed. Device rendering is unverified. Do not call the model fixed until the user tests the APK.
 - Next: check Android source CI; if successful, trigger/build the test APK. User need not change any Skin Studio settings; just open the Skins page and inspect the preview after installing the new test artifact.
+
+
+## Skin Studio coordinate-space correction from independent audit (2026-11-05)
+- Independent read-only audit from Claudia identified a coordinate-space mismatch: `preview_rect` is calculated from launcher `Ui` dimensions in dp, while `PlayerPreview::draw` emits positions directly into `HudBatch` coordinates. The existing launcher UI background uses `scale = ui.density / ui.batch.scale` before writing to the batch, confirming the conversion expected by the HUD path.
+- Confirmed current branch `android` and HEAD before edits: `09874dc661f499fa1aa97fdf2f5cf963989c5437`. CI run `41983998512` for that HEAD completed successfully. No other branch was touched.
+- Applied in `crates/horizon-client/src/android/launcher_pages.rs`: convert all four preview rectangle coordinates using `ui.density / ui.batch.scale` before passing the rectangle to `PlayerPreview::draw`. Commit: `b90a53ba9c044a37dbc8ac0198a979a2172614e6`.
+- Applied in `crates/horizon-client/src/mobs/preview.rs`: preserve the ordinary HUD alpha submission introduced in `73ca7db`, then call `HudBatch::clip_since` on the generated range using the same batch-space rectangle. This prevents painter-order faces from spilling outside the preview panel. Commit: `66c33e35360555731f7ccee19a174f0da63e3bdb`.
+- Deliberately did not change body yaw: the audit flagged a possible front/back orientation concern, but it is a separate visual question and should be assessed only after the coordinate fix makes the model visible.
+- Verification boundary: edits are committed to `android`; source CI and a new test APK are pending. Device rendering is not yet verified. The previous diagnostic values (288 vertices, 72 faces, texture ready, one atlas patch) came from the earlier APK and do not verify these changes.
+- Next: run source CI for the new code, then build a fresh ARM64 test APK if CI passes. On-device validation should confirm mannequin visibility, containment within the preview panel, initial front-facing orientation, and touch rotation. If still blank, inspect batch-space vertex bounds against the converted rectangle before investigating GPU state again.
