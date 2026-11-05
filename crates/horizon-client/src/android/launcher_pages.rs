@@ -111,6 +111,7 @@ pub(super) fn button(
     );
     let padding = (w * 0.12).clamp(4.0, 12.0);
     let base = if w < 80.0 { 13.0 } else { 16.0 };
+    let base = if h < 36.0 { 13.0 } else { base };
     let font = if matches!(action, Action::Page(_)) {
         (base * ((w - 2.0 * padding) / ui.measure(Face::Medium, base, label).max(1.0)).min(1.0))
             .max(9.0)
@@ -118,11 +119,13 @@ pub(super) fn button(
         base
     };
     let label = ui.fit_text(Face::Medium, font, label, w - 2.0 * padding);
+    let text_height = (font * 1.45).round();
+    let text_y = y + ((h - text_height) / 2.0).max(0.0);
     ui.text(
         Face::Medium,
         font,
         x + padding,
-        y + 11.0,
+        text_y,
         if accent {
             color::ON_ACCENT
         } else {
@@ -1319,9 +1322,9 @@ impl Launcher {
                 let rect = [content_left, y, list_right - content_left, row_surface];
                 self.list_targets.push((rect, Action::SelectSkin(i)));
                 let active = self.catalog.skin_library.active_skin().is_some_and(|current| current.id == skin.id);
-                let raw_label = format!("{}{}  ({}×{})", if active { "✓ " } else { "" }, skin.name, skin.width, skin.height);
+                let raw_label = format!("{}  ({}×{})", skin.name, skin.width, skin.height);
                 let available_width = (control_width - 8.0).max(0.0);
-                let natural_width = ui.measure(Face::Medium, 15.0, &raw_label) + 28.0;
+                let natural_width = ui.measure(Face::Medium, 15.0, &raw_label) + 36.0;
                 let row_width = natural_width.min(available_width).max(96.0);
                 let rect = [content_left, y, row_width, row_surface];
                 let label = ui.fit_text(Face::Regular, 15.0, &raw_label, (row_width - 24.0).max(0.0));
@@ -1717,7 +1720,10 @@ impl Launcher {
                 );
             }
         }
-        if !(page == Page::SkinStudio && compact) {
+        let wide_skin_preview = page == Page::SkinStudio
+            && w >= 640.0
+            && (layout.content_rect[2] - 24.0) >= 560.0;
+        if !(page == Page::SkinStudio && (compact || wide_skin_preview)) {
             button(
                 &mut ui,
                 &mut self.targets,
