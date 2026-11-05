@@ -947,3 +947,17 @@
 
 **Next redesign track:** resume the deferred launcher background customization work now that adaptive navigation is in place. Audit Android document picker/URI handling, image decoding, texture upload, render-loop ownership and resource lifecycle. Stage implementation in this order: static image background; animated GIF if practical; video only if a safe non-blocking playback path exists. Preserve current theme as fallback and avoid adding media work to shared game rendering.
 **Files inspected:** crates/horizon-client/src/android/gallery.rs, platform.rs, document_bridge.rs, launcher.rs, launcher_pages.rs, and docs/SYLPHRA_ADAPTIVE_LAYOUT_PLAN.md. The existing gallery module is for screenshot publication; no user-selected background media feature was found in the inspected code. No source files were modified in this session.
+
+
+## 2026-11-05 — Skin Studio visual polish from Claudia's video review
+**Evidence:** user supplied a 52-second device recording and reported that the core Skin Studio functions work. Claudia sampled 17 frames and identified four UI defects: clipped labels on short controls, unsupported checkmark glyph before active skin names, footer repository button overlapping the wide preview, and skin list labels truncating despite spare width.
+
+**Changes applied:** commit 7639734a34730aa067bb03a9c0f7efff8a9d017a on branch android; file `crates/horizon-client/src/android/launcher_pages.rs`.
+- Vertically center button text using the font's approximate line height; use 13 dp font for controls shorter than 36 dp.
+- Remove the active-skin checkmark glyph; green active button styling already communicates selection and avoids a missing glyph.
+- Increase skin-row natural width allowance to 36 dp; retain the 24 dp inset for fit_text.
+- Suppress the footer Sylphra GitHub button only when the wide Skin Studio preview is active.
+
+**Verification boundary:** source edit committed; no CI/build/device confirmation yet. The original recording is evidence of the pre-fix defects and of the previously working model controls, not evidence that these new visual adjustments work.
+
+**Next:** check Android source CI; if successful, produce a fresh ARM64 test APK. On device, verify all short button labels, selected skin row text, no footer overlay over preview, and unchanged preview/skin interactions.
