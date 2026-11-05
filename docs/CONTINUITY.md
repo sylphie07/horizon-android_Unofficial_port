@@ -435,3 +435,11 @@
 - Standard/legacy Cape normalization already exists: 64×32 and 22×17 map into the upper half of a 64×64 transparent slot; oversized inputs are downscaled. Android import should have a clear tested allowlist and retain the 1 MiB cap.
 - Current page-owned preview rect, touch hitbox and rotation state can be retained across tabs if preview drawing is moved outside the tab-specific controls. Narrow-screen layout requires a deliberate reflow to keep both the model and useful controls visible.
 - No product code or tests changed; no CI/APK/device validation.
+
+
+## Player preview and game launch trace — 2026-11-05
+- Full `PlayerPreview::draw` path confirmed: clones the player mob, sets active skin/model/overlay visibility, calls `mobs::render::render_with`, converts vertices to clipped GUI quads. Although `player#cape` is loaded in the mob type, no Cape geometry is submitted. The Cape helper requires a root transform and a separate Cape sprite UV; preview integration must share the body transform and append Cape vertices before GUI conversion.
+- Android `LaunchRequest` still carries only skin path and Slim flag. Add an independent optional Cape selection argument for gameplay; do not mutate `HORIZON_OFFLINE_CAPE` at runtime because `offline_cape()` uses `OnceLock`.
+- Game frame composition calls `mob_geometry`, then separately `player_model_geometry` for the local player and `guest_model_geometry` for guest players. The exact internals of these methods still require targeted inspection; actual gameplay Cape call-site remains unconfirmed. Do not state that Cape rendering in-world is already working.
+- Existing preview object/rotation/touch state is page-owned. Preserve it across Skins/Capes sub-tab switches; keep preview lifecycle outside tab-specific control rendering.
+- No source code modified, tests/CI/APK/device verification not performed.
