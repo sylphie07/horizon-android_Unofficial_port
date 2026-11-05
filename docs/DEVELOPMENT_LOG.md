@@ -1009,3 +1009,17 @@
 **Changes:** documentation only. Updated `docs/SYLPHRA_CAPE_STUDIO_DESIGN.md` and `docs/CONTINUITY.md`. No product code modified, no tests/CI/APK/device verification.
 
 **Next:** inspect the actual game renderer's avatar-specific invocation path and atlas sprite registration/patch lifecycle, then implement the Cape data path. Keep selection explicit in the Android launch request rather than mutating global environment variables after `OnceLock` initialization. For the preview, provide Cape pixels and atlas UV directly to the preview renderer. Preserve remote players' server-provided Cape textures.
+
+
+## 2026-11-05 — Player preview and game launch trace (continued)
+**Preflight:** authorized branch `android` only; verified latest prior docs and source tree. No other branch touched.
+
+**Additional confirmed detail:** `PlayerPreview::draw` clones the preview mob, applies skin/model/overlay flags, calls `mobs::render::render_with`, then converts and clips generated vertices into the GUI batch. The player mob type already contains `player#cape`, but the draw path does not invoke `mobs::render::cape`. That Cape helper consumes an explicit base transform and texture UV and uses the baked cape model plus avatar flap/lean animation. A preview implementation should append Cape vertices using the same root transform and a separate atlas sprite before GUI quad conversion. The transform helper is currently private, so avoid duplicating transform calculations.
+
+**Launch path:** Android `Launcher` passes active skin file/model into `game_launch::LaunchRequest`; its argument builder emits only skin flags. Cape selection must travel as its own optional argument into the game resource/texture path. The global environment variable + `OnceLock` is not a safe live-selection mechanism.
+
+**Game rendering trace:** frame geometry calls `mob_geometry`, then local player `player_model_geometry` and guest `guest_model_geometry` separately. Internals of these methods still need extraction. The in-world call-site for the Cape helper remains unconfirmed; no claim of existing gameplay Cape rendering is made.
+
+**Changes:** docs only: updated Cape design specification and continuity. No product source changes, tests, CI, APK or device checks.
+
+**Next:** inspect `mob_geometry`, `player_model_geometry` and `guest_model_geometry` implementations and the runtime atlas sprite patch path. Then settle the shared data flow for local player vs remote players, and only then implement profile storage/import, preview Cape geometry, game launch argument, and persistent tab layout in one coordinated change.
