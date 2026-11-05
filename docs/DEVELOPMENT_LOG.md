@@ -932,3 +932,18 @@
 **Validation boundary:** source change committed to branch `android`; CI, compilation, APK, and device validation pending. Do not mark the model fixed until tested on the user's phone.
 
 **Next:** source CI, then fresh ARM64 test APK if successful; inspect front-facing orientation, skin UVs, six layer toggles and touch rotation.
+
+
+## 2026-11-05 — Skin Studio device acceptance; resume launcher redesign
+**User/device verification:** user installed the corrected test APK and explicitly confirmed that the 3D player model, touch rotation, skin overlay toggles, and Classic/Slim model selection all work. The supplied screenshot shows the visible model in Skin Studio. These behaviours are now device-verified on the user's device.
+
+**CI and artifact audit:**
+- Authorized branch android; HEAD d51ea97e3fe9792c7f0eaf166506f78946c6d537.
+- Android source checks #321 / run 41988650597: success.
+- Test APK workflow #15 / run 41989130135: build-arm64 job success.
+- Artifact sylphra-launcher-arm64-test, ID 13398296511, SHA-256 69fcfccf0866fbaa73d4eaff38a11239d7ce76296837885ea66b8c37616731bc; no Release created.
+
+**Remaining Skin Studio feature:** user specified importing elytra wing/cape layers, distinct from player skin overlay layers. Not implemented or tested. Treat it as a separate feature and inspect the engine's elytra model/texture path before designing its UI.
+
+**Next redesign track:** resume the deferred launcher background customization work now that adaptive navigation is in place. Audit Android document picker/URI handling, image decoding, texture upload, render-loop ownership and resource lifecycle. Stage implementation in this order: static image background; animated GIF if practical; video only if a safe non-blocking playback path exists. Preserve current theme as fallback and avoid adding media work to shared game rendering.
+**Files inspected:** crates/horizon-client/src/android/gallery.rs, platform.rs, document_bridge.rs, launcher.rs, launcher_pages.rs, and docs/SYLPHRA_ADAPTIVE_LAYOUT_PLAN.md. The existing gallery module is for screenshot publication; no user-selected background media feature was found in the inspected code. No source files were modified in this session.
