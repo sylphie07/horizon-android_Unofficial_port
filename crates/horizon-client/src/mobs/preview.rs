@@ -168,18 +168,14 @@ impl PlayerPreview {
         let vertex_count = vertices.len();
         let quads = player_preview_quads(vertices, gui, None, &atlas.sprites);
         let quad_count = quads.len();
-        // The launcher HUD's depth-tested pipeline is not reliable on all
-        // Android GPU backends. The preview quads are already sorted back-to-front
-        // by camera depth in player_preview_quads, so submit them through the
-        // ordinary alpha HUD pipeline (painter's order) instead of requiring a
-        // separate Depth32Float attachment/scissor pass.
+        // Keep the ordinary HUD alpha path for Android compatibility. Clip
+        // the generated triangles in the same batch-space rectangle so painter's
+        // order cannot draw the mannequin over adjacent launcher controls.
+        let start = batch.vertices.len();
         for (_, positions, uv, color) in quads {
-            batch.quad(
-                positions.map(|p| [p[0], p[1]]),
-                uv,
-                color,
-            );
+            batch.quad(positions.map(|p| [p[0], p[1]]), uv, color);
         }
+        batch.clip_since(start, x0, y0, x1, y1);
         (vertex_count, quad_count)
     }
 }
