@@ -478,6 +478,8 @@ struct Options {
     /// Sylphra's optional per-launch local appearance; consumed by the renderer.
     sylphra_skin: Option<PathBuf>,
     sylphra_skin_slim: bool,
+    /// Optional bounded PNG cape selected by Sylphra for the local avatar only.
+    sylphra_cape: Option<PathBuf>,
     /// `--session-stdin`: the session file's JSON comes on standard input instead.
     session_stdin: bool,
 }
@@ -628,6 +630,7 @@ impl Options {
             session_file: std::env::var("HORIZON_SESSION_FILE").ok(),
             sylphra_skin: None,
             sylphra_skin_slim: false,
+            sylphra_cape: None,
             session_stdin: false,
         };
         while let Some(arg) = args.next() {
@@ -734,6 +737,7 @@ impl Options {
                             "--name" => o.player_name = Some(value),
                             "--session-file" => o.session_file = Some(value),
                             "--sylphra-skin" => o.sylphra_skin = Some(value.into()),
+                            "--sylphra-cape" => o.sylphra_cape = Some(value.into()),
                             "--sylphra-skin-model" => {
                                 o.sylphra_skin_slim = match value.as_str() {
                                     "classic" => false,
@@ -2166,8 +2170,9 @@ struct Game<'a> {
     /// The detail revision, centre and radius `Lod::update` last had covered for.
     lod_covered_at: Option<(u64, (i32, i32), i32)>,
     options: Options,
-    /// Decoded once per game session; only the local avatar may use this image.
+    /// Decoded once per game session; only the local avatar may use these images.
     sylphra_skin_rgba: Option<Vec<u8>>,
+    sylphra_cape_rgba: Option<Vec<u8>>,
     player: Option<PlayerMotion>,
     spawn: Option<Vec3>,
     clock: FixedStep,
@@ -17951,6 +17956,50 @@ fn load_sylphra_skin(path: &std::path::Path) -> Option<Vec<u8>> {
     horizon_client::skins::process_legacy_skin(width, height, &rgba)
 }
 
+/// Loads only a library-owned cape file, with bounded dimensions and no symlink
+/// at the cape directory or file. CapeLibrary stores content-addressed PNG names.
+fn load_sylphra_cape(path: &std::path::Path) -> Option<Vec<u8>> {
+    let parent = path.parent()?;
+    if parent.file_name()?.to_str()? != "capes" {
+        return None;
+    }
+    let name = path.file_name()?.to_str()?;
+    let digest = name.strip_suffix(".png")?;
+    if digest.len() != 64 || !digest.bytes().all(|b| b.is_ascii_hexdigit()) {
+        return None;
+    }
+    let directory = std::fs::symlink_metadata(parent).ok()?;
+    if directory.file_type().is_symlink() || !directory.is_dir() {
+        return None;
+    }
+    let metadata = std::fs::symlink_metadata(path).ok()?;
+    if metadata.file_type().is_symlink()
+        || !metadata.is_file()
+        || metadata.len() == 0
+        || metadata.len() > 1024 * 1024
+    {
+        return None;
+    }
+    let bytes = std::fs::read(path).ok()?;
+    if bytes.len() < 24
+        || bytes.len() > 1024 * 1024
+        || &bytes[..8] != b"\\x89PNG\\r\\n\\x1a\\n"
+        || &bytes[12..16] != b"IHDR"
+    {
+        return None;
+    }
+    let width = u32::from_be_bytes(bytes[16..20].try_into().ok()?);
+    let height = u32::from_be_bytes(bytes[20..24].try_into().ok()?);
+    if !matches!((width, height), (64, 32) | (22, 17)) {
+        return None;
+    }
+    let (decoded_width, decoded_height, rgba) = horizon_client::hud::decode_bytes(&bytes).ok()?;
+    if decoded_width != width || decoded_height != height {
+        return None;
+    }
+    horizon_client::skins::process_cape(width, height, &rgba)
+}
+
 impl<'a> Game<'a> {
     /// A game with no world open, over the loaded resources: the window's,
     /// or an integrated server's on its own thread.
@@ -17991,6 +18040,7 @@ impl<'a> Game<'a> {
         let now = Instant::now();
         let look = options.look;
         let sylphra_skin_rgba = options.sylphra_skin.as_deref().and_then(load_sylphra_skin);
+        let sylphra_cape_rgba = options.sylphra_cape.as_deref().and_then(load_sylphra_cape);
         let particles = horizon_client::particles::ParticleEngine::new(
             &root,
             &gui.atlas.sprites,
@@ -18030,6 +18080,7 @@ impl<'a> Game<'a> {
             lod_covered_at: None,
             options,
             sylphra_skin_rgba,
+            sylphra_cape_rgba,
             player: None,
             spawn: None,
             clock: FixedStep::default(),
