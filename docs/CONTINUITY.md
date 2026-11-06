@@ -472,3 +472,12 @@
 - No source changes, build, tests, CI, APK or device validation were performed in this documentation step.
 - Next: implement the shared shell/sidebar and Play-page composition in launcher_pages.rs, preserving all existing Action behavior and adaptive layouts. Then implement persisted background selection/import only after tracing the existing SAF and texture-atlas APIs. Static image first; GIF/video deferred.
 - Parallel task: Claudia is asked for a read-only Cape audit only. Do not let that investigation modify launcher_pages.rs or overlap the visual redesign.
+
+
+## Sylphra launcher redesign — first native UI implementation (2026-11-06)
+- Preflight verified branch android at HEAD 3b0750ed31336e48e4cff33fe81851c472211846; continuity, development log, redesign specification and relevant launcher source were reviewed before editing.
+- Applied crates/horizon-client/src/android/launcher_pages.rs in commit 5b0c7a691f22f9e0b1ab97e582f037836d3b0fa4. Wide layout now targets a 23% sidebar (248–360 dp), account area at top, stacked navigation labels, and a green outline for the selected page. Wide Play now has a dark full-canvas treatment, Files and Multiplayer/server-entry actions at top right, an informational Horizon version label, and a large Play/Install action at bottom right. Compact and expanded layouts retain their previous page rendering.
+- Limitation: custom background selection/import is not implemented. The canvas currently uses a dark fallback with Sylphra text, not a Minecraft scene image. The version label is not a dropdown; Multiplayer opens the existing server field, not a server browser.
+- Re-fetch confirmed the source blob; compare reports one source file changed (120 additions, 77 deletions). Android source checks run 42169014756 was queued when recorded; outcome not yet verified.
+- No local formatter, compilation, tests, APK build, install or device visual validation performed. Do not claim compile success or visual equivalence until checks and device review succeed.
+- Next: inspect source-check result, correct failures, then implement persisted static background import through verified SAF/document/texture APIs. Keep Claudia's Cape audit read-only and separate; preserve tested Skin Studio behavior.
