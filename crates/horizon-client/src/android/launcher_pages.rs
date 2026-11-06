@@ -1347,6 +1347,41 @@ impl Launcher {
                     }
                 }
                 let skin_texture_ready = selected_texture.is_some();
+                const CAPE_TEXTURE: &str = "horizon/cape-preview";
+                let mut selected_cape_texture = None;
+                if self.cape_tab
+                    && let Some(cape) = self.catalog.cape_library.active_cape(
+                        &self.catalog.skin_library.active_profile,
+                    )
+                {
+                    let cape_path = self.home.join("capes").join(&cape.file);
+                    let cape_pixels = std::fs::read(&cape_path)
+                        .ok()
+                        .and_then(|bytes| horizon_client::hud::decode_bytes(&bytes).ok())
+                        .and_then(|(width, height, rgba)| {
+                            horizon_client::skins::process_cape(width, height, &rgba)
+                        });
+                    if let Some(pixels) = cape_pixels {
+                        if let Some(slot) = gui.atlas.sprites.get(CAPE_TEXTURE).copied() {
+                            ui.batch.patches.push(horizon_client::font::Patch {
+                                x: (slot.u0 * gui.atlas.width as f32).round() as u32,
+                                y: (slot.v0 * gui.atlas.height as f32).round() as u32,
+                                width: 64,
+                                height: 64,
+                                rgba: pixels,
+                            });
+                            selected_cape_texture = Some(CAPE_TEXTURE);
+                        } else {
+                            let message = format!("Cape preview atlas slot is missing: {CAPE_TEXTURE}");
+                            if self.catalog.status != message {
+                                log::warn!("{message}");
+                                self.catalog.status = message;
+                            }
+                        }
+                    } else {
+                        self.catalog.status = format!("Could not load selected cape: {}", cape.name);
+                    }
+                }
                 let atlas_patch_count = ui.batch.patches.len();
                 // Launcher layout and touch coordinates are expressed in dp,
                 // while HudBatch vertices use its scaled GUI coordinate space.
@@ -1361,6 +1396,7 @@ impl Launcher {
                     self.skin_preview_rotation,
                     self.skin_preview_hidden_parts,
                     selected_texture,
+                    selected_cape_texture,
                 );
                 let message = if quads == 0 {
                     format!("3D preview geometry empty: {vertices} vertices / {quads} faces; skin texture ready: {skin_texture_ready}; atlas patches: {atlas_patch_count}.")
