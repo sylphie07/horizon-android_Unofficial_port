@@ -269,3 +269,11 @@ Solo documentación e inspección de código. No se ha modificado código de pro
 
 ### Verification boundary
 The implementation commit `a7c644100dcf928b7ccefeac5e852a0e9fc5b14d` passed source CI run `42291629518`. This is not a Rust build: Cargo tests, APK compilation, installation, and visual/gameplay verification remain pending.
+
+## Final follow-up — 2026-11-06
+
+- The portrait stacked preview now remains square and at least 180 dp high. If the available height would reduce it below that, Cape Studio changes to a two-column compact layout. Geometry coverage includes 393×820, 393×740, 393×600, 393×460, 360×460, and 344×460 dp.
+- An invalid or missing custom cape no longer prevents Minecraft from launching. The launcher logs the cape error and continues with no custom cape file, preserving the account cape fallback.
+- The final source CI run `42292366825` passed for code commit `5e43ff7cf928cc41c8f2af1af89f7b9e594a4f43`.
+- Source CI is not a Rust compile. Rust unit tests, APK build, installation, and on-device rendering are still pending.
+- Next action: user compiles the latest `android` branch, then verifies the launcher and in-game cape behavior.

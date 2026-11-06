@@ -1309,3 +1309,26 @@ The user selected the uploaded Minecraft Rust Edition scene as the definitive la
 
 ### Next step
 The batch is ready for the user's APK compilation check. If compilation fails, capture the complete failing job log and repair the exact compiler errors before another APK build. After installation, verify import, selection, None/account-cape fallback, rename, delete, persistence after restart, preview cache/rotation, and in-game cape rendering.
+
+
+## 2026-11-06 — Final Cape Studio follow-up
+
+### Additional implementation
+- `crates/horizon-client/src/android/launcher_pages.rs`
+  - Keep the stacked portrait cape preview square.
+  - Switch to compact split layout when the stacked preview would fall below 180 dp while preserving the 92 dp two-row list reservation.
+  - Extend geometry tests to cover the 393×740 dp transition.
+- `crates/horizon-client/src/android/launcher.rs`
+  - Treat a custom cape as optional during game launch.
+  - If the library or selected PNG cannot be validated, continue with `cape_file: None`, log a warning, and preserve account-cape behavior instead of aborting Minecraft startup.
+  - Add tests for valid custom path, absent custom cape, and invalid custom cape fallback.
+
+### Final verification
+- Code commits: `ba3c135f36869671cd39c69576c43d0cc3074dbf` and `5e43ff7cf928cc41c8f2af1af89f7b9e594a4f43`.
+- Source CI run `42292366825`: **SUCCESS** on the latest implementation commit. All source workflow steps passed.
+- This workflow did not run Cargo or compile Rust. Newly added Rust tests remain unexecuted.
+- No APK, native build, installation, or device test was created/performed.
+- Only branch `android` was modified.
+
+### Handoff
+The code batch is ready for the user's APK compilation check. After installation, test the Cape Studio list/preview at phone sizes, import and manage capes, restart persistence, invalid-manifest fallback, and actual in-game cape rendering. Any compiler failure must be fixed from its full log before requesting another build.

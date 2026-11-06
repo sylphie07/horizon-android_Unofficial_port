@@ -694,3 +694,20 @@
 **Not verified / pending:** Rust compilation, Rust unit-test execution, APK installation, Cape Studio visual behavior on-device, preview rotation, and in-game cape rendering. These are intentionally left for the user's next APK build and device check.
 
 **Repository scope:** only `android` was modified. No other branch, PR, release, or APK was created. The GitHub connector exposes remote repository state; a separate local working-tree state was not available to inspect in this session.
+
+
+## 2026-11-06 — Final Cape Studio follow-up
+
+**Latest implementation code commit:** `5e43ff7cf928cc41c8f2af1af89f7b9e594a4f43` on `android`.
+
+- Follow-up commit `ba3c135f36869671cd39c69576c43d0cc3074dbf` keeps the stacked portrait cape preview square, enforces a 180 dp minimum before switching to the compact split layout, and extends geometry coverage to 393×740 dp.
+- Follow-up commit `5e43ff7cf928cc41c8f2af1af89f7b9e594a4f43` makes custom cape failure non-fatal to game launch. Invalid or unavailable cape data now falls back to the account cape and reports a warning instead of aborting the launch.
+- Added launch-fallback tests for valid custom cape paths, no custom cape, and invalid cape data.
+
+**Final source verification:** GitHub Actions run `42292366825` passed on `5e43ff7cf928cc41c8f2af1af89f7b9e594a4f43`. All source workflow steps passed: diff whitespace, public-tree history, Android Python unit tests, diagnostics, performance, content, and workflow-export consistency.
+
+**Compile boundary:** this source workflow does not compile Rust. The new Rust unit tests have not been executed; no native compile, APK build, installation, or device test was started. The code batch is prepared for the user's APK compilation check.
+
+**Next step:** compile the latest `android` branch. If compilation fails, capture the complete compiler/job log and repair the exact errors before another build. After installation, verify cape import, selection, `None` account-cape fallback, rename/delete, persistence after restart, preview/rotation, launch fallback on damaged cape data, and in-game rendering.
+
+The remote branch was verified; a separate local working-tree state was not available through the GitHub connector. Only `android` was modified; no other branch, PR, release, or APK was created.
