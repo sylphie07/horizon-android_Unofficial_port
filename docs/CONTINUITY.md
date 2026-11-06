@@ -481,3 +481,12 @@
 - Re-fetch confirmed the source blob; compare reports one source file changed (120 additions, 77 deletions). Android source checks run 42169014756 was queued when recorded; outcome not yet verified.
 - No local formatter, compilation, tests, APK build, install or device visual validation performed. Do not claim compile success or visual equivalence until checks and device review succeed.
 - Next: inspect source-check result, correct failures, then implement persisted static background import through verified SAF/document/texture APIs. Keep Claudia's Cape audit read-only and separate; preserve tested Skin Studio behavior.
+
+
+## Selected Play background — 2026-11-06
+- User selected the uploaded Minecraft Rust Edition scene as the definitive launcher Play background.
+- Inspected source asset: 1536×864, RGB, JPEG encoding even though the uploaded filename ends in `.png`. Preserve its artwork and embedded logo; use the correct `.jpg` extension if committed, or transcode intentionally.
+- Intended presentation: full-bleed aspect-fill/cover behind Play content; keep the 23% dark sidebar separate; only a subtle legibility overlay, no large opaque panel.
+- Design spec updated in commit 71339263a6264b10598bfbc8c151417c32237e86. Binary asset is not yet in the repository and runtime texture loading is not implemented.
+- Latest source-check run 42169082001 passed for source HEAD fe40b1c964d18e53943f42fc4e8a1f0cc5be1490. This does not establish APK build or device rendering.
+- Next: add the actual image asset to the authorized android branch, then trace/use the existing atlas texture update path to render it in the Play background. Do not claim background is integrated until the binary and runtime path are committed and verified.
