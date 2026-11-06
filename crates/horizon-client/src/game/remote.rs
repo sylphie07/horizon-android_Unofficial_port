@@ -4918,6 +4918,18 @@ impl Game<'_> {
             }
             capes.insert(local, OFFLINE.into());
         }
+        // Sylphra's explicitly selected cape overrides only this client's local
+        // avatar. If no cape was selected, leave the account/offline resolution
+        // untouched so a signed-in account cape remains visible.
+        if let Some(rgba) = self.sylphra_cape_rgba.clone() {
+            const SYLPHRA: &str = "sylphra/local_cape";
+            if !self.skin_slots.contains(SYLPHRA)
+                || !self.gui.atlas.sprites.contains_key(SYLPHRA)
+            {
+                self.store_skin(SYLPHRA.into(), rgba);
+            }
+            capes.insert(local, SYLPHRA.into());
+        }
         // PlayerInfo.getSkin: the downloaded skin and its model, else the
         // profile's default skin (DefaultPlayerSkin.get), slim or wide.
         let skin_of = |skins: &HashMap<u128, String>, uuid: u128| match skins.get(&uuid) {
