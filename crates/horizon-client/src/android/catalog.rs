@@ -221,7 +221,7 @@ pub struct Catalog {
     pub cape_rename_id: Option<String>,
     pub cape_rename_text: String,
     skin_preview_cache: Option<(String, Vec<u8>)>,
-    cape_preview_cache: Option<(String, Vec<u8>)>,
+    cape_preview_cache: Option<(String, Result<Vec<u8>, String>)>,
     pub editing: Option<&'static str>,
     pub render_scale_text: String,
     worker: Option<mpsc::Receiver<Result<Reply, String>>>,
@@ -434,17 +434,20 @@ impl Catalog {
             .as_ref()
             .is_some_and(|(id, _)| id == &record.id);
         if !cached {
-            let (_, bytes) = self.cape_library.read_validated_file(home, &record.id)?;
-            let (width, height, rgba) =
-                horizon_client::hud::decode_bytes(&bytes).map_err(|error| error.to_string())?;
-            let rgba = horizon_client::skins::process_cape(width, height, &rgba)
-                .ok_or("Selected cape is not 64×32 or 22×17")?;
-            self.cape_preview_cache = Some((record.id, rgba));
+            let decoded = (|| {
+                let (_, bytes) = self.cape_library.read_validated_file(home, &record.id)?;
+                let (width, height, rgba) =
+                    horizon_client::hud::decode_bytes(&bytes).map_err(|error| error.to_string())?;
+                horizon_client::skins::process_cape(width, height, &rgba)
+                    .ok_or_else(|| "Selected cape is not 64×32 or 22×17".to_owned())
+            })();
+            self.cape_preview_cache = Some((record.id, decoded));
         }
-        Ok(self
-            .cape_preview_cache
-            .as_ref()
-            .map(|(_, rgba)| rgba.as_slice()))
+        match self.cape_preview_cache.as_ref() {
+            Some((_, Ok(rgba))) => Ok(Some(rgba.as_slice())),
+            Some((_, Err(error))) => Err(error.clone()),
+            None => Ok(None),
+        }
     }
 
     /// Resolve the active profile's cape to a validated app-private file path.

@@ -230,7 +230,13 @@ impl CapeLibrary {
             .iter()
             .find(|cape| cape.id == cape_id)
             .ok_or("Cape does not exist in the library")?;
-        let path = home.join(CAPE_DIR).join(&record.file);
+        let directory = home.join(CAPE_DIR);
+        let directory_metadata =
+            fs::symlink_metadata(&directory).map_err(|error| error.to_string())?;
+        if directory_metadata.file_type().is_symlink() || !directory_metadata.is_dir() {
+            return Err("Cape storage directory is not a regular app-private directory".into());
+        }
+        let path = directory.join(&record.file);
         let metadata = fs::symlink_metadata(&path).map_err(|error| error.to_string())?;
         if metadata.file_type().is_symlink() || !metadata.is_file() {
             return Err("Cape file is not a regular app-private PNG file".into());
@@ -585,6 +591,33 @@ mod tests {
             .read_validated_file(&path, &cape.id)
             .unwrap_err()
             .contains("hash"));
+        let _ = fs::remove_dir_all(path);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn validated_file_reader_rejects_symlinked_cape_directory() {
+        let path = home();
+        let mut library = CapeLibrary::load(&path).unwrap();
+        let cape = library
+            .import_png(&path, "cape.png", &png(64, 32, [255, 0, 0, 255]))
+            .unwrap();
+        let real_directory = path.join("capes-real");
+        let redirected_directory = path.join(CAPE_DIR);
+        fs::rename(&redirected_directory, &real_directory).unwrap();
+        let external_directory = path.join("capes-external");
+        fs::create_dir_all(&external_directory).unwrap();
+        fs::copy(
+            real_directory.join(&cape.file),
+            external_directory.join(&cape.file),
+        )
+        .unwrap();
+        std::os::unix::fs::symlink(&external_directory, &redirected_directory).unwrap();
+
+        assert!(library
+            .read_validated_file(&path, &cape.id)
+            .unwrap_err()
+            .contains("directory"));
         let _ = fs::remove_dir_all(path);
     }
 
