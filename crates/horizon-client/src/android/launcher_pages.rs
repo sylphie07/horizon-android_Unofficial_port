@@ -238,6 +238,43 @@ impl LauncherLayout {
     }
 }
 
+#[derive(Clone, Copy)]
+struct CatalogPageLayout {
+    title_y: f32,
+    source_y: f32,
+    search_y: f32,
+    folder_y: f32,
+    hint_y: f32,
+    list_top: f32,
+}
+
+impl CatalogPageLayout {
+    fn for_launcher(layout: &LauncherLayout) -> Self {
+        if layout.navigation_mode == NavigationMode::Sidebar {
+            // Sidebar pages start at the top of the right-hand canvas. Keep
+            // controls in a compact header and reserve a separate results area.
+            Self {
+                title_y: 24.0,
+                source_y: 18.0,
+                search_y: 68.0,
+                folder_y: 116.0,
+                hint_y: 164.0,
+                list_top: 210.0,
+            }
+        } else {
+            // Preserve the existing compact/expanded page geometry.
+            Self {
+                title_y: 142.0,
+                source_y: 134.0,
+                search_y: 174.0,
+                folder_y: 222.0,
+                hint_y: 270.0,
+                list_top: layout.content_rect[1] + 152.0,
+            }
+        }
+    }
+}
+
 fn toggle(
     ui: &mut Ui,
     targets: &mut Vec<([f32; 4], Action)>,
@@ -785,6 +822,7 @@ impl Launcher {
                 );
             }
         } else if page.is_catalog() {
+            let catalog_layout = CatalogPageLayout::for_launcher(&layout);
             let content_left = layout.content_rect[0] + 12.0;
             let content_right = layout.content_rect[0] + layout.content_rect[2] - 12.0;
             let action_x = content_right - 118.0;
@@ -793,7 +831,7 @@ impl Launcher {
                 Face::Medium,
                 18.0,
                 content_left,
-                142.0,
+                catalog_layout.title_y,
                 color::TEXT,
                 if page == Page::Mods {
                     "Sylphra Mods"
@@ -806,7 +844,7 @@ impl Launcher {
             button(
                 &mut ui,
                 &mut self.targets,
-                [content_left, 174.0, search_x - content_left - 18.0, 44.0],
+                [content_left, catalog_layout.search_y, search_x - content_left - 18.0, 44.0],
                 &format!(
                     "{}{}",
                     if page == Page::Mods {
@@ -822,7 +860,7 @@ impl Launcher {
             button(
                 &mut ui,
                 &mut self.targets,
-                [search_x, 174.0, 158.0, 44.0],
+                [search_x, catalog_layout.search_y, 158.0, 44.0],
                 if page == Page::Mods && self.catalog.query.trim().starts_with("https://") {
                     "Import .hmod"
                 } else {
@@ -835,7 +873,7 @@ impl Launcher {
                 use crate::shader_catalog::Origin;
                 let width = ((content_right - content_left - 121.0) / 2.0).clamp(58.0, 120.0);
                 for (i, origin) in [Origin::Horizon, Origin::Modrinth].into_iter().enumerate() {
-                    let rect = [content_right - (2 - i) as f32 * width, 134.0, width - 5.0, 32.0];
+                    let rect = [content_right - (2 - i) as f32 * width, catalog_layout.source_y, width - 5.0, 32.0];
                     button(
                         &mut ui,
                         &mut self.targets,
@@ -876,7 +914,7 @@ impl Launcher {
                 _ => "Verified downloads / enable in Installed",
             };
             let hint = ui.fit_text(Face::Regular, 14.0, hint, content_right - content_left);
-            ui.text(Face::Regular, 14.0, content_left, 270.0, color::MUTED, &hint);
+            ui.text(Face::Regular, 14.0, content_left, catalog_layout.hint_y, color::MUTED, &hint);
             let kind = match page {
                 Page::Mods => horizon_client::content_files::Kind::Mods,
                 Page::Shaders => horizon_client::content_files::Kind::Shaders,
@@ -886,7 +924,7 @@ impl Launcher {
             button(
                 &mut ui,
                 &mut self.targets,
-                [content_left, 222.0, file_button_width, 38.0],
+                [content_left, catalog_layout.folder_y, file_button_width, 38.0],
                 "Open folder",
                 Action::OpenFolder(kind),
                 false,
@@ -894,7 +932,7 @@ impl Launcher {
             button(
                 &mut ui,
                 &mut self.targets,
-                [content_right - file_button_width, 222.0, file_button_width, 38.0],
+                [content_right - file_button_width, catalog_layout.folder_y, file_button_width, 38.0],
                 "Import file",
                 Action::Import(kind),
                 false,
@@ -926,7 +964,7 @@ impl Launcher {
                 })
                 .collect();
             let row_count = bundled.len() + catalog_rows.len();
-            let top = layout.content_rect[1] + 152.0;
+            let top = catalog_layout.list_top;
             let bottom = layout.content_rect[1] + layout.content_rect[3] - 12.0;
             self.catalog.scroll = self
                 .catalog
