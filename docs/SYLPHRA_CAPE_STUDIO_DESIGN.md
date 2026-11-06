@@ -310,7 +310,7 @@ The implementation commit `a7c644100dcf928b7ccefeac5e852a0e9fc5b14d` passed sour
 
 ## 2026-11-06 — Cape preview atlas UV correction
 - [Confirmed] `process_cape()` stores 64×32 cape artwork in rows 0–31 of a 64×64 transparent texture slot. The in-game texture path retains the same upper-half layout.
-- [Confirmed] The Skin Studio preview passed the full 64×64 atlas rectangle to the baked `player#cape` model. Its model UV space is 64×32, so mapping the full slot compressed the cape artwork vertically into half of the expected preview UV range.
+- [Confirmed] The Skin Studio preview passed the full 64×64 atlas rectangle to `render::cape`, and `render::cape` forwards that rectangle unchanged to the baked `player#cape` model. `process_cape()` places the image in the upper 64×32 portion of the 64×64 slot. [Hypothesis] The baked cape model's UV range corresponds to a 64×32 texture; this is consistent with the intended cape layout but has not yet been confirmed from a successful native render/device image. The upper-half mapping is therefore an evidence-based preview correction, pending visual verification.
 - [Applied] Commit `89290b79cce0349fc4b38b9e91cd4274c7c12a4c` changes only `crates/horizon-client/src/mobs/preview.rs`: the cape preview now maps the model to the upper half of the dedicated atlas slot. No gameplay renderer, cape geometry, offset, or skin path was changed.
 - [Not verified] No Rust compilation, unit test, native ABI matrix, APK, or device screenshot has run after this change. Treat the visual correction as a source-level diagnosis until verified.
 - [Next] Validate current HEAD with source CI and four-ABI native `--check`; only then request a fresh ARM64 test APK for device confirmation.
