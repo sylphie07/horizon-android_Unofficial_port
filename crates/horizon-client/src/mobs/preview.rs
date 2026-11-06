@@ -163,11 +163,16 @@ impl PlayerPreview {
             // the cape intersects the torso and is hidden/clipped by the body.
             let cape_root = super::render::base_transform(&mob, 1.0, camera)
                 * glam::Mat4::from_translation(glam::Vec3::new(0.0, 0.0, 0.125));
+            // process_cape stores a 64x32 cape in the top half of a
+            // 64x64 atlas slot. The baked player#cape model uses a 64x32
+            // texture coordinate space, so expose only that upper half here;
+            // passing the full slot compresses the cape artwork vertically.
+            let cape_uv = [rect.u0, rect.v0, rect.u1, rect.v0 + (rect.v1 - rect.v0) * 0.5];
             super::render::cape(
                 &mob,
                 1.0,
                 cape_root,
-                [rect.u0, rect.v0, rect.u1, rect.v1],
+                cape_uv,
                 240 | 240 << 8,
                 &self.data,
                 &mut vertices,
