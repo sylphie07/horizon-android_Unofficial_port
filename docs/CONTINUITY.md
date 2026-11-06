@@ -758,3 +758,11 @@ The remote branch was verified; a separate local working-tree state was not avai
 - [Verified] GitHub Actions source run #42304527339 passed on HEAD `d551f02aeb8dd7ade1ee7ebb88cddf68a3165cfc`, including public-tree history, Python tests, diagnostics, performance, content, and workflow-export consistency.
 - [Not verified] The push-triggered workflow skipped native jobs. No Rust native checks for this exact HEAD, APK build, install, or device visual check has occurred. Do not ask user to compile an APK yet.
 - [Next] User action needed only for the manual workflow dispatch `.github/workflows/android-source.yml` with input `native_checks=true`; this performs four-ABI Rust `--check` and does not package an APK. After a successful result, request one combined arm64 test APK. User has already supplied the background artwork; no more image input is needed.
+
+
+## 2026-11-06 — Final atlas registration correction
+- [Confirmed] `HudAtlas` collects only sprite IDs declared by atlas JSON sources. The PNG path alone was insufficient to make the sprite visible to launcher rendering.
+- [Applied] `ensure_sylphra_background` now also creates `home/installer/assets/minecraft/atlases/sylphra.json` with a directory source for `gui/sylphra/`, prefix `sylphra/`. This makes the expected sprite key `sylphra/background` available without editing Minecraft's existing GUI atlas.
+- Current branch HEAD after this correction: `0db826f608497f231eddd112b950eaba7a0b96dc`.
+- [Not verified] The prior source run #42304527339 passed on the immediately preceding code HEAD, but this atlas registration change has not yet been checked. No four-ABI native check, APK build, or device visual validation has been performed for this HEAD.
+- [Next] Wait for source CI on current HEAD, then request manual `android-source.yml` dispatch with `native_checks=true` (four-ABI Rust `--check`, no APK). Do not request APK compilation until it passes.
