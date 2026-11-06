@@ -1068,3 +1068,15 @@ Preview rendering generates body vertices, applies its GUI transform, then clips
 **Not done:** no product source edits, compilation, tests, CI, APK or device validation. No claim that the launcher now visually matches the reference.
 
 **Next:** implement responsive sidebar/shared shell and full-bleed Play composition while retaining existing functional actions. Then trace image decode/atlas upload and implement static background selection with persistence. Defer GIF/video. Keep Cape audit read-only and separate.
+
+
+## 2026-11-06 — First native launcher redesign pass
+**Preflight:** verified branch android at 3b0750ed31336e48e4cff33fe81851c472211846; read continuity, development log, redesign spec, launcher_pages.rs, launcher.rs and catalog.rs.
+
+**Source change applied:** commit 5b0c7a691f22f9e0b1ab97e582f037836d3b0fa4 modifies only crates/horizon-client/src/android/launcher_pages.rs. Wide layouts now use a 23%-target sidebar with account/navigation hierarchy, updated labels and selected green outline. Wide Play now removes the opaque content card, adds top-right Files and server-entry actions, a compact informational engine-version tile and a large bottom-right Play/Install action. Compact/expanded navigation and the old narrow Play page are retained.
+
+**Limitations:** no user-selectable background image is wired yet; current canvas is a dark fallback, not a Minecraft background. Version tile is not interactive because Horizon currently exposes one engine version. Multiplayer action opens the existing server text field, not a server list/browser.
+
+**Verification:** GitHub source re-fetch and compare confirm the committed source edit (one file, 120 additions / 77 deletions). Android source checks run 42169014756 was queued at note time. No local cargo fmt/build/test, APK, install or device visual validation has been performed. Source compile status remains pending.
+
+**Next:** review source-check run and fix any failure; then trace SAF URI loading, image decode and atlas patching to implement persistent static backgrounds safely. GIF/video remain deferred. Keep Cape audit isolated and preserve existing verified Skin Studio behavior.
