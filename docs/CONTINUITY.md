@@ -816,3 +816,9 @@ The remote branch was verified; a separate local working-tree state was not avai
 - UV correction is applied but not runtime-verified. The earlier broad caution against UV edits was narrowed: atlas layout supports the upper-half UV mapping; the preview offset remains untouched and needs device evidence.
 - [Not verified] No current-HEAD Rust native check, fresh APK, install, or screenshot exists. Do not ask the user to compile yet.
 - [Next] Trigger the four-ABI manual native check when a dispatch-capable route is available. If all four pass, request one fresh ARM64 test APK and inspect Cape Studio preview against the in-game cape.
+
+
+## 2026-11-06 — Cape UV data-flow audit refinement
+- Confirmed source data flow: `process_cape()` fills rows 0–31 of a 64×64 buffer; preview supplies the sprite's upper-half UV rectangle; `render::cape()` forwards the UV rectangle unchanged to `draw()`.
+- The assumption that baked `player#cape` UVs span 64×32 is plausible and consistent with the layout, but original baked UV metadata was not found in the accessible source tree. Keep this as a hypothesis until native rendering/device screenshot verifies the visual result.
+- GitHub connector has no workflow-dispatch action. Existing Actions operations can inspect or rerun existing jobs but cannot create the required `workflow_dispatch(native_checks=true)` run. Current-HEAD four-ABI check remains pending; do not request APK compilation yet.
