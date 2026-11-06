@@ -1176,3 +1176,14 @@ The user selected the uploaded Minecraft Rust Edition scene as the definitive la
 - [Confirmed] CapeLibrary files are content-addressed under `home/capes`, with SHA-256 filename, 1 MiB bound, and 64x32 / 22x17 accepted dimensions. `process_cape()` already normalizes to 64x64 RGBA.
 - [Not applied] No source changes in this audit. Next: extend LaunchRequest and CLI parser with an optional cape path; add a safe loader parallel to `load_sylphra_skin`; apply the override only to local player's `capes` map and preserve `modelPart_cape` and `again_skin()` checks. Add tests for no-override behavior and local-only override.
 - No Rust compile, APK build, or device test was run.
+
+
+## 2026-11-06 — Sylphra cape launch/runtime integration (first code pass)
+- Preflight: branch `android`; starting HEAD `9e571bbe883b8d51cb5bbd6d34c067074c208f30`; reviewed continuity/design docs and launch, catalog, cape-library, game-options, and remote-skin code.
+- [Applied] `android/game_launch.rs`: optional `LaunchRequest.cape_file`; emits `--sylphra-cape` only when selected; added tests for selected path and no-selection omission. Commit `678aa23a63955af97278bc5aff2fa23cfb5c7522`.
+- [Applied] `android/launcher.rs`: pass `Catalog::active_cape_file(&home)` into launch; invalid library/path state returns an error rather than silently losing the selection. Commit `38f0b2609bd91bbdd2d9ad43afff78c04931322f`.
+- [Applied] `game.rs`: parse optional CLI cape path, load bounded app-library PNG (non-symlink `capes/` directory/file, 64-hex `.png` filename, <=1 MiB, 64x32 or 22x17), decode and normalize via `process_cape()`, keep it in a dedicated per-session field. Commits `e9985d1` and `2d06b12` (PNG signature literal correction).
+- [Applied] `game/remote.rs`: apply selected texture only to local UUID after server/account/offline resolution; preserve account cape when option absent; remote UUIDs remain untouched. Commit `4282427`.
+- [Tests added, not run] Launch argument unit tests cover forwarding selected cape paths and omitting `--sylphra-cape` when no selection exists.
+- [Not verified] No Rust compile, APK build, or Android device/game test. Android Source Checks run `42189848848` for `2d06b12` was pending at documentation time.
+- Next: inspect CI result and compile diagnostics; add targeted loader/runtime tests if compile path supports them; then prepare one complete build/test batch. No user compilation requested yet.
