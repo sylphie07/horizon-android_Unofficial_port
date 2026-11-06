@@ -1039,3 +1039,18 @@ Preview rendering generates body vertices, applies its GUI transform, then clips
 **Changes:** documentation only. Updated Cape design specification, continuity and development log. No product code modified, no tests, CI, APK or device checks.
 
 **Next:** obtain complete source access/locate generated split implementations and the receiving CLI argument parser; trace atlas pixel patch/UV update API. Once these are known, implement local Cape data transport and renderer integration without modifying guest/remote players, then the independent Cape library/import and persistent Skins/Capes tabs.
+
+
+## 2026-11-06 — Cape library foundation
+**Preflight:** verified branch android and HEAD fa01ad6289b80680d064c070f73cd071618b4a09; reviewed continuity, development log, Cape design, catalog.rs, skin_library.rs, documents.rs, and crate dependencies. No other branch was modified.
+
+**Changes applied:**
+- Added crates/horizon-client/src/android/cape_library.rs: independent CapeLibrary / CapeRecord metadata, SHA-256 content-addressed PNG storage under capes/, atomic manifest writes, PNG validation (64×32 or 22×17, 1 MiB cap and decoded-size bound), per-profile selections, rename, and destructive remove that clears profile references only after the manifest save succeeds.
+- Added module registration in crates/horizon-client/src/android/catalog.rs.
+- Source commits: 2a9102243b911b9d1f8b5c81523c89958c432f4f (new library) and 7634ce5c38c1de1f70409f67a78163018bc240fe (module registration).
+
+**Not yet integrated:** SAF import, Catalog-owned library state/preview cache, profile switching UI, confirmation dialog, launch argument, game-side Cape texture, preview rendering, Skins/Capes tab UI, and separation from Elytra texture use.
+
+**Verification:** GitHub accepted both commits and the new file/module registration were written on branch android. No cargo fmt, Rust compilation, unit tests, CI, APK, install, or device test was run. Treat the implementation as applied but uncompiled and unverified. A read-only independent review is required before wiring the module into launcher flows.
+
+**Next:** ask Claudia to audit the new module for Rust/API/security/logic defects; independently resolve actual player#cape UV from installed/generated assets. Then integrate SAF and catalog/profile state, followed by rendering and game launch in a coordinated pass.
