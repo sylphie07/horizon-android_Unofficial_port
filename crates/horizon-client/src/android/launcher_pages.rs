@@ -153,7 +153,7 @@ enum NavigationMode {
 
 /// Compute a stacked phone cape preview while reserving two complete list rows.
 fn stacked_cape_preview_height(list_bottom: f32, preview_top: f32, minimum_list: f32) -> f32 {
-    (list_bottom - preview_top - 8.0 - minimum_list).clamp(120.0, 260.0)
+    (list_bottom - preview_top - 8.0 - minimum_list).clamp(180.0, 260.0)
 }
 
 /// Keep a short-phone split preview near-square without exceeding the content.
@@ -1260,7 +1260,7 @@ impl Launcher {
                 && !desktop_wide_preview
                 && w < 640.0
                 && content_width >= 280.0
-                && stacked_cape_bottom - stacked_cape_top - 8.0 - 92.0 < 120.0;
+                && stacked_cape_bottom - stacked_cape_top - 8.0 - 92.0 < 180.0;
             let wide_preview = desktop_wide_preview || compact_cape_split;
             let preview_width = if wide_preview { content_width * 0.42 } else { content_width };
             let column_gap = if wide_preview { 12.0 } else { 0.0 };
@@ -1406,7 +1406,11 @@ impl Launcher {
                 let top = preview_top;
                 [left, top, content_right, top + preview_height]
             } else {
-                let width = preview_width.min(300.0);
+                let width = if self.cape_tab {
+                    preview_height.min(300.0)
+                } else {
+                    preview_width.min(300.0)
+                };
                 let left = content_left + (content_width - width) * 0.5;
                 [left, preview_top, left + width, preview_top + preview_height]
             };
@@ -3019,6 +3023,7 @@ mod launcher_layout_tests {
         let preview_height = stacked_cape_preview_height(studio_bottom, preview_top, 92.0);
         let list_top = preview_top + preview_height + 8.0;
         assert_eq!(preview_height, 228.0);
+        assert_eq!(preview_height.min(300.0), preview_height);
         assert_eq!(studio_bottom - list_top, 92.0);
     }
 
@@ -3029,6 +3034,7 @@ mod launcher_layout_tests {
             (360.0, 460.0),
             (344.0, 460.0),
             (393.0, 600.0),
+            (393.0, 740.0),
         ] {
             let shell = LauncherLayout::new(width, height);
             let content_bottom = shell.content_rect[1] + shell.content_rect[3];
