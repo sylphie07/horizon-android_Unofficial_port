@@ -1432,3 +1432,13 @@ The code batch is ready for the user's APK compilation check. After installation
 - [Applied] Commit `89290b79cce0349fc4b38b9e91cd4274c7c12a4c` changes only `crates/horizon-client/src/mobs/preview.rs`: the cape preview now maps the model to the upper half of the dedicated atlas slot. No gameplay renderer, cape geometry, offset, or skin path was changed.
 - [Not verified] No Rust compilation, unit test, native ABI matrix, APK, or device screenshot has run after this change. Treat the visual correction as a source-level diagnosis until verified.
 - [Next] Validate current HEAD with source CI and four-ABI native `--check`; only then request a fresh ARM64 test APK for device confirmation.
+
+
+## 2026-11-06 — Cape preview UV review and CI #473
+- [Confirmed] Branch `android` remains at source commit `2e9847c1eb7b680501853c317b24aec30ed38fd8` before this documentation update.
+- [Confirmed] Source workflow run #473 (`42311448398`) completed successfully on that exact HEAD. The source job passed `git diff --check`, public-tree history validation, Android Python unit tests, diagnostics/performance/content checks, and workflow-export consistency.
+- [Confirmed] The native matrix job was skipped because the run was triggered by push. The workflow defines native checks only for manual `workflow_dispatch` with `native_checks=true`.
+- [Confirmed] The available GitHub connector exposes read/fetch and file-update operations but no workflow-dispatch action. No dispatch was attempted and no native result is claimed.
+- [Applied] Reconciled the earlier design note that broadly discouraged UV changes: the atlas-layout comparison now justifies the upper-half UV mapping, while the preview offset remains unchanged pending device evidence.
+- [Not verified] No Rust compile, four-ABI native check, APK build, installation, or visual device verification has run for the UV correction.
+- [Next] Obtain a manual native-check run on current `android` HEAD when dispatch is available; only after all four ABI checks pass should a fresh ARM64 test APK be requested.
