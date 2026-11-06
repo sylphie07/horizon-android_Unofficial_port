@@ -178,13 +178,16 @@ impl LauncherLayout {
                     146.0,
                     [20.0, 146.0, (width - 40.0).max(0.0), (height - 246.0).max(0.0)],
                 ),
-                NavigationMode::Sidebar => (
-                    [240.0, 28.0],
-                    [28.0, 24.0, 184.0, 58.0],
-                    [16.0, 96.0, 208.0, (height - 126.0).max(0.0)],
-                    144.0,
-                    [240.0, 144.0, (width - 260.0).max(0.0), (height - 244.0).max(0.0)],
-                ),
+                NavigationMode::Sidebar => {
+                    let rail = (width * 0.23).clamp(248.0, 360.0);
+                    (
+                        [rail + 24.0, 24.0],
+                        [20.0, 20.0, rail - 40.0, 72.0],
+                        [0.0, 112.0, rail, (height - 112.0).max(0.0)],
+                        0.0,
+                        [rail, 0.0, (width - rail).max(0.0), height],
+                    )
+                },
             };
         Self {
             navigation_mode,
@@ -221,16 +224,12 @@ impl LauncherLayout {
             }
             NavigationMode::Sidebar => {
                 let count = Page::ALL.len() as f32;
-                let button_height = 42.0;
-                let gap = ((self.nav_rect[3] - 24.0 - count * button_height)
-                    / (count - 1.0))
-                    .clamp(4.0, 32.0);
-                let group_height = count * button_height + (count - 1.0) * gap;
-                let top = self.nav_rect[1]
-                    + ((self.nav_rect[3] - group_height) * 0.5).max(12.0);
+                let button_height = 50.0;
+                let available = (self.nav_rect[3] - 28.0 - count * button_height).max(0.0);
+                let gap = (available / (count - 1.0)).clamp(5.0, 22.0);
                 [
                     self.nav_rect[0] + 12.0,
-                    top + index as f32 * (button_height + gap),
+                    self.nav_rect[1] + 10.0 + index as f32 * (button_height + gap),
                     self.nav_rect[2] - 24.0,
                     button_height,
                 ]
@@ -393,61 +392,47 @@ impl Launcher {
         ui.batch
             .fill(&gui.atlas, 0.0, 0.0, w * scale, h * scale, color::BG);
         let layout = LauncherLayout::new(w, h);
-        let title_size = if w < 400.0 {
-            20.0
-        } else if w < 700.0 {
-            24.0
-        } else {
-            32.0
-        };
-        let title_width = match layout.navigation_mode {
-            NavigationMode::Compact => (w - 64.0).max(40.0),
-            NavigationMode::Expanded => (layout.account_rect[0] - layout.title_origin[0] - 12.0).max(40.0),
-            NavigationMode::Sidebar => (w - layout.title_origin[0] - 320.0).max(40.0),
-        };
-        let title = ui.fit_text(
-            Face::Medium,
-            title_size,
-            &format!("Sylphra Launcher {}", crate::backend::VERSION),
-            title_width,
-        );
-        ui.text(
-            Face::Medium,
-            title_size,
-            layout.title_origin[0],
-            layout.title_origin[1],
-            color::TEXT,
-            &title,
-        );
-        button(
-            &mut ui,
-            &mut self.targets,
-            layout.account_rect,
-            &self.login.status(&self.catalog.config.name),
-            Action::Account,
-            self.login.signed_in,
-        );
-        // The same tab rectangles drive drawing, touch targets and gamepad focus
-        // in compact, two-row phone, and wide-screen sidebar navigation modes.
-        ui.rounded(
-            layout.nav_rect[0],
-            layout.nav_rect[1],
-            layout.nav_rect[2],
-            layout.nav_rect[3],
-            4.0,
-            color::RAISED,
-        );
-        ui.border(
-            layout.nav_rect[0],
-            layout.nav_rect[1],
-            layout.nav_rect[2],
-            layout.nav_rect[3],
-            4.0,
-            color::HOVER,
-        );
+        if layout.navigation_mode != NavigationMode::Sidebar {
+            let title_size = if w < 400.0 { 20.0 } else if w < 700.0 { 24.0 } else { 32.0 };
+            let title_width = match layout.navigation_mode {
+                NavigationMode::Compact => (w - 64.0).max(40.0),
+                NavigationMode::Expanded => (layout.account_rect[0] - layout.title_origin[0] - 12.0).max(40.0),
+                NavigationMode::Sidebar => 0.0,
+            };
+            let title = ui.fit_text(Face::Medium, title_size,
+                &format!("Sylphra Launcher {}", crate::backend::VERSION), title_width);
+            ui.text(Face::Medium, title_size, layout.title_origin[0], layout.title_origin[1], color::TEXT, &title);
+        }
+
+        if layout.navigation_mode == NavigationMode::Sidebar {
+            // Dedicated dark rail: account at the top, navigation below.
+            ui.batch.fill(&gui.atlas, 0.0, 0.0, layout.nav_rect[2] * scale,
+                h * scale, base_color::hex(0x111315, 255));
+            ui.border(0.0, 0.0, layout.nav_rect[2], h, 1.0, color::BORDER);
+        }
+        button(&mut ui, &mut self.targets, layout.account_rect,
+            &self.login.status(&self.catalog.config.name), Action::Account,
+            self.login.signed_in);
+        ui.rounded(layout.nav_rect[0], layout.nav_rect[1], layout.nav_rect[2],
+            layout.nav_rect[3], 0.0, if layout.navigation_mode == NavigationMode::Sidebar {
+                base_color::hex(0x111315, 255)
+            } else { color::RAISED });
+        if layout.navigation_mode != NavigationMode::Sidebar {
+            ui.border(layout.nav_rect[0], layout.nav_rect[1], layout.nav_rect[2],
+                layout.nav_rect[3], 4.0, color::HOVER);
+        }
         for (i, page) in Page::ALL.iter().enumerate() {
             let label = if layout.navigation_mode == NavigationMode::Sidebar {
-                page.name()
+                match page {
+                    Page::Play => "Play",
+                    Page::Installed => "Installations",
+                    Page::SkinStudio => "Skins",
+                    Page::News => "Patch Notes",
+                    Page::Mods => "Mods",
+                    Page::Packs => "Resource Packs",
+                    Page::Shaders => "Shaders",
+                    Page::Settings => "Profile",
+                }
             } else if w < 700.0 {
                 match page {
                     Page::Installed => "Files",
@@ -459,19 +444,77 @@ impl Launcher {
             } else {
                 page.name()
             };
-            button(
-                &mut ui,
-                &mut self.targets,
-                layout.tab_rect(i),
-                label,
-                Action::Page(*page),
-                *page == self.catalog.page,
-            );
+            let rect = layout.tab_rect(i);
+            button(&mut ui, &mut self.targets, rect, label, Action::Page(*page),
+                *page == self.catalog.page);
+            if *page == self.catalog.page {
+                ui.border(rect[0], rect[1], rect[2], rect[3], 2.0,
+                    base_color::hex(0x59ed54, 255));
+            }
         }
         let compact = w < 700.0;
         let page = self.catalog.page;
         let skin_studio_compact = page == Page::SkinStudio && h < 560.0;
-        if page == Page::Play {
+        if page == Page::Play && layout.navigation_mode == NavigationMode::Sidebar {
+            use horizon_client::official_install::InstallStage;
+            let installed = horizon_client::official_install::ready(&self.home);
+            let installing = self.worker.is_some();
+            let progress = *self.install.lock().unwrap();
+            let left = layout.content_rect[0];
+            let right = left + layout.content_rect[2];
+            let bottom = h;
+
+            // Full-bleed canvas treatment: no opaque content card over the hero.
+            ui.batch.fill(&gui.atlas, left * scale, 0.0,
+                (right - left) * scale, h * scale, base_color::hex(0x241b1b, 255));
+            // Dark edge shading keeps controls legible until a user background is configured.
+            ui.rounded(left, 0.0, right-left, 76.0, 0.0, base_color::hex(0x151416, 210));
+            ui.rounded(left, h-112.0, right-left, 112.0, 0.0, base_color::hex(0x111112, 220));
+
+            let top_y = 22.0;
+            button(&mut ui, &mut self.targets, [right-278.0, top_y, 112.0, 42.0],
+                "FILES", Action::Page(Page::Installed), false);
+            button(&mut ui, &mut self.targets, [right-154.0, top_y, 136.0, 42.0],
+                "MULTIPLAYER", Action::Field("server"), true);
+
+            if installing {
+                let stage_index = InstallStage::ALL.iter().position(|s| *s == progress.stage).unwrap_or(0);
+                let fraction = if progress.total > 0 { progress.done as f32 / progress.total as f32 } else { 0.0 };
+                let overall = (stage_index as f32 + fraction.clamp(0.0, 1.0)) / InstallStage::ALL.len() as f32;
+                let width = (right-left-80.0).clamp(120.0, 520.0);
+                let x = left + (right-left-width)*0.5;
+                let y = h*0.43;
+                ui.text(Face::Medium, 25.0, x, y, color::TEXT, "Preparing Sylphra");
+                ui.text(Face::Regular, 16.0, x, y+38.0, color::MUTED, progress.stage.label());
+                ui.rounded(x, y+76.0, width, 6.0, 3.0, color::RAISED);
+                ui.rounded(x, y+76.0, width*overall, 6.0, 3.0, color::ACCENT);
+            } else {
+                let logo = ui.fit_text(Face::Medium, if right-left < 600.0 { 32.0 } else { 46.0 },
+                    "SYLPHRA", (right-left-64.0).max(80.0));
+                let logo_width = ui.measure(Face::Medium, if right-left < 600.0 { 32.0 } else { 46.0 }, &logo);
+                ui.text(Face::Medium, if right-left < 600.0 { 32.0 } else { 46.0 },
+                    left+(right-left-logo_width)*0.5, h*0.25, color::TEXT, &logo);
+                ui.text(Face::Regular, 16.0, left+24.0, h*0.25+54.0,
+                    color::MUTED, "MINECRAFT · ANDROID EDITION");
+
+                // Compact version selector; Horizon currently ships one engine version.
+                ui.rounded(left+24.0, bottom-82.0, 250.0, 58.0, 7.0, color::RAISED);
+                ui.border(left+24.0, bottom-82.0, 250.0, 58.0, 1.0, color::BORDER);
+                ui.text(Face::Regular, 13.0, left+42.0, bottom-70.0, color::MUTED, "CURRENT VERSION");
+                ui.text(Face::Medium, 17.0, left+42.0, bottom-43.0,
+                    color::TEXT, &format!("Horizon {}", horizon_core::VANILLA_VERSION));
+
+                let play_w = (right-left-48.0).clamp(180.0, 330.0);
+                let play_x = right-play_w-24.0;
+                let play_y = bottom-82.0;
+                let play_label = if installed { "PLAY" } else if self.error.is_some() {
+                    "RETRY INSTALLATION"
+                } else { "INSTALL & PLAY" };
+                button(&mut ui, &mut self.targets, [play_x, play_y, play_w, 58.0],
+                    play_label, Action::Play, true);
+                ui.border(play_x, play_y, play_w, 58.0, 2.0, base_color::hex(0x78ef4b, 255));
+            }
+        } else if page == Page::Play {
             use horizon_client::official_install::InstallStage;
             let installed = horizon_client::official_install::ready(&self.home);
             let installing = self.worker.is_some();
