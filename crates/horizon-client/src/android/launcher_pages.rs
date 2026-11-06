@@ -446,8 +446,39 @@ impl Launcher {
         }
         let (w, h) = (ui.w, ui.h);
         let scale = ui.density / ui.batch.scale;
-        ui.batch
-            .fill(&gui.atlas, 0.0, 0.0, w * scale, h * scale, color::BG);
+        if let Some(mut background) = gui.atlas.sprites.get("sylphra/background").copied() {
+            // Cover the complete launcher viewport without distorting the
+            // 16:9 artwork; crop only the excess dimension on unusual screens.
+            let viewport_aspect = w / h.max(1.0);
+            let image_aspect = background.w as f32 / background.h.max(1) as f32;
+            if viewport_aspect > image_aspect {
+                let visible = image_aspect / viewport_aspect;
+                let crop = (1.0 - visible).max(0.0) * 0.5;
+                let span = background.v1 - background.v0;
+                background.v0 += span * crop;
+                background.v1 -= span * crop;
+            } else {
+                let visible = viewport_aspect / image_aspect;
+                let crop = (1.0 - visible).max(0.0) * 0.5;
+                let span = background.u1 - background.u0;
+                background.u0 += span * crop;
+                background.u1 -= span * crop;
+            }
+            ui.batch.rect_uv(0.0, 0.0, w * scale, h * scale, background, u32::MAX);
+            // A subtle veil keeps launcher labels readable over bright areas.
+            ui.batch.fill(
+                &gui.atlas,
+                0.0,
+                0.0,
+                w * scale,
+                h * scale,
+                base_color::hex(0x101810, 112),
+            );
+        } else {
+            // Safe fallback if the bundled image cannot be installed or decoded.
+            ui.batch
+                .fill(&gui.atlas, 0.0, 0.0, w * scale, h * scale, color::BG);
+        }
         let layout = LauncherLayout::new(w, h);
         if layout.navigation_mode != NavigationMode::Sidebar {
             let title_size = if w < 400.0 { 20.0 } else if w < 700.0 { 24.0 } else { 32.0 };
