@@ -600,3 +600,14 @@
 - [Applied] `crates/horizon-client/src/game/remote.rs`: changed the custom cape atlas key to `capes/sylphra-local`, so the existing atlas UV normalization is applied consistently with offline/account cape entries. Commit `e1d5e2472f06c968f849216fe9a8cf134dc5accc`.
 - [Not verified] No Rust compile, tests, native ABI matrix, APK build, or device test was run for this correction. Do not infer runtime rendering success from the key correction.
 - Next: inspect current CI; request/perform the authorized native checks only when explicitly appropriate; fix any compile/test errors, then do one APK build and device test for Cape Studio preview + local in-game cape. Preserve account cape when no Sylphra cape is selected and do not modify remote UUID entries.
+
+
+## 2026-11-06 — Cape preview consistency and content-address verification
+- Preflight: verified branch `android`, HEAD `f2dd62f6e0c4196b95518ae7a822847007ad1dd8`, and reviewed current continuity/development/design docs plus CapeLibrary, Catalog, LaunchRequest, launcher page, preview renderer, CLI loader, and local-player texture assignment.
+- [Confirmed] The Cape preview atlas patch and `PlayerPreview::draw` were guarded by `self.cape_tab`; therefore a selected cape disappeared from the 3D mannequin when switching back to Skins, despite the shared-preview design.
+- [Applied] Removed that tab-only guard in `crates/horizon-client/src/android/launcher_pages.rs`. The active profile cape is now loaded into the preview atlas whenever one is selected, independent of the currently visible Skins/Capes management tab. The two tab lists and their actions remain independent.
+- [Confirmed] `load_sylphra_cape` checked the content-addressed filename shape but did not recompute SHA-256 against the PNG bytes.
+- [Applied] Added SHA-256 content verification in `crates/horizon-client/src/game.rs` before PNG signature/dimension decoding. A replaced or corrupted file whose contents no longer match its 64-hex filename is rejected.
+- [Pending] CapeLibrary already implements `rename` and `remove`, but Skin Studio currently exposes neither action. The delete API clears profile selections before removing the PNG and explicitly requires caller confirmation; add safe UI confirmation before invoking it. Rename needs a proper text-entry flow.
+- [Not verified] No Rust compilation, unit test, native CI job, APK build, or device visual/gameplay test was run in this change. The existing automated Android source-check workflow may run on the new commit; inspect its exact HEAD and job results before claiming validation.
+- [Not changed] No branch other than `android`; no workflow rerun; no APK or release; no LAN protocol changes.

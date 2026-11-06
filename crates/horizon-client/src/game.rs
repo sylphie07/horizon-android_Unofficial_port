@@ -17981,9 +17981,16 @@ fn load_sylphra_cape(path: &std::path::Path) -> Option<Vec<u8>> {
         return None;
     }
     let bytes = std::fs::read(path).ok()?;
-    if bytes.len() < 24
-        || bytes.len() > 1024 * 1024
-        || &bytes[..8] != b"\x89PNG\r\n\x1a\n"
+    if bytes.len() < 24 || bytes.len() > 1024 * 1024 {
+        return None;
+    }
+    // The library uses the SHA-256 digest as the immutable filename. Verify
+    // the bytes too, so a replaced/corrupt PNG cannot masquerade as that entry.
+    let actual_digest = format!("{:x}", <sha2::Sha256 as sha2::Digest>::digest(&bytes));
+    if actual_digest != digest {
+        return None;
+    }
+    if &bytes[..8] != b"\x89PNG\r\n\x1a\n"
         || &bytes[12..16] != b"IHDR"
     {
         return None;

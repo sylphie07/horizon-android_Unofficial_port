@@ -1196,3 +1196,14 @@ The user selected the uploaded Minecraft Rust Edition scene as the definitive la
 - Commit: `e1d5e2472f06c968f849216fe9a8cf134dc5accc`.
 - Verification: static source edit only. No formatter, compiler, unit tests, native CI, APK build, or Android device test has run on this commit.
 - Next: validate the current source and native CI status; then prepare one combined device test for preview, local cape, account fallback and LAN remote-player isolation.
+
+
+## 2026-11-06 — Cape preview consistency and content-address verification
+- Preflight: verified branch `android`, HEAD `f2dd62f6e0c4196b95518ae7a822847007ad1dd8`, and reviewed current continuity/development/design docs plus CapeLibrary, Catalog, LaunchRequest, launcher page, preview renderer, CLI loader, and local-player texture assignment.
+- [Confirmed] The Cape preview atlas patch and `PlayerPreview::draw` were guarded by `self.cape_tab`; therefore a selected cape disappeared from the 3D mannequin when switching back to Skins, despite the shared-preview design.
+- [Applied] Removed that tab-only guard in `crates/horizon-client/src/android/launcher_pages.rs`. The active profile cape is now loaded into the preview atlas whenever one is selected, independent of the currently visible Skins/Capes management tab. The two tab lists and their actions remain independent.
+- [Confirmed] `load_sylphra_cape` checked the content-addressed filename shape but did not recompute SHA-256 against the PNG bytes.
+- [Applied] Added SHA-256 content verification in `crates/horizon-client/src/game.rs` before PNG signature/dimension decoding. A replaced or corrupted file whose contents no longer match its 64-hex filename is rejected.
+- [Pending] CapeLibrary already implements `rename` and `remove`, but Skin Studio currently exposes neither action. The delete API clears profile selections before removing the PNG and explicitly requires caller confirmation; add safe UI confirmation before invoking it. Rename needs a proper text-entry flow.
+- [Not verified] No Rust compilation, unit test, native CI job, APK build, or device visual/gameplay test was run in this change. The existing automated Android source-check workflow may run on the new commit; inspect its exact HEAD and job results before claiming validation.
+- [Not changed] No branch other than `android`; no workflow rerun; no APK or release; no LAN protocol changes.

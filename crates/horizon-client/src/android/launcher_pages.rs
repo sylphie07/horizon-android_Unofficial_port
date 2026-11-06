@@ -1349,8 +1349,7 @@ impl Launcher {
                 let skin_texture_ready = selected_texture.is_some();
                 const CAPE_TEXTURE: &str = "horizon/cape-preview";
                 let mut selected_cape_texture = None;
-                if self.cape_tab
-                    && let Some(cape) = self.catalog.cape_library.active_cape(
+                if let Some(cape) = self.catalog.cape_library.active_cape(
                         &self.catalog.skin_library.active_profile,
                     )
                 {
