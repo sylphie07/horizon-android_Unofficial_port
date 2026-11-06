@@ -166,3 +166,9 @@ Solo documentación e inspección de código. No se ha modificado código de pro
 - Runtime `entity-models.json` is installed resource data and is not in the repository tree; exact model UVs must be read from installed document or verified with a fixture before hardcoding any crop.
 - `LaunchRequest` only has skin fields and emits skin CLI arguments. A cape argument and game-side offline-cape override need separate tracing; `None` must preserve the account cape.
 - This entry records audit findings and proposed implementation order only. No renderer, atlas, launch, or game code was modified in this audit.
+
+## 2026-11-06 — Cape Studio mannequin rendering implementation
+- The Capes tab now has a dedicated atlas texture slot, and the active profile cape is loaded and normalized with the engine's existing `process_cape()` path.
+- The preview code calls the existing `render::cape()` geometry routine with the same player pose/root transform used for the mannequin body. UVs come from the installed `player#cape` model and the atlas rectangle; no guessed UV constants were added.
+- Changes: `mobs/preview.rs`, `horizon-client-render/src/hud.rs`, `android/launcher_pages.rs`; commits `48953f0`, `d087ee8`, `c7e0914`.
+- This is an implementation proposal applied to source, not a verified working feature. No build, APK, or device test has been run. Game-side application and account cape preview are still pending.
