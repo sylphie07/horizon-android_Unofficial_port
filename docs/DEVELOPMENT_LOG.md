@@ -1054,3 +1054,17 @@ Preview rendering generates body vertices, applies its GUI transform, then clips
 **Verification:** GitHub accepted both commits and the new file/module registration were written on branch android. No cargo fmt, Rust compilation, unit tests, CI, APK, install, or device test was run. Treat the implementation as applied but uncompiled and unverified. A read-only independent review is required before wiring the module into launcher flows.
 
 **Next:** ask Claudia to audit the new module for Rust/API/security/logic defects; independently resolve actual player#cape UV from installed/generated assets. Then integrate SAF and catalog/profile state, followed by rendering and game launch in a coordinated pass.
+
+
+## 2026-11-06 — Sylphra launcher visual direction approved
+**Preflight:** verified branch android. HEAD before this documentation commit was 12c5526a041ebc49a8e6d3c88356c9c6644425ff. Re-read CONTINUITY.md, DEVELOPMENT_LOG.md, launcher_pages.rs, catalog.rs and ui_theme.rs.
+
+**User input:** supplied a 1536×691 screenshot of the Minecraft Java Launcher as the desired layout reference.
+
+**Documentation applied:** created docs/SYLPHRA_LAUNCHER_REDESIGN.md in commit 0e59a312381768de5fc95f762ab20bf5f81508b7. It records the layout, color direction, responsive requirements, page-specific constraints, technical safety requirements and staged milestones.
+
+**Confirmed source baseline:** native Rust UI in crates/horizon-client/src/android/launcher_pages.rs; adaptive layout already supports compact/two-row/sidebar modes; current Play page remains a content panel and does not yet match the supplied reference. Existing Config persists android-launcher.json. Keep game HUD theme separate from launcher palette.
+
+**Not done:** no product source edits, compilation, tests, CI, APK or device validation. No claim that the launcher now visually matches the reference.
+
+**Next:** implement responsive sidebar/shared shell and full-bleed Play composition while retaining existing functional actions. Then trace image decode/atlas upload and implement static background selection with persistence. Defer GIF/video. Keep Cape audit read-only and separate.
