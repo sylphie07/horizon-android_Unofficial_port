@@ -4922,7 +4922,7 @@ impl Game<'_> {
         // avatar. If no cape was selected, leave the account/offline resolution
         // untouched so a signed-in account cape remains visible.
         if let Some(rgba) = self.sylphra_cape_rgba.clone() {
-            const SYLPHRA: &str = "sylphra/local_cape";
+            const SYLPHRA: &str = "capes/sylphra-local";
             if !self.skin_slots.contains(SYLPHRA)
                 || !self.gui.atlas.sprites.contains_key(SYLPHRA)
             {
