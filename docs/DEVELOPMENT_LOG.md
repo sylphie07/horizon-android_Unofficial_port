@@ -1158,3 +1158,10 @@ The user selected the uploaded Minecraft Rust Edition scene as the definitive la
 - [Applied] No code changes in this audit; documented implementation prerequisites and safe order in `CONTINUITY.md` and `SYLPHRA_CAPE_STUDIO_DESIGN.md`.
 - [Not applied / not verified] Cape 3D preview, game launch integration, build, APK, and device test.
 - Prior source checks run `42186164124` passed for HEAD `8d976154a8708b00f4d434f598e5e41a214904c6` before this documentation update.
+
+## 2026-11-06 — Cape Studio 3D preview wiring (first implementation)
+- [Applied] Added `horizon/cape-preview` (64x64) atlas slot; selected profile cape is normalized by existing `process_cape()` and uploaded via the HUD batch patch mechanism.
+- [Applied] `PlayerPreview::draw()` accepts an optional cape texture and calls existing `mobs::render::cape()` with the same mob pose/root transform as the player model. No hardcoded cape UV crop was introduced.
+- Commits: `48953f0`, `d087ee8`, `c7e0914`.
+- [Scope] Launcher mannequin only; game launch and in-game player cape remain untouched. Account cape is not rendered in this launcher preview when Sylphra selection is None.
+- [Not verified] Rust compilation, APK build, device test, and visual correctness. Need check all `PlayerPreview::draw` call sites and CI for current HEAD.
