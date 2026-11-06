@@ -592,3 +592,11 @@
 - [Applied] `game/remote.rs`: after existing server/account/offline cape resolution, the optional Sylphra texture is stored under `sylphra/local_cape` and inserted only for the local player's UUID. No selected override leaves the account/offline cape map unchanged; remote UUID entries are not modified. Commit `428242745ded00383e56d59d52e3f73a5fc2e517`.
 - [Not verified] No Rust compile, APK build, or device/game test has run for this code. Android Source Checks run `42189848848` is pending for code commit `2d06b12` at documentation time. Source checks do not substitute for compilation.
 - [Potential follow-up] Add focused runtime tests for cape loader rejection/normalization and local-vs-remote precedence; inspect compile results before expanding behavior. Keep Elytra rendering path unchanged. LAN peer sharing remains out of scope.
+
+
+## 2026-11-06 — Cape atlas UV key correction
+- Preflight: branch `android`; prior HEAD `58b3537c2c47aa0c547818a29d5fe9b4d634b6bd`. Run `42189932300` completed `success` on that prior HEAD, but only its `source` job ran; the `native` job was `skipped`. This is not Rust compilation.
+- [Confirmed] Runtime `Game::store_skin()` halves the atlas sprite V range only for keys beginning `capes/`. The custom runtime cape was previously stored under `sylphra/local_cape`, which bypassed the cape UV normalization even though `process_cape()` places 64x32 content in the upper half of a 64x64 RGBA slot.
+- [Applied] `crates/horizon-client/src/game/remote.rs`: changed the custom cape atlas key to `capes/sylphra-local`, so the existing atlas UV normalization is applied consistently with offline/account cape entries. Commit `e1d5e2472f06c968f849216fe9a8cf134dc5accc`.
+- [Not verified] No Rust compile, tests, native ABI matrix, APK build, or device test was run for this correction. Do not infer runtime rendering success from the key correction.
+- Next: inspect current CI; request/perform the authorized native checks only when explicitly appropriate; fix any compile/test errors, then do one APK build and device test for Cape Studio preview + local in-game cape. Preserve account cape when no Sylphra cape is selected and do not modify remote UUID entries.
