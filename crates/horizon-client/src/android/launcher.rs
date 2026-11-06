@@ -42,6 +42,18 @@ fn ensure_sylphra_background(home: &PathBuf) -> Result<()> {
         image.extend_from_slice(include_bytes!("launcher_background/part-3.bin"));
         std::fs::write(&path, image)?;
     }
+    // HudAtlas only packs sprites listed by an atlas source. Register this
+    // private launcher atlas instead of changing Minecraft's GUI atlas.
+    let atlas = home.join("installer/assets/minecraft/atlases/sylphra.json");
+    if !atlas.is_file() {
+        if let Some(parent) = atlas.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::write(
+            atlas,
+            br#"{"sources":[{"type":"directory","source":"gui/sylphra","prefix":"sylphra/"}]}"#,
+        )?;
+    }
     Ok(())
 }
 
