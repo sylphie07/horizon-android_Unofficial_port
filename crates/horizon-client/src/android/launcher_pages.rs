@@ -446,10 +446,19 @@ impl Launcher {
         }
         let (w, h) = (ui.w, ui.h);
         let scale = ui.density / ui.batch.scale;
+        let layout = LauncherLayout::new(w, h);
+        // In desktop/landscape sidebar mode, the artwork belongs only to the
+        // hero canvas on the right. Cropping against the whole device width
+        // would zoom the image and cut off its built-in Minecraft Rust Edition logo.
+        let (background_x, background_width) =
+            if layout.navigation_mode == NavigationMode::Sidebar {
+                (layout.content_rect[0], layout.content_rect[2].max(0.0))
+            } else {
+                (0.0, w)
+            };
         if let Some(mut background) = gui.atlas.sprites.get("sylphra/background").copied() {
-            // Cover the complete launcher viewport without distorting the
-            // 16:9 artwork; crop only the excess dimension on unusual screens.
-            let viewport_aspect = w / h.max(1.0);
+            // Aspect-cover the visible hero area without stretching the artwork.
+            let viewport_aspect = background_width / h.max(1.0);
             let image_aspect = background.w as f32 / background.h.max(1) as f32;
             if viewport_aspect > image_aspect {
                 let visible = image_aspect / viewport_aspect;
@@ -464,22 +473,23 @@ impl Launcher {
                 background.u0 += span * crop;
                 background.u1 -= span * crop;
             }
-            ui.batch.rect_uv(0.0, 0.0, w * scale, h * scale, background, u32::MAX);
-            // A subtle veil keeps launcher labels readable over bright areas.
+            ui.batch.rect_uv(
+                background_x * scale, 0.0, background_width * scale, h * scale,
+                background, u32::MAX,
+            );
+            // Slightly soften the image without hiding the supplied artwork.
             ui.batch.fill(
                 &gui.atlas,
-                0.0,
-                0.0,
-                w * scale,
-                h * scale,
-                base_color::hex(0x101810, 112),
+                background_x * scale, 0.0, background_width * scale, h * scale,
+                base_color::hex(0x101810, 48),
             );
         } else {
             // Safe fallback if the bundled image cannot be installed or decoded.
-            ui.batch
-                .fill(&gui.atlas, 0.0, 0.0, w * scale, h * scale, color::BG);
+            ui.batch.fill(
+                &gui.atlas, background_x * scale, 0.0,
+                background_width * scale, h * scale, color::BG,
+            );
         }
-        let layout = LauncherLayout::new(w, h);
         if layout.navigation_mode != NavigationMode::Sidebar {
             let title_size = if w < 400.0 { 20.0 } else if w < 700.0 { 24.0 } else { 32.0 };
             let title_width = match layout.navigation_mode {
@@ -584,12 +594,9 @@ impl Launcher {
             let right = left + layout.content_rect[2];
             let bottom = h;
 
-            // Full-bleed canvas treatment: no opaque content card over the hero.
-            ui.batch.fill(&gui.atlas, left * scale, 0.0,
-                (right - left) * scale, h * scale, base_color::hex(0x241b1b, 255));
-            // Dark edge shading keeps controls legible until a user background is configured.
-            ui.rounded(left, 0.0, right-left, 76.0, 0.0, base_color::hex(0x151416, 210));
-            ui.rounded(left, h-112.0, right-left, 112.0, 0.0, base_color::hex(0x111112, 220));
+            // Preserve the bundled hero artwork; use translucent edge gradients
+            // rather than an opaque panel that would cover the background.
+            ui.rounded(left, h-104.0, right-left, 104.0, 0.0, base_color::hex(0x111112, 176));
 
             let top_y = 22.0;
             button(&mut ui, &mut self.targets, [right-278.0, top_y, 112.0, 42.0],
@@ -609,13 +616,8 @@ impl Launcher {
                 ui.rounded(x, y+76.0, width, 6.0, 3.0, color::RAISED);
                 ui.rounded(x, y+76.0, width*overall, 6.0, 3.0, color::ACCENT);
             } else {
-                let logo = ui.fit_text(Face::Medium, if right-left < 600.0 { 32.0 } else { 46.0 },
-                    "SYLPHRA", (right-left-64.0).max(80.0));
-                let logo_width = ui.measure(Face::Medium, if right-left < 600.0 { 32.0 } else { 46.0 }, &logo);
-                ui.text(Face::Medium, if right-left < 600.0 { 32.0 } else { 46.0 },
-                    left+(right-left-logo_width)*0.5, h*0.25, color::TEXT, &logo);
-                ui.text(Face::Regular, 16.0, left+24.0, h*0.25+54.0,
-                    color::MUTED, "MINECRAFT · ANDROID EDITION");
+                // The supplied background already contains the Minecraft Rust Edition
+                // logo, so keep the hero center unobstructed like the user's mockup.
 
                 // Compact version selector; Horizon currently ships one engine version.
                 ui.rounded(left+24.0, bottom-82.0, 250.0, 58.0, 7.0, color::RAISED);
