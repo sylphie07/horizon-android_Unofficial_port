@@ -1187,3 +1187,12 @@ The user selected the uploaded Minecraft Rust Edition scene as the definitive la
 - [Tests added, not run] Launch argument unit tests cover forwarding selected cape paths and omitting `--sylphra-cape` when no selection exists.
 - [Not verified] No Rust compile, APK build, or Android device/game test. Android Source Checks run `42189848848` for `2d06b12` was pending at documentation time.
 - Next: inspect CI result and compile diagnostics; add targeted loader/runtime tests if compile path supports them; then prepare one complete build/test batch. No user compilation requested yet.
+
+
+## 2026-11-06 — Cape atlas UV key correction
+- Preflight: prior branch `android` HEAD `58b3537c2c47aa0c547818a29d5fe9b4d634b6bd`. Android Source Checks run `42189932300` succeeded on that HEAD, but its native job was skipped; no Rust compile is implied.
+- Static code review found a rendering integration mismatch: `process_cape()` normalizes cape pixels into the top half of a 64x64 RGBA slot, while `Game::store_skin()` halves atlas V coordinates only for keys prefixed `capes/`. The selected Sylphra cape used `sylphra/local_cape`, so it would not receive the cape-specific UV range.
+- Applied one-line correction in `crates/horizon-client/src/game/remote.rs`: atlas key is now `capes/sylphra-local`.
+- Commit: `e1d5e2472f06c968f849216fe9a8cf134dc5accc`.
+- Verification: static source edit only. No formatter, compiler, unit tests, native CI, APK build, or Android device test has run on this commit.
+- Next: validate the current source and native CI status; then prepare one combined device test for preview, local cape, account fallback and LAN remote-player isolation.
