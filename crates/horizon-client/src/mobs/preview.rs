@@ -117,6 +117,7 @@ impl PlayerPreview {
         rotation: [f32; 2],
         hidden_model_parts: u8,
         skin: Option<(&str, bool)>,
+        cape: Option<&str>,
     ) -> (usize, usize) {
         let [x0, y0, x1, y1] = rect;
         let (cx, cy) = ((x0 + x1) / 2.0, (y0 + y1) / 2.0);
@@ -152,6 +153,21 @@ impl PlayerPreview {
             &[],
             &mut vertices,
         );
+        // Reuse the engine's player-cape model and pose. The cape texture
+        // occupies a dedicated 64x64 atlas slot with its image in the top half.
+        if let Some(texture) = cape
+            && let Some(rect) = atlas.sprites.get(texture)
+        {
+            super::render::cape(
+                &mob,
+                1.0,
+                super::render::base_transform(&mob, 1.0, camera),
+                [rect.u0, rect.v0, rect.u1, rect.v1],
+                240 | 240 << 8,
+                &self.data,
+                &mut vertices,
+            );
+        }
         let height = if mob.extra.crouching { 1.5 } else { 1.8 };
         // Scale the mannequin with the available preview area instead of
         // keeping the old fixed 78-unit model on every screen size.
