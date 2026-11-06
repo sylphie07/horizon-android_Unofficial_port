@@ -70,8 +70,15 @@ For wide landscape layouts, target an approximately 23% left navigation rail and
 5. Optional Patch Notes/News presentation only when real content exists.
 6. Tests, CI and device validation before declaring completion.
 
+## Implementation status (2026-11-06)
+- First source pass applied in commit 5b0c7a691f22f9e0b1ab97e582f037836d3b0fa4, file `crates/horizon-client/src/android/launcher_pages.rs`.
+- Wide layouts now have a 23%-target dark sidebar, account area, stacked navigation labels and green selected outline. The wide Play page uses a dark full-canvas fallback, top-right Files/server-entry actions, an informational Horizon version tile and a large bottom-right Play/Install action.
+- Compact/expanded layouts retain the previous layout and Play rendering.
+- Still missing: selectable Minecraft background image, pixel-art icons/avatar treatment, final visual spacing polish and consistent redesign of non-Play pages. Multiplayer currently opens the existing server field; there is no server browser. Version tile is informational, not a dropdown.
+- CI run 42169014756 was queued at documentation time. Compilation, tests, APK and device appearance remain unverified.
+
 ## Current verified starting point
-- Branch android; HEAD at preflight: 12c5526a041ebc49a8e6d3c88356c9c6644425ff.
+- Branch android; pre-redesign HEAD was 3b0750ed31336e48e4cff33fe81851c472211846.
 - Existing launcher is native Rust in crates/horizon-client/src/android/launcher_pages.rs.
 - Existing adaptive layout and navigation modes are in launcher_pages.rs.
 - Existing launcher palette is local to launcher_pages.rs; gameplay HUD theme must not be changed.
