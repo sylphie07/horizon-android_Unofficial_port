@@ -1144,3 +1144,9 @@ The user selected the uploaded Minecraft Rust Edition scene as the definitive la
 - [Not yet verified] No Rust build, APK build, emulator/device test, cape 3D preview, in-game cape rendering, rename/delete controls, or LAN appearance exchange was run in this change batch. The preview still uses the existing skin mannequin; cape geometry is a separate next stage.
 - Commits: `5b33791` (studio tabs/list), `0df249c` (launcher tab state), `4a209f9` (tab placement correction).
 - Next: run source checks / compile checks, then implement cape preview geometry and launch-time cape injection only after verifying the actual player cape UV mapping.
+
+## 2026-11-06 — Cape Studio tab cleanup
+- [Applied] `launcher_pages.rs`: skin overlay toggles (Hat/Jacket/sleeves/pants) now render only in the Skins tab. The Capes tab reclaims that strip for its list while retaining the shared mannequin area.
+- Commit: `a4a2345afef942de6b1e9896f9d80661f28deffd`.
+- [Verified] Prior HEAD `ca03019d0db3b1d3d38994e578063bf22444a951` passed Android Source Checks run `42185225542`. The new cleanup commit has not yet been checked by CI.
+- [Not verified] No Rust compile, APK build, device test, cape preview geometry, or in-game local cape application.
