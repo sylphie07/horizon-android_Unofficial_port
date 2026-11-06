@@ -24,7 +24,12 @@ pub(super) enum Action {
     Page(Page),
     SkinStudio,
     ImportSkin,
+    ImportCape,
+    SkinsTab,
+    CapesTab,
     SelectSkin(usize),
+    SelectCape(usize),
+    NoCape,
     DefaultSkin,
     ToggleSkinModel,
     ToggleSkinLayer(u8),
@@ -1241,14 +1246,16 @@ impl Launcher {
             let selected_y = title_y + 160.0;
             let default_y = title_y + 184.0;
             ui.text(Face::Medium, 24.0, content_left, title_y, color::TEXT, "Skin Studio");
+            let tab_y = profile_buttons_y + 48.0;
+            let tab_half = (control_width - 8.0) * 0.5;
+            button(&mut ui, &mut self.targets, [content_left, tab_y, tab_half, 36.0], "Skins", Action::SkinsTab, !self.cape_tab);
+            button(&mut ui, &mut self.targets, [content_left + tab_half + 8.0, tab_y, tab_half, 36.0], "Capes", Action::CapesTab, self.cape_tab);
             let profile = self.catalog.skin_library.profiles
                 .iter()
                 .find(|p| p.id == self.catalog.skin_library.active_profile)
                 .map(|p| p.name.clone())
                 .unwrap_or_else(|| "Default".into());
-            let selected = self.catalog.skin_library.active_skin()
-                .map(|skin| skin.name.clone())
-                .unwrap_or_else(|| "Minecraft default".into());
+            let selected = if self.cape_tab { self.catalog.cape_library.active_cape(&self.catalog.skin_library.active_profile).map(|cape| cape.name.clone()).unwrap_or_else(|| "None · account cape unchanged".into()) } else { self.catalog.skin_library.active_skin().map(|skin| skin.name.clone()).unwrap_or_else(|| "Minecraft default".into()) };
             let model = match self.catalog.skin_library.active_model().unwrap_or_default() {
                 crate::catalog::skin_library::SkinModel::Classic => "Classic",
                 crate::catalog::skin_library::SkinModel::Slim => "Slim",
@@ -1260,11 +1267,11 @@ impl Launcher {
             let half = (control_width - 8.0).max(0.0) * 0.5;
             button(&mut ui, &mut self.targets, [content_left, profile_buttons_y, half, 42.0], "Next", Action::NextAppearanceProfile, false);
             button(&mut ui, &mut self.targets, [content_left + 8.0 + half, profile_buttons_y, half, 42.0], "New", Action::NewAppearanceProfile, false);
-            button(&mut ui, &mut self.targets, [content_left, import_y, half, 42.0], "Import PNG", Action::ImportSkin, true);
-            button(&mut ui, &mut self.targets, [content_left + 8.0 + half, import_y, half, 42.0], model, Action::ToggleSkinModel, false);
+            button(&mut ui, &mut self.targets, [content_left, import_y, half, 42.0], if self.cape_tab { "Import cape" } else { "Import PNG" }, if self.cape_tab { Action::ImportCape } else { Action::ImportSkin }, true);
+            if !self.cape_tab { button(&mut ui, &mut self.targets, [content_left + 8.0 + half, import_y, half, 42.0], model, Action::ToggleSkinModel, false); }
             let selected_text = ui.fit_text(Face::Regular, 15.0, &format!("Selected: {selected}"), control_width);
             ui.text(Face::Regular, 15.0, content_left, selected_y, color::MUTED, &selected_text);
-            button(&mut ui, &mut self.targets, [content_left, default_y, control_width, 34.0], "Use default skin", Action::DefaultSkin, false);
+            if self.cape_tab { button(&mut ui, &mut self.targets, [content_left, default_y, control_width, 34.0], "None · keep account cape", Action::NoCape, false); } else { button(&mut ui, &mut self.targets, [content_left, default_y, control_width, 34.0], "Use default skin", Action::DefaultSkin, false); }
             let studio_bottom = (h - 12.0).max(layout.content_rect[1] + 180.0);
             let preview_height = if wide_preview {
                 (studio_bottom - (layout.content_rect[1] + 4.0)).max(180.0)
@@ -1417,7 +1424,7 @@ impl Launcher {
             let row_height = 48.0;
             let row_gap = 4.0;
             let row_surface = row_height - row_gap;
-            let count = self.catalog.skin_library.skins.len();
+            let count = if self.cape_tab { self.catalog.cape_library.capes.len() } else { self.catalog.skin_library.skins.len() };
             let maximum = (count as f32 * row_height - (bottom - top).max(0.0)).max(0.0);
             self.catalog.scroll = self.catalog.scroll.clamp(0.0, maximum);
             let list_right = if wide_preview {
@@ -1427,8 +1434,18 @@ impl Launcher {
             };
             self.list_view = Some([content_left, top, list_right, bottom, maximum]);
             if count == 0 {
-                ui.text(Face::Regular, 16.0, content_left, top + 16.0, color::MUTED, "No imported skins yet. Choose Import PNG skin.");
+                ui.text(Face::Regular, 16.0, content_left, top + 16.0, color::MUTED, if self.cape_tab { "No capes imported yet. Choose Import cape." } else { "No imported skins yet. Choose Import PNG skin." });
             }
+            if self.cape_tab {
+                for (i, cape) in self.catalog.cape_library.capes.iter().enumerate() {
+                    let y = top + i as f32 * row_height - self.catalog.scroll;
+                    if y < top || y + row_surface > bottom { continue; }
+                    let active = self.catalog.cape_library.active_cape(&self.catalog.skin_library.active_profile).is_some_and(|current| current.id == cape.id);
+                    let label = format!("{}  ({}×{})", cape.name, cape.width, cape.height);
+                    let rect = [content_left, y, list_right - content_left, row_surface];
+                    button(&mut ui, &mut self.targets, rect, &label, Action::SelectCape(i), active);
+                }
+            } else {
             for (i, skin) in self.catalog.skin_library.skins.iter().enumerate() {
                 let y = top + i as f32 * row_height - self.catalog.scroll;
                 if y < top || y + row_surface > bottom { continue; }
@@ -1442,6 +1459,7 @@ impl Launcher {
                 let rect = [content_left, y, row_width, row_surface];
                 let label = ui.fit_text(Face::Regular, 15.0, &raw_label, (row_width - 24.0).max(0.0));
                 button(&mut ui, &mut self.targets, rect, &label, Action::SelectSkin(i), active);
+            }
             }
         } else if self.about_visible {
             let content_left = layout.content_rect[0] + 12.0;
@@ -2322,6 +2340,29 @@ impl Launcher {
                 self.catalog.reload_skin_library(&self.home);
                 if self.skin_preview.is_none() {
                     self.skin_preview_error = None;
+                }
+            }
+            Some(Action::SkinsTab) => { self.cape_tab = false; self.catalog.scroll = 0.0; }
+            Some(Action::CapesTab) => { self.cape_tab = true; self.catalog.reload_cape_library(&self.home); self.catalog.scroll = 0.0; }
+            Some(Action::ImportCape) => {
+                crate::platform::hide();
+                if let Err(error) = crate::documents::begin_cape(self.home.clone()) { self.catalog.status = error; }
+            }
+            Some(Action::SelectCape(index)) => {
+                if let Some(cape) = self.catalog.cape_library.capes.get(index) {
+                    let id = cape.id.clone(); let name = cape.name.clone();
+                    let profile = self.catalog.skin_library.active_profile.clone();
+                    match self.catalog.cape_library.select_cape(&profile, Some(&id)).and_then(|()| self.catalog.save_cape_library(&self.home)) {
+                        Ok(()) => self.catalog.status = format!("Selected cape: {name}"),
+                        Err(error) => self.catalog.status = error,
+                    }
+                }
+            }
+            Some(Action::NoCape) => {
+                let profile = self.catalog.skin_library.active_profile.clone();
+                match self.catalog.cape_library.select_cape(&profile, None).and_then(|()| self.catalog.save_cape_library(&self.home)) {
+                    Ok(()) => self.catalog.status = "Sylphra cape disabled; account cape remains unchanged.".into(),
+                    Err(error) => self.catalog.status = error,
                 }
             }
             Some(Action::ImportSkin) => {
