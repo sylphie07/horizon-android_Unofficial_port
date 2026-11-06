@@ -1132,3 +1132,15 @@ The user selected the uploaded Minecraft Rust Edition scene as the definitive la
 - Catalog already exposes `active_cape_file`, but the launcher page does not yet offer Cape selection controls, and the launch request builder does not yet pass a cape path. Avoid presenting the catalog foundation as an end-to-end feature.
 - Important unresolved evidence: the installed/exported `entity-models.json` was not available in the inspected repository files, so exact `player#cape` UV range remains unverified. Do not hardcode the half-texture crop until the runtime asset can be inspected. The cape model layer may also be absent in a resource set; the UI/runtime should report that explicitly rather than silently claiming preview success.
 - No new source changes were made in this audit pass. Next implementation should first add safe profile-level cape selection and management UI/actions, then wire `LaunchRequest` and parser/runtime loading, then add preview geometry using verified model UV and transform; LAN sharing remains a separate protocol task. Do not ask the user to compile until the full planned batch and source checks are complete.
+
+
+## 2026-11-06 — Cape Studio interface wiring
+
+- [Applied] Added `Skins` and `Capes` tabs to the existing Skin Studio, preserving the shared 3D player preview and existing profile controls.
+- [Applied] Cape tab lists imported cape records with dimensions, exposes PNG import through the existing bounded Android document picker, and supports selecting a cape for the active appearance profile.
+- [Applied] Added `None · keep account cape`, which clears only the Sylphra profile override via `select_cape(profile, None)`; it does not modify account cape data.
+- [Applied] Added tab state to the Android launcher and action dispatch for import, selection, and clearing the profile cape.
+- [Applied] Kept tabs on the title row after reviewing the compact-phone layout to avoid overlapping import/profile controls.
+- [Not yet verified] No Rust build, APK build, emulator/device test, cape 3D preview, in-game cape rendering, rename/delete controls, or LAN appearance exchange was run in this change batch. The preview still uses the existing skin mannequin; cape geometry is a separate next stage.
+- Commits: `5b33791` (studio tabs/list), `0df249c` (launcher tab state), `4a209f9` (tab placement correction).
+- Next: run source checks / compile checks, then implement cape preview geometry and launch-time cape injection only after verifying the actual player cape UV mapping.
