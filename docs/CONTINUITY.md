@@ -711,3 +711,12 @@
 **Next step:** compile the latest `android` branch. If compilation fails, capture the complete compiler/job log and repair the exact errors before another build. After installation, verify cape import, selection, `None` account-cape fallback, rename/delete, persistence after restart, preview/rotation, launch fallback on damaged cape data, and in-game rendering.
 
 The remote branch was verified; a separate local working-tree state was not available through the GitHub connector. Only `android` was modified; no other branch, PR, release, or APK was created.
+
+
+## 2026-11-06 — Cape rename Rust compile correction
+- [Confirmed] User-provided APK workflow run `42292873918` failed in job `build-arm64`, step `Build and audit isolated arm64 test APK`. Toolchain setup and engine-table preparation completed successfully.
+- [Confirmed] Cargo stopped compiling `horizon-android` because `crates/horizon-client/src/android/catalog.rs:901` used a multi-codepoint Rust character literal for the backslash filter in cape rename input: `'\\\\'`.
+- [Applied] Corrected the literal to the valid single-backslash character literal `'\\'`. No behavior or validation rule changed.
+- [Applied] Code commit: `dbbebe90994deef6c1387679067bb5601d325a21`, branch `android`.
+- [Not verified] No Rust compilation, unit tests, APK build, installation, or device test has run after the correction. The failed run was on prior HEAD `8e5236fe0c914eb74c6298d372d4e390890c50f5`.
+- [Next] Run source checks on the corrected HEAD and inspect their result. Only after checks pass should the next APK compilation be requested.
