@@ -27,6 +27,20 @@ use winit::{
     window::{Window, WindowId},
 };
 
+fn ensure_sylphra_background(home: &PathBuf) -> Result<()> {
+    let path = home.join("installer/assets/minecraft/textures/gui/sylphra/background.png");
+    if !path.is_file() {
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::write(
+            &path,
+            include_bytes!("../../../../assets/sylphra-launcher-background.png"),
+        )?;
+    }
+    Ok(())
+}
+
 fn cape_file_or_account_fallback(
     result: std::result::Result<Option<PathBuf>, String>,
     status: &mut String,
@@ -233,6 +247,9 @@ impl Launcher {
             events.create_window(Window::default_attributes().with_title("Horizon Android"))?,
         );
         crate::display::prepare(&window)?;
+        // Install the bundled Sylphra menu artwork before stitching the
+        // launcher atlas. Keep it outside the game resources and HUD pipeline.
+        ensure_sylphra_background(&self.home)?;
         let gui = game::UiResources {
             atlas: HudAtlas::build(&self.home.join("installer"))?,
             panorama: Arc::new(horizon_client::gfx::panorama::Faces {
