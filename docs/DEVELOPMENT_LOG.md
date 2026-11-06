@@ -1442,3 +1442,11 @@ The code batch is ready for the user's APK compilation check. After installation
 - [Applied] Reconciled the earlier design note that broadly discouraged UV changes: the atlas-layout comparison now justifies the upper-half UV mapping, while the preview offset remains unchanged pending device evidence.
 - [Not verified] No Rust compile, four-ABI native check, APK build, installation, or visual device verification has run for the UV correction.
 - [Next] Obtain a manual native-check run on current `android` HEAD when dispatch is available; only after all four ABI checks pass should a fresh ARM64 test APK be requested.
+
+
+## 2026-11-06 — Cape UV data-flow audit (follow-up)
+- [Confirmed] `process_cape()` writes imported cape pixels into rows 0–31 of a 64×64 buffer. `render::cape()` accepts the caller's UV rectangle and passes it unchanged to `draw()`; it does not perform its own atlas crop.
+- [Confirmed] The preview caller previously passed the full atlas sprite rectangle; the current caller passes the upper half of that sprite rectangle.
+- [Hypothesis] The baked `player#cape` model uses a 64×32 UV domain. The source path does not expose the baked model's original UV metadata directly, so this remains to be confirmed by native rendering and device screenshot. The UV fix remains pending visual verification.
+- [Not available] No GitHub connector action can dispatch `.github/workflows/android-source.yml` with `native_checks=true`; available Actions operations are read-only fetches and reruns of existing jobs. No current-HEAD four-ABI check was started.
+- [Next] Keep the APK build on hold until a dispatch-capable route can run all four native ABI checks on current source HEAD.
