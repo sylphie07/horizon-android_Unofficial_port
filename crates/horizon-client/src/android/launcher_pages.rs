@@ -445,11 +445,43 @@ impl Launcher {
                 page.name()
             };
             let rect = layout.tab_rect(i);
-            button(&mut ui, &mut self.targets, rect, label, Action::Page(*page),
-                *page == self.catalog.page);
-            if *page == self.catalog.page {
-                ui.border(rect[0], rect[1], rect[2], rect[3], 2.0,
-                    base_color::hex(0x59ed54, 255));
+            if layout.navigation_mode == NavigationMode::Sidebar {
+                let [x, y, width, height] = rect;
+                let selected = *page == self.catalog.page;
+                ui.rounded(x, y, width, height, 3.0, if selected {
+                    base_color::hex(0x1d3b1b, 255)
+                } else {
+                    base_color::hex(0x171a18, 255)
+                });
+                if selected {
+                    ui.border(x, y, width, height, 3.0,
+                        base_color::hex(0x59ed54, 255));
+                }
+                let icon = match page {
+                    Page::Play => "item/grass_block",
+                    Page::Installed => "item/crafting_table",
+                    Page::SkinStudio => "item/player_head",
+                    Page::News => "item/writable_book",
+                    Page::Mods => "item/iron_pickaxe",
+                    Page::Packs => "item/chest",
+                    Page::Shaders => "item/glass_bottle",
+                    Page::Settings => "item/player_head",
+                };
+                let icon_size = 30.0;
+                ui.batch.sprite_scaled(ui.atlas, icon,
+                    (x + 18.0) * scale,
+                    (y + (height - icon_size) * 0.5) * scale,
+                    icon_size * scale, icon_size * scale, u32::MAX);
+                let font = if width < 220.0 { 14.0 } else { 17.0 };
+                let fitted = ui.fit_text(Face::Medium, font, label,
+                    (width - 72.0).max(40.0));
+                ui.text(Face::Medium, font, x + 62.0,
+                    y + (height - font * 1.45) * 0.5,
+                    color::TEXT, &fitted);
+                self.targets.push((rect, Action::Page(*page)));
+            } else {
+                button(&mut ui, &mut self.targets, rect, label, Action::Page(*page),
+                    *page == self.catalog.page);
             }
         }
         let compact = w < 700.0;
