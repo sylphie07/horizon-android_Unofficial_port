@@ -1386,3 +1386,13 @@ The code batch is ready for the user's APK compilation check. After installation
 - [Applied] Extended `ensure_sylphra_background` in `crates/horizon-client/src/android/launcher.rs` to create a separate `assets/minecraft/atlases/sylphra.json` with a directory source for `gui/sylphra/` and sprite prefix `sylphra/`. The existing Minecraft GUI atlas is not modified.
 - [Not verified] The registration change is source-only so far. The previous source workflow passed on `d551f02aeb8dd7ade1ee7ebb88cddf68a3165cfc`, before this final atlas registration commit. A new source run and native `--check` are still required.
 - [Next] Confirm source checks on the current HEAD, then dispatch four-ABI native checks. Only after both pass should the combined arm64 APK be requested.
+
+
+## 2026-11-06 — Launcher mockup alignment: background canvas and hero visibility
+- [Preflight] Rechecked branch `android`, latest commit history, continuity, development log, Cape Studio design doc, launcher layout/render source, background asset installer, and both active Android workflows. Branch HEAD before this change: `0b6fbb73f29ba22b952e2377a41821f71e91047e`.
+- [Confirmed] The supplied Minecraft Rust Edition artwork was already bundled and registered as `sylphra/background`. The launcher drew it before the UI, but Sidebar Play then painted an opaque `0x241b1b` rectangle over the entire hero canvas, hiding the image. The background was also aspect-cropped against the full device width rather than the right-side hero area.
+- [Applied] In `crates/horizon-client/src/android/launcher_pages.rs`, compute `LauncherLayout` before background drawing; in Sidebar mode, aspect-cover the image only inside the right content canvas, leaving the left navigation rail independent. Other navigation modes keep the full-screen background.
+- [Applied] Removed the opaque hero fill and the duplicate centered SYLPHRA/Minecraft subtitle, because the supplied image already contains the Minecraft Rust Edition logo. Kept a translucent bottom control veil for the version and Play controls; top Files/Multiplayer buttons remain on the artwork.
+- [Applied] Code commit: `899142c6a53d44acf84a0e08a14cd22815add2db`, branch `android`.
+- [Not verified] Combined commit status returned no status records. No source workflow result, four-ABI native check, APK build, install, or device screenshot is claimed for this commit. The previous source run was on an earlier commit and cannot validate this patch.
+- [Still pending] Validate the cape preview offset and the corrected right-canvas background on the user's device. Do not request an APK build until source and four-ABI native checks pass.
