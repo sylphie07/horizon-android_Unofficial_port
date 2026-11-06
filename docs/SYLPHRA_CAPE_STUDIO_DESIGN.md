@@ -299,3 +299,10 @@ The implementation commit `a7c644100dcf928b7ccefeac5e852a0e9fc5b14d` passed sour
 ## 2026-11-06 — Launcher home control sizing refinement
 - Reference mockup uses a bottom version tile around 244x72 and a wide Play control around 410x72, both close to the bottom edge. The top Files/Multiplayer controls sit closer to the right edge than the first implementation.
 - Applied in `crates/horizon-client/src/android/launcher_pages.rs`, commit `ff9686a9dbee5c6adf3dba8e27dd9b88a7e31f19`: version tile 244x72; Play height 72 and width responsive up to 410; 12px horizontal edge inset; top controls shifted right. Pending CI and device verification.
+
+
+## 2026-11-06 — Cape preview transform audit (no speculative geometry change)
+- The shared `render::cape` function expects the caller to provide the cape root transform and applies the baked `player#cape` pose; it does not add the vanilla caller-space back offset itself.
+- Current Skin Studio preview appends local +Z 0.125 before converting model vertices through the GUI transform. That GUI transform mirrors Z, unlike the world/game render path. This means the preview offset must be evaluated in the complete transform chain, not by comparing the translation vector alone.
+- The current source evidence is insufficient to assert whether the preview offset's sign/axis is correct for the baked model. Do not increase cape scale or alter UVs without verifying the baked model's local orientation and a device image.
+- CI snapshot: source run #466 passed on HEAD `4f62829cf36f3fd02bfe0b35550f0be7b47927c1`; native matrix was skipped. Prior four-ABI run #460 and test APK run #21 refer to older commits. No device validation is claimed.
