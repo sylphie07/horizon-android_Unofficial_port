@@ -654,3 +654,14 @@
 - [Confirmed] `.github/workflows/sylphra-test-apk.yml` is a separate manual-only workflow. It builds an isolated arm64 test APK and is not triggered by source-check completion.
 - [Not executed] No manual workflow dispatch, native check, APK build, artifact upload, Rust test, or device validation was started. This preserves the existing instruction not to launch builds/workflows without explicit authorization.
 - [Next] Continue static review and focused regression-test coverage. Before the first native verification, request explicit authorization for the opt-in native checks; request separate authorization before the test APK workflow.
+
+
+## 2026-11-06 — Cape/Elytra separation audit (static)
+- Preflight: verified authorized branch `android`, HEAD `2181b90e05b5ed908f10c235a197a4fc93d4766c`, reviewed continuity, development log, Cape Studio design, and inspected `mobs/render.rs`, `mobs/preview.rs`, `mobs.rs`, `game/remote.rs`, and item-model sources.
+- [Confirmed] The Sylphra cape override is stored as a distinct texture key `capes/sylphra-local` and assigned only to the local player's UUID after account/offline cape resolution. Other player UUIDs retain their own resolved cape entries.
+- [Confirmed] The cape renderer draws the `player#cape` model layer using the supplied cape UV rectangle. Its gliding value affects the cape flap/lean pose; this function does not read or replace an Elytra texture.
+- [Confirmed] `Mob` carries a separate `ElytraAnimation` state (wing angles/easing) in `mobs.rs`. The preview calls the cape renderer explicitly and uses its own `horizon/cape-preview` atlas slot.
+- [Not fully proven] The complete installed player model/resource-pack data and every Elytra equipment rendering path were not available in this source audit. Therefore this is evidence of separation in the reviewed code, not a guarantee for every resource pack or a device-verified visual result. Do not claim Elytra isolation fully verified until runtime tests cover standing, gliding, and wearing Elytra with a custom cape.
+- [Not verified] No Rust compile/test, native CI, APK build, or device test was run in this audit.
+- [CI verified] Android Source Checks run `42193305519` completed successfully for this exact HEAD. The `source` job passed all configured source checks; the `native` job was skipped. This is not a Rust Android ABI compile or APK build.
+- [Next] Continue static review of Cape Studio UI width/state and add targeted regression coverage for local-only cape precedence. Then request authorization for native checks before asking for the test APK build.

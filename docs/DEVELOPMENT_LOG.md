@@ -1250,3 +1250,14 @@ The user selected the uploaded Minecraft Rust Edition scene as the definitive la
 - [Confirmed] `.github/workflows/sylphra-test-apk.yml` is a separate manual-only workflow. It builds an isolated arm64 test APK and is not triggered by source-check completion.
 - [Not executed] No manual workflow dispatch, native check, APK build, artifact upload, Rust test, or device validation was started. This preserves the existing instruction not to launch builds/workflows without explicit authorization.
 - [Next] Continue static review and focused regression-test coverage. Before the first native verification, request explicit authorization for the opt-in native checks; request separate authorization before the test APK workflow.
+
+
+## 2026-11-06 — Cape/Elytra separation audit (static)
+- Preflight: verified branch `android`, HEAD `2181b90e05b5ed908f10c235a197a4fc93d4766c`, and re-read the continuity, development log, and Cape Studio design documents before source inspection.
+- [Confirmed] `crates/horizon-client/src/game/remote.rs::update_remote_skins` resolves server/account/offline capes first, then inserts the Sylphra override under the local player's UUID only. Other UUID entries are not overwritten by this custom override.
+- [Confirmed] `crates/horizon-client/src/mobs/render.rs::cape` draws the `player#cape` model layer using the supplied cape atlas UV. The gliding scalar contributes to cape flap/lean animation; the function does not access an Elytra texture.
+- [Confirmed] `crates/horizon-client/src/mobs.rs` maintains a distinct `ElytraAnimation` state for wing angles/easing. `mobs/preview.rs` explicitly adds cape geometry with the dedicated `horizon/cape-preview` texture slot.
+- [Qualification] The complete runtime `entity-models.json`, all resource-pack variants, and the full Elytra equipment renderer were not verified in this pass. No absolute claim of texture/model isolation across all resource packs is made; device verification must cover a selected cape both with and without Elytra and during gliding.
+- [CI] Run `42193305519` for this exact HEAD completed: `source` job success, all configured source checks passed; `native` job skipped. No Rust Android ABI compile, APK build, or device test.
+- [Not changed] No source files, runtime behavior, branches, workflows, APKs, releases, or LAN protocol were modified in this audit. Documentation only.
+- [Next] Review narrow-device layout and action-state transitions; add focused tests for local-only cape precedence; later request native-check authorization, then separately request APK-build authorization.

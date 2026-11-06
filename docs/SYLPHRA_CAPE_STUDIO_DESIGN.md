@@ -236,3 +236,11 @@ Solo documentación e inspección de código. No se ha modificado código de pro
 - [Not changed] No launch precedence, remote-player handling, account fallback, Elytra behavior, other branch, workflow rerun, APK, or release.
 
 - Cancellation safety: dismissing the shared chooser also clears the pending cape-delete ID; only a newly opened and explicitly confirmed delete flow may invoke removal. Applied on 2026-11-06; runtime behavior not yet device-tested.
+
+
+## 2026-11-06 — Cape/Elytra separation audit (static)
+- [Confirmed] Runtime cape assignment is UUID-keyed. The custom Sylphra cape is inserted only for the local player's UUID after server/account/offline resolution; it does not rewrite remote players' cape map entries.
+- [Confirmed] Cape geometry is rendered by the dedicated `player#cape` layer with a supplied cape atlas rectangle. The cape pose reads the gliding interpolation to animate flap/lean, but the reviewed cape function does not consume an Elytra texture.
+- [Confirmed] Elytra wing pose is represented by a separate `ElytraAnimation` state in `mobs.rs`; Cape Studio preview invokes the cape geometry helper explicitly and uses the dedicated `horizon/cape-preview` slot.
+- [Caveat] Static inspection did not establish the complete runtime model JSON or every Elytra equipment/resource-pack rendering path. Treat Elytra texture/model isolation as not fully verified until device tests cover normal wear, gliding, and resource-pack variations.
+- [CI] Source run `42193305519` passed for HEAD `2181b90e05b5ed908f10c235a197a4fc93d4766c`; native job skipped. No compile/APK/device test.
