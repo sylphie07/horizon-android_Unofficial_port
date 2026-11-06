@@ -182,3 +182,12 @@ Solo documentación e inspección de código. No se ha modificado código de pro
 - Launch chain to extend: `android/launcher.rs` constructs `LaunchRequest`; `android/game_launch.rs` emits CLI arguments; `game.rs` parses `--sylphra-cape`, validates and loads a bounded library-owned PNG; `remote.rs` applies the decoded 64x64 texture to local UUID only. Use `skins::process_cape()` for 64x32 / 22x17 normalization. Do not route through Elytra texture handling.
 - No code was changed by this audit. Required tests: selected path argument, absent path emits no argument, invalid path/symlink/oversized or unsupported PNG rejected, selected local cape takes precedence over account/offline cape, no selection preserves account cape, remote UUID entries remain unchanged.
 - Current source checks run `42187731379` passed on HEAD `a21cee999205bf28e1f3bb4e98fe299abd066ee3`; this is not compilation, APK, or device verification.
+
+
+## Runtime implementation — first local-only pass (2026-11-06)
+- `LaunchRequest.cape_file` now transports the active profile cape to the game as `--sylphra-cape`; no argument is emitted when selection is None. Launcher resolves the path through `Catalog::active_cape_file`, and refuses launch if the selected library file is invalid/unavailable.
+- Game CLI parses the optional path. `load_sylphra_cape()` accepts only a non-symlink file in a `capes/` directory, a 64-hex content-addressed `.png` name, <=1 MiB, and supported 64x32 / 22x17 dimensions; it decodes and normalizes with existing `process_cape()`.
+- `update_remote_skins()` inserts the custom atlas texture only under the local player's UUID, after existing server/account/offline cape resolution. With no Sylphra selection, account/offline behavior is unchanged. Other player UUIDs are not rewritten, and Elytra code is untouched.
+- Source commits: `678aa23`, `38f0b26`, `e9985d1`, `4282427`, `2d06b12`.
+- Added launch-argument tests, but they have not yet been run. No Rust compile, APK build, or device/gameplay validation has been performed. Source-check run `42189848848` was pending for code HEAD `2d06b12` when this entry was written.
+- Remaining verification: compile the Rust workspace; test loader rejection/normalization; verify explicit cape overrides only the local player; verify None retains an official account cape; verify `modelPart_cape` still hides cape as before; inspect mannequin preview and in-game cape visually on device. LAN sharing remains separate.
