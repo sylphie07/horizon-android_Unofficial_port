@@ -665,3 +665,13 @@
 - [Not verified] No Rust compile/test, native CI, APK build, or device test was run in this audit.
 - [CI verified] Android Source Checks run `42193305519` completed successfully for this exact HEAD. The `source` job passed all configured source checks; the `native` job was skipped. This is not a Rust Android ABI compile or APK build.
 - [Next] Continue static review of Cape Studio UI width/state and add targeted regression coverage for local-only cape precedence. Then request authorization for native checks before asking for the test APK build.
+
+## 2026-11-06 — Atomic Cape Studio selection persistence
+- Preflight: verified branch `android`, HEAD `93530efd4a5620baac934b9157e040380ff256d7`, reviewed continuity/development/design docs, cape-library persistence code, and the two UI selection actions.
+- [Confirmed] `SelectCape` and `NoCape` mutated the in-memory selection before saving the manifest. If the save failed (for example, storage became unwritable), the UI reported an error but the in-memory selection remained changed and could still be passed into the next game launch during that process.
+- [Applied] Added `CapeLibrary::select_cape_and_save`, which snapshots the library, validates and applies the selection, persists it, and restores the previous in-memory state on save failure.
+- [Applied] Updated both `SelectCape` and `NoCape` UI actions to use the transactional method. Existing lower-level `select_cape` remains available for tests and staged operations that intentionally save separately.
+- [Applied] Added a regression test that forces manifest persistence to fail by replacing the manifest file with a directory, then verifies failed deselection retains the previous cape and failed selection does not create a profile selection.
+- [Not verified] Rust formatting, compilation, unit tests, native CI, APK build, and device behavior have not been run. This source edit is not yet verified by CI.
+- [Not changed] Import format, cape PNG validation, account/offline cape fallback, remote UUID assignment, Elytra behavior, workflows, APKs, releases, and branches.
+- [Next] Continue auditing import error recovery and narrow-screen layout. After static review, request authorization for native checks before any test APK build.

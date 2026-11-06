@@ -2426,7 +2426,7 @@ impl Launcher {
                 if let Some(cape) = self.catalog.cape_library.capes.get(index) {
                     let id = cape.id.clone(); let name = cape.name.clone();
                     let profile = self.catalog.skin_library.active_profile.clone();
-                    match self.catalog.cape_library.select_cape(&profile, Some(&id)).and_then(|()| self.catalog.save_cape_library(&self.home)) {
+                    match self.catalog.cape_library.select_cape_and_save(&profile, Some(&id), &self.home) {
                         Ok(()) => self.catalog.status = format!("Selected cape: {name}"),
                         Err(error) => self.catalog.status = error,
                     }
@@ -2463,7 +2463,7 @@ impl Launcher {
             }
             Some(Action::NoCape) => {
                 let profile = self.catalog.skin_library.active_profile.clone();
-                match self.catalog.cape_library.select_cape(&profile, None).and_then(|()| self.catalog.save_cape_library(&self.home)) {
+                match self.catalog.cape_library.select_cape_and_save(&profile, None, &self.home) {
                     Ok(()) => self.catalog.status = "Sylphra cape disabled; account cape remains unchanged.".into(),
                     Err(error) => self.catalog.status = error,
                 }

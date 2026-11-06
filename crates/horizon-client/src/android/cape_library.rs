@@ -202,6 +202,24 @@ impl CapeLibrary {
         self.capes.iter().find(|cape| cape.id == id)
     }
 
+    /// Persist a profile selection atomically from the caller's perspective.
+    /// If the manifest cannot be saved, restore the previous in-memory state
+    /// so a failed UI action cannot affect the next game launch.
+    pub fn select_cape_and_save(
+        &mut self,
+        profile_id: &str,
+        cape_id: Option<&str>,
+        home: &Path,
+    ) -> Result<(), String> {
+        let previous = self.clone();
+        self.select_cape(profile_id, cape_id)?;
+        if let Err(error) = self.save(home) {
+            *self = previous;
+            return Err(error);
+        }
+        Ok(())
+    }
+
     pub fn rename(&mut self, cape_id: &str, name: &str, home: &Path) -> Result<(), String> {
         let name = clean_name(name);
         let previous = self.clone();
@@ -412,6 +430,31 @@ mod tests {
         assert!(library.active_cape("default").is_none());
         assert_eq!(library.active_cape("builder").unwrap().id, second.id);
         library.save(&path).unwrap();
+        let _ = fs::remove_dir_all(path);
+    }
+
+    #[test]
+    fn failed_selection_save_restores_previous_in_memory_selection() {
+        let path = home();
+        let mut library = CapeLibrary::load(&path).unwrap();
+        let cape = library
+            .import_png(&path, "one.png", &png(64, 32, [255, 0, 0, 255]))
+            .unwrap();
+        library.select_cape("default", Some(&cape.id)).unwrap();
+        library.save(&path).unwrap();
+
+        let manifest = path.join(MANIFEST);
+        fs::remove_file(&manifest).unwrap();
+        fs::create_dir(&manifest).unwrap();
+        assert!(library
+            .select_cape_and_save("default", None, &path)
+            .is_err());
+        assert_eq!(library.active_cape("default").unwrap().id, cape.id);
+
+        assert!(library
+            .select_cape_and_save("builder", Some(&cape.id), &path)
+            .is_err());
+        assert!(library.active_cape("builder").is_none());
         let _ = fs::remove_dir_all(path);
     }
 

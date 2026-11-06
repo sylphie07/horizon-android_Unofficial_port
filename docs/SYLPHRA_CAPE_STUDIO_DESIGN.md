@@ -244,3 +244,9 @@ Solo documentación e inspección de código. No se ha modificado código de pro
 - [Confirmed] Elytra wing pose is represented by a separate `ElytraAnimation` state in `mobs.rs`; Cape Studio preview invokes the cape geometry helper explicitly and uses the dedicated `horizon/cape-preview` slot.
 - [Caveat] Static inspection did not establish the complete runtime model JSON or every Elytra equipment/resource-pack rendering path. Treat Elytra texture/model isolation as not fully verified until device tests cover normal wear, gliding, and resource-pack variations.
 - [CI] Source run `42193305519` passed for HEAD `2181b90e05b5ed908f10c235a197a4fc93d4766c`; native job skipped. No compile/APK/device test.
+
+## 2026-11-06 — Atomic Cape Studio selection persistence
+- [Confirmed] Before this change, the SelectCape and NoCape handlers mutated the in-memory profile selection before writing the manifest. A write failure could leave runtime state changed even though the action reported failure.
+- [Applied] Added `CapeLibrary::select_cape_and_save` with snapshot/rollback on manifest write failure and switched both UI actions to it.
+- [Applied] Added a failure-path unit test covering failed deselection and failed selection. Test source added; execution remains pending.
+- [Not verified] No Rust compile, test, native workflow, APK, or device test.
