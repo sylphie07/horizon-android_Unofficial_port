@@ -1405,3 +1405,12 @@ The code batch is ready for the user's APK compilation check. After installation
 - [Next authorized action] The isolated test APK workflow `.github/workflows/sylphra-test-apk.yml` builds arm64 only, app ID `dev.sylphra.android.test`, app name `Sylphra Launcher`, development channel, artifact `sylphra-launcher-arm64-test` retained 7 days; it does not publish a GitHub Release. User may dispatch it on branch `android`.
 - [Not verified] Launcher background and cape-preview offset have not yet been visually checked on device. Successful native `--check` does not establish APK packaging/install/runtime success.
 - Run URL: https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/42305608723
+
+
+## 2026-11-06 — Home screen control proportions refined to user mockup
+- [Preflight] Rechecked authorized branch `android`, latest commits, continuity/development/design docs, and the current launcher page renderer. The prior four-ABI green run #460 tested commit `21282f95002e0ed99d592f256ace99f2e5d7c89b`; it does not cover this new UI adjustment.
+- [Confirmed] The right-side hero composition already matched the supplied artwork placement, but the bottom Play button was capped at 330x58 with a 24px right inset, and the version tile was 250x58 with a 24px left inset. The reference mockup uses a taller bottom row and a wider Play action.
+- [Applied] In `crates/horizon-client/src/android/launcher_pages.rs`, changed the sidebar home Files/Multiplayer button positions to align more closely with the right edge; increased the version tile to 244x72 with a 12px inset; increased Play to a responsive 220–410px width, 72px height and 12px right inset. The bottom anchor remains 82px from the viewport edge, matching the reference composition.
+- [Applied] Code commit: `ff9686a9dbee5c6adf3dba8e27dd9b88a7e31f19`, branch `android`.
+- [Not verified] No CI, native check, APK build, install, or device visual check has run after this commit. No build is being requested yet.
+- [Next] Run source checks and four-ABI Rust `--check` for the latest HEAD, then decide whether further UI changes are warranted before the single arm64 test APK.
