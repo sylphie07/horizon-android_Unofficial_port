@@ -807,3 +807,12 @@ The remote branch was verified; a separate local working-tree state was not avai
 - Root cause found in the preview texture mapping: `process_cape()` stores a 64×32 cape in the upper half of a 64×64 slot, but the preview supplied the full slot UV rectangle to the 64×32 `player#cape` model. Preview now maps UVs to the upper half. This does not change gameplay rendering.
 - [Not verified] No build, native check, APK, or device test has run for this commit. Do not claim the visual issue is fixed until the user verifies the next APK.
 - [Next] Run source checks and manual four-ABI native check on current branch HEAD. Request one ARM64 test APK only after all four ABI checks pass.
+
+
+## 2026-11-06 — Cape preview UV CI status
+- Authorized branch: `android`. Source code HEAD under review: `2e9847c1eb7b680501853c317b24aec30ed38fd8` (UV correction commit `89290b79cce0349fc4b38b9e91cd4274c7c12a4c`). Documentation reconciliation follows in commits recorded by the GitHub history.
+- Source CI #473 / `42311448398` passed on exact source HEAD `2e9847c...`; source job passed all checks. Native matrix was skipped because this was a push-triggered run.
+- Workflow `.github/workflows/android-source.yml` requires manual dispatch with `native_checks=true` for arm64-v8a, armeabi-v7a, x86, and x86_64. The current GitHub connector has no workflow-dispatch action, so this session could not start that matrix.
+- UV correction is applied but not runtime-verified. The earlier broad caution against UV edits was narrowed: atlas layout supports the upper-half UV mapping; the preview offset remains untouched and needs device evidence.
+- [Not verified] No current-HEAD Rust native check, fresh APK, install, or screenshot exists. Do not ask the user to compile yet.
+- [Next] Trigger the four-ABI manual native check when a dispatch-capable route is available. If all four pass, request one fresh ARM64 test APK and inspect Cape Studio preview against the in-game cape.
