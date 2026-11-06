@@ -1165,3 +1165,14 @@ The user selected the uploaded Minecraft Rust Edition scene as the definitive la
 - Commits: `48953f0`, `d087ee8`, `c7e0914`.
 - [Scope] Launcher mannequin only; game launch and in-game player cape remain untouched. Account cape is not rendered in this launcher preview when Sylphra selection is None.
 - [Not verified] Rust compilation, APK build, device test, and visual correctness. Need check all `PlayerPreview::draw` call sites and CI for current HEAD.
+
+
+## 2026-11-06 — Local player cape injection trace
+- Preflight: authorized branch `android`; HEAD `a21cee999205bf28e1f3bb4e98fe299abd066ee3`. Android Source Checks run `42187731379` completed `success` for this exact HEAD; this does not establish compilation or APK/runtime correctness.
+- Traced `LaunchRequest` → CLI parse in `game.rs` → `Options` → `Game` initialization → `game/remote.rs::update_remote_skins()`.
+- [Confirmed] Current launch/parse path supports only custom skin args (`--sylphra-skin`, `--sylphra-skin-model`) and validates the skin file before loading RGBA.
+- [Confirmed] `update_remote_skins()` already builds a UUID-keyed cape map from server/account textures, fills account cape only when absent, and assigns the result to remote mobs and local player model. Local UUID is captured from `Remote.profile`.
+- [Confirmed] Local offline cape fallback is inserted only when no account cape exists. A Sylphra cape override can be implemented after this fallback and scoped strictly to local UUID; no selected cape must leave the existing map untouched.
+- [Confirmed] CapeLibrary files are content-addressed under `home/capes`, with SHA-256 filename, 1 MiB bound, and 64x32 / 22x17 accepted dimensions. `process_cape()` already normalizes to 64x64 RGBA.
+- [Not applied] No source changes in this audit. Next: extend LaunchRequest and CLI parser with an optional cape path; add a safe loader parallel to `load_sylphra_skin`; apply the override only to local player's `capes` map and preserve `modelPart_cape` and `again_skin()` checks. Add tests for no-override behavior and local-only override.
+- No Rust compile, APK build, or device test was run.
