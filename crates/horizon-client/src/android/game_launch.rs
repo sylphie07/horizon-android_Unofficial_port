@@ -12,6 +12,8 @@ pub(crate) struct LaunchRequest {
     /// Optional Sylphra skin selected for this game session.
     pub skin_file: Option<PathBuf>,
     pub skin_slim: bool,
+    /// Optional Sylphra textile cape selected for this game session.
+    pub cape_file: Option<PathBuf>,
     pub extra_arguments: Vec<String>,
     pub open_gl: bool,
     pub gpu_batching: bool,
@@ -47,6 +49,9 @@ impl LaunchRequest {
                 "--sylphra-skin-model".into(),
                 if self.skin_slim { "slim" } else { "classic" }.into(),
             ]);
+        }
+        if let Some(cape) = &self.cape_file {
+            args.extend(["--sylphra-cape".into(), cape.to_string_lossy().into_owned()]);
         }
         args.extend(self.extra_arguments.iter().cloned());
         args
@@ -84,6 +89,7 @@ mod tests {
             control_socket: None,
             skin_file: None,
             skin_slim: false,
+            cape_file: None,
             extra_arguments: vec![],
             open_gl: false,
             gpu_batching: false,
@@ -108,6 +114,18 @@ mod tests {
         let args = r.arguments();
         assert!(args.windows(2).any(|a| a == ["--sylphra-skin", "private skins/custom.png"]));
         assert!(args.windows(2).any(|a| a == ["--sylphra-skin-model", "slim"]));
+    }
+    #[test]
+    fn selected_cape_is_passed_as_a_separate_argument() {
+        let mut r = request();
+        r.cape_file = Some("private capes/custom.png".into());
+        let args = r.arguments();
+        assert!(args.windows(2).any(|a| a == ["--sylphra-cape", "private capes/custom.png"]));
+    }
+    #[test]
+    fn no_selected_cape_does_not_emit_override_argument() {
+        let args = request().arguments();
+        assert!(!args.iter().any(|a| a == "--sylphra-cape"));
     }
     #[test]
     fn no_selected_skin_keeps_launch_arguments_unchanged() {
