@@ -1350,3 +1350,12 @@ The code batch is ready for the user's APK compilation check. After installation
 - [Not verified] No post-fix Rust compile, Rust unit-test execution, native ABI check, APK build, install, or device test is available to confirm the correction. No local checkout/working tree is exposed by the GitHub connector.
 - [Not changed] No source code, workflow, branch, APK, artifact, PR, or release was changed or created in this verification pass.
 - [Next] Obtain an actual source/native validation result for the corrected code before asking the user for another APK build. Do not dispatch a build merely to discover whether the source correction compiles.
+
+
+## 2026-11-06 — Native Android validation passed after cape rename correction
+- [Confirmed] GitHub Actions run `42296701332` (run #438), workflow `.github/workflows/android-source.yml`, was manually dispatched against branch `android` at exact HEAD `1649d2d2612b3993002b15652bbf6d38f80f9daa`.
+- [Confirmed] All five jobs completed successfully: `source`, `native (arm64-v8a)`, `native (armeabi-v7a)`, `native (x86)`, and `native (x86_64)`. Each native job reached `Finished dev profile` after checking `horizon-android`; the earlier invalid backslash literal no longer blocks Rust checking.
+- [Confirmed] Source checks passed, including `git diff --check`, public-tree history, Android Python unit tests, diagnostics, performance, content tests, and workflow-export consistency. Content test log reports 36 passed, 0 failed, 1 ignored.
+- [Warnings] Native builds emit two non-fatal Rust dead-code warnings: `Action::Repository` in `launcher_pages.rs:72` and `Catalog::save_cape_library` in `catalog.rs:364`. No compilation errors were reported. These warnings are noted for later cleanup review, not treated as blockers.
+- [Not verified] This workflow uses `--check`; it does not link/package an APK. No APK build, artifact audit, installation, or physical-device test is claimed.
+- [Next] The corrected source has passed the four-ABI native checks. The next validation step is the separate manual arm64 test APK workflow, followed by artifact/package inspection and user device testing. Do not claim runtime behavior until device testing.
