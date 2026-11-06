@@ -159,3 +159,10 @@ Solo documentación e inspección de código. No se ha modificado código de pro
 - The Capes tab no longer displays the skin-only overlay toggles; its list starts higher to use the available space. The Skins tab retains all six overlay controls.
 - Applied in commit `a4a2345afef942de6b1e9896f9d80661f28deffd`.
 - Source checks passed for the previous HEAD `ca03019`; this new commit still requires CI validation. The actual cape 3D preview and launch-time application remain unimplemented.
+
+## 2026-11-06 — Renderer/atlas integration audit
+- Engine `mobs::render::cape()` can generate cape mesh using installed `player#cape` model layer and avatar cape pose. `PlayerPreview::draw()` does not call it yet.
+- `process_cape()` normalizes supported cape images into a 64x64 RGBA canvas with image data in the top 32 rows. Launcher needs its own `horizon/cape-preview` atlas slot, separate from `horizon/skin-preview`.
+- Runtime `entity-models.json` is installed resource data and is not in the repository tree; exact model UVs must be read from installed document or verified with a fixture before hardcoding any crop.
+- `LaunchRequest` only has skin fields and emits skin CLI arguments. A cape argument and game-side offline-cape override need separate tracing; `None` must preserve the account cape.
+- This entry records audit findings and proposed implementation order only. No renderer, atlas, launch, or game code was modified in this audit.
