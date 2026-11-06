@@ -1275,10 +1275,10 @@ impl Launcher {
                 base_title_y
             };
             let profile_y = title_y + if compact_cape_split { 28.0 } else { 30.0 };
-            let profile_buttons_y = title_y + if compact_cape_split { 48.0 } else { 66.0 };
-            let import_y = title_y + if compact_cape_split { 80.0 } else { 112.0 };
-            let selected_y = title_y + if compact_cape_split { 114.0 } else { 160.0 };
-            let default_y = title_y + if compact_cape_split { 134.0 } else { 184.0 };
+            let profile_buttons_y = title_y + if compact_cape_split { 52.0 } else { 66.0 };
+            let import_y = title_y + if compact_cape_split { 84.0 } else { 112.0 };
+            let selected_y = title_y + if compact_cape_split { 116.0 } else { 160.0 };
+            let default_y = title_y + if compact_cape_split { 136.0 } else { 184.0 };
             ui.text(Face::Medium, 24.0, content_left, title_y, color::TEXT, "Skin Studio");
             let tab_y = title_y - 4.0;
             let tab_area_width = if compact_cape_split { content_width } else { control_width };
@@ -1493,7 +1493,7 @@ impl Launcher {
             // affect a cape and should reclaim their space for the cape list.
             let top = if self.cape_tab {
                 if compact_cape_split {
-                    selected_y + 20.0
+                    selected_y + 24.0
                 } else if wide_preview {
                     default_y + 42.0
                 } else {
@@ -2953,7 +2953,7 @@ mod launcher_layout_tests {
             let title_y = shell.content_rect[1] + 2.0;
             let preview_top = title_y + 52.0;
             let preview_height = compact_cape_preview_height(studio_bottom, preview_top, preview_width);
-            let list_top = title_y + 114.0 + 20.0;
+            let list_top = title_y + 116.0 + 24.0;
             let delete_width = 38.0;
             let rename_width = 44.0;
             let gap = 3.0;
