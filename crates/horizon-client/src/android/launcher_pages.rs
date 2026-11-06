@@ -2635,6 +2635,9 @@ impl Launcher {
             Some(Action::Dismiss) => {
                 self.exit_confirmation = false;
                 self.chooser = None;
+                // A cancelled cape-delete confirmation must never leave a stale
+                // destructive target waiting for a later chooser action.
+                self.catalog.pending_cape_delete = None;
                 if self.session_worker.is_none() {
                     self.session_ready = false;
                     self.prepared_session = None;

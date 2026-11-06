@@ -1233,3 +1233,11 @@ The user selected the uploaded Minecraft Rust Edition scene as the definitive la
 - [Applied] Added a focused unit test in `crates/horizon-client/src/game.rs` that creates a valid 64×32 content-addressed PNG, verifies normalization to a 64×64 RGBA texture, then tampers with the bytes while retaining the original digest filename and verifies rejection.
 - [Not verified] Test has not been executed; no Rust compiler, test runner, native CI job, APK build, or device test was run. The GitHub source workflow only checks its configured source-level tasks.
 - [Not changed] No launch precedence, remote-player handling, account fallback, Elytra behavior, other branch, workflow rerun, APK, or release.
+
+
+## 2026-11-06 — Cape-delete cancellation state cleanup
+- Preflight: verified branch `android`, HEAD `9987c5a35e989005558d5bb930ff1191db3bacbf`, and reviewed the current Cape Studio delete-confirmation action flow.
+- [Confirmed] The generic `Dismiss` action closed the confirmation chooser but did not clear `pending_cape_delete`. The stale ID was not immediately destructive, because deletion still required `ConfirmDeleteCape`, but it left obsolete destructive state in memory after cancellation.
+- [Applied] `crates/horizon-client/src/android/launcher_pages.rs`: clear `pending_cape_delete` whenever the chooser is dismissed. A later confirmation can only act on a freshly selected cape.
+- [Not verified] No Rust formatting, compilation, unit tests, native CI, APK build, or device test was run for this edit.
+- [Not changed] No cape data, manifest, import, launch precedence, remote-player texture, Elytra, account fallback, other branch, workflow rerun, APK, or release.

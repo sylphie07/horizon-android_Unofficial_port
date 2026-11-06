@@ -234,3 +234,5 @@ Solo documentación e inspección de código. No se ha modificado código de pro
 - [Applied] Added a focused unit test in `crates/horizon-client/src/game.rs` that creates a valid 64×32 content-addressed PNG, verifies normalization to a 64×64 RGBA texture, then tampers with the bytes while retaining the original digest filename and verifies rejection.
 - [Not verified] Test has not been executed; no Rust compiler, test runner, native CI job, APK build, or device test was run. The GitHub source workflow only checks its configured source-level tasks.
 - [Not changed] No launch precedence, remote-player handling, account fallback, Elytra behavior, other branch, workflow rerun, APK, or release.
+
+- Cancellation safety: dismissing the shared chooser also clears the pending cape-delete ID; only a newly opened and explicitly confirmed delete flow may invoke removal. Applied on 2026-11-06; runtime behavior not yet device-tested.
