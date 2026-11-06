@@ -1382,41 +1382,43 @@ impl Launcher {
                 ui.text(Face::Regular, 13.0, preview_rect[0] + 8.0, preview_rect[1] + 52.0, color::MUTED, &message);
             }
 
-            // Keep the layer controls in their own full-width strip below the
-            // preview. They must never overlap the selectable skin list.
-            let layer_top = if wide_preview { default_y + 40.0 } else { preview_rect[3] + 5.0 };
-            ui.text(Face::Regular, 12.0, content_left, layer_top, color::MUTED, "Visible skin layers");
-            let layer_gap = 5.0;
-            // Two rows of three keep every layer label readable on phones
-            // while remaining inside the left column on wide layouts.
-            let layer_area_width = if wide_preview { control_width } else { content_width };
-            let layer_width = ((layer_area_width - layer_gap * 2.0) / 3.0).max(0.0);
-            let layers = [
-                (1u8 << 6, "Hat"),
-                (1u8 << 1, "Jacket"),
-                (1u8 << 2, "L sleeve"),
-                (1u8 << 3, "R sleeve"),
-                (1u8 << 4, "L pants"),
-                (1u8 << 5, "R pants"),
-            ];
-            for (index, (bit, label)) in layers.iter().enumerate() {
-                let column = index % 3;
-                let row = index / 3;
-                let x = content_left + column as f32 * (layer_width + layer_gap);
-                let y = layer_top + 18.0 + row as f32 * 32.0;
-                let visible = self.skin_preview_hidden_parts & *bit == 0;
-                button(
-                    &mut ui,
-                    &mut self.targets,
-                    [x, y, layer_width, 28.0],
-                    label,
-                    Action::ToggleSkinLayer(*bit),
-                    visible,
-                );
-            }
-
-            // Leave enough room for both layer-control rows before the skin list.
-            let top = layer_top + 86.0;
+            // Skin overlay toggles belong only to the Skins tab. Cape mode
+            // reuses the mannequin, but must not show controls that cannot
+            // affect a cape and should reclaim their space for the cape list.
+            let top = if self.cape_tab {
+                if wide_preview { default_y + 42.0 } else { preview_rect[3] + 8.0 }
+            } else {
+                let layer_top = if wide_preview { default_y + 40.0 } else { preview_rect[3] + 5.0 };
+                ui.text(Face::Regular, 12.0, content_left, layer_top, color::MUTED, "Visible skin layers");
+                let layer_gap = 5.0;
+                let layer_area_width = if wide_preview { control_width } else { content_width };
+                let layer_width = ((layer_area_width - layer_gap * 2.0) / 3.0).max(0.0);
+                let layers = [
+                    (1u8 << 6, "Hat"),
+                    (1u8 << 1, "Jacket"),
+                    (1u8 << 2, "L sleeve"),
+                    (1u8 << 3, "R sleeve"),
+                    (1u8 << 4, "L pants"),
+                    (1u8 << 5, "R pants"),
+                ];
+                for (index, (bit, label)) in layers.iter().enumerate() {
+                    let column = index % 3;
+                    let row = index / 3;
+                    let x = content_left + column as f32 * (layer_width + layer_gap);
+                    let y = layer_top + 18.0 + row as f32 * 32.0;
+                    let visible = self.skin_preview_hidden_parts & *bit == 0;
+                    button(
+                        &mut ui,
+                        &mut self.targets,
+                        [x, y, layer_width, 28.0],
+                        label,
+                        Action::ToggleSkinLayer(*bit),
+                        visible,
+                    );
+                }
+                // Reserve both rows only while skin overlay controls are visible.
+                layer_top + 86.0
+            };
             let bottom = if wide_preview {
                 studio_bottom
             } else {
