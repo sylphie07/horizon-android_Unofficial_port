@@ -1396,3 +1396,12 @@ The code batch is ready for the user's APK compilation check. After installation
 - [Applied] Code commit: `899142c6a53d44acf84a0e08a14cd22815add2db`, branch `android`.
 - [Not verified] Combined commit status returned no status records. No source workflow result, four-ABI native check, APK build, install, or device screenshot is claimed for this commit. The previous source run was on an earlier commit and cannot validate this patch.
 - [Still pending] Validate the cape preview offset and the corrected right-canvas background on the user's device. Do not request an APK build until source and four-ABI native checks pass.
+
+
+## 2026-11-06 — Four-ABI native validation passed; APK test build authorized
+- [Confirmed] GitHub Actions run #460, ID `42305608723`, event `workflow_dispatch`, branch `android`, exact tested HEAD `21282f95002e0ed99d592f256ace99f2e5d7c89b`, completed with conclusion `success`.
+- [Confirmed] All five jobs succeeded: `source`, `native (arm64-v8a)`, `native (armeabi-v7a)`, `native (x86)`, and `native (x86_64)`. Each native job completed `Check Android Rust code without building an APK`. Source job passed whitespace/public-tree checks, Python Android tests, diagnostics/performance/content tests and workflow-export consistency.
+- [Confirmed] Run produced no artifacts; it was validation only and did not build an APK.
+- [Next authorized action] The isolated test APK workflow `.github/workflows/sylphra-test-apk.yml` builds arm64 only, app ID `dev.sylphra.android.test`, app name `Sylphra Launcher`, development channel, artifact `sylphra-launcher-arm64-test` retained 7 days; it does not publish a GitHub Release. User may dispatch it on branch `android`.
+- [Not verified] Launcher background and cape-preview offset have not yet been visually checked on device. Successful native `--check` does not establish APK packaging/install/runtime success.
+- Run URL: https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/42305608723
