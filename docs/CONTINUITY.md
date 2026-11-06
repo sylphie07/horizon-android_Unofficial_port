@@ -720,3 +720,11 @@ The remote branch was verified; a separate local working-tree state was not avai
 - [Applied] Code commit: `dbbebe90994deef6c1387679067bb5601d325a21`, branch `android`.
 - [Not verified] No Rust compilation, unit tests, APK build, installation, or device test has run after the correction. The failed run was on prior HEAD `8e5236fe0c914eb74c6298d372d4e390890c50f5`.
 - [Next] Run source checks on the corrected HEAD and inspect their result. Only after checks pass should the next APK compilation be requested.
+
+
+## Post-fix verification status — 2026-11-06
+- Current verified documentation HEAD before this note: `7ef82360f9a7d4ee0bc23d588d10db984bf8ad7b`; cape rename code correction `dbbebe90994deef6c1387679067bb5601d325a21` is included in its ancestry.
+- Static fetch of `catalog.rs:875–925` confirms the corrected Rust backslash character literal.
+- Combined commit statuses for the code fix and current HEAD are empty; no associated workflow run was returned. This is not a passing CI result and the connector's commit-run lookup only returns pull-request-triggered runs.
+- No post-fix Cargo compile, Rust unit tests, native ABI checks, APK build, installation, or device verification is claimed. No local working tree is available through the GitHub connector.
+- Next: obtain actual source/native validation on this corrected HEAD before requesting another user APK build. Do not start an APK build just to test whether the syntax correction compiles.
