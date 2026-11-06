@@ -800,3 +800,10 @@ The remote branch was verified; a separate local working-tree state was not avai
 - Cape audit: preview caller supplies local +Z 0.125 to the engine's cape layer; preview GUI transform mirrors Z. In-game rendering uses another transform path. The model renderer itself does not apply an extra offset. The correct sign/axis still needs confirmation against the baked `player#cape` model orientation and a visual test. No speculative geometry edits made.
 - [Not verified] Latest current HEAD has source CI success only; no four-ABI native check, fresh APK, install, or screenshot. Previous four-ABI run #460 was on older HEAD `21282f95002e0ed99d592f256ace99f2e5d7c89b`.
 - [Next] Continue source-level audit and layout robustness review. Do not ask user to compile until current-HEAD four-ABI checks pass and the build is actually needed.
+
+
+## 2026-11-06 — Cape preview UV fix queued for validation
+- Authorized branch: `android`. Applied commit `89290b79cce0349fc4b38b9e91cd4274c7c12a4c` to `crates/horizon-client/src/mobs/preview.rs` only.
+- Root cause found in the preview texture mapping: `process_cape()` stores a 64×32 cape in the upper half of a 64×64 slot, but the preview supplied the full slot UV rectangle to the 64×32 `player#cape` model. Preview now maps UVs to the upper half. This does not change gameplay rendering.
+- [Not verified] No build, native check, APK, or device test has run for this commit. Do not claim the visual issue is fixed until the user verifies the next APK.
+- [Next] Run source checks and manual four-ABI native check on current branch HEAD. Request one ARM64 test APK only after all four ABI checks pass.
