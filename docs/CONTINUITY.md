@@ -783,3 +783,11 @@ The remote branch was verified; a separate local working-tree state was not avai
 - No artifacts were produced by this check run. Link: https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/42305608723
 - [Authorized next step] User can now dispatch `.github/workflows/sylphra-test-apk.yml` on branch `android`. It builds only ARM64 with test package ID `dev.sylphra.android.test`, display name `Sylphra Launcher`, development channel, and uploads `sylphra-launcher-arm64-test` as a 7-day Actions artifact. No GitHub Release is published.
 - [Not verified] Neither cape-preview offset nor launcher hero background has been device-verified yet. After APK completion, inspect job logs/artifact, then user installs and supplies screenshots. Do not claim runtime visual success until confirmed by user.
+
+
+## 2026-11-06 — Launcher mockup sizing refinement
+- [Applied] Commit `ff9686a9dbee5c6adf3dba8e27dd9b88a7e31f19` adjusts only the Sidebar Play home controls in `crates/horizon-client/src/android/launcher_pages.rs`: Files/Multiplayer shift toward the right edge; version card becomes 244x72; Play becomes 72px tall and responsive up to 410px wide with 12px edge insets. This more closely matches the user's supplied composite mockup.
+- Existing background visibility fix remains in commit `899142c6a53d44acf84a0e08a14cd22815add2db`; cape preview offset remains in `crates/horizon-client/src/mobs/preview.rs` at commit `1a4d78ea194902a7ffc7c25dc3bc118a001e5238`.
+- Previous four-ABI CI run #460 succeeded on earlier HEAD `21282f95002e0ed99d592f256ace99f2e5d7c89b`. It does not validate this new sizing change.
+- [Not verified] Current latest code commit has no CI/native validation, APK build, installation, or device screenshot yet. User asked assistant to continue development and notify them only when another build is needed; do not ask them to compile at this stage.
+- [Next] Validate latest HEAD with source tests and four-ABI Rust checks. After any further code changes, rerun checks before asking for one test APK.
