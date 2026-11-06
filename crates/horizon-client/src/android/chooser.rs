@@ -275,6 +275,23 @@ impl Chooser {
             scroll: 0.0,
         }
     }
+    pub(super) fn confirm_delete_cape(name: String) -> Self {
+        Self {
+            title: "Remove cape?",
+            help: "Removes this cape from the library and clears its selections from all appearance profiles. This cannot be undone.",
+            device: Some(name),
+            choices: vec![
+                (
+                    "Remove cape".into(),
+                    String::new(),
+                    Action::ConfirmDeleteCape,
+                    false,
+                ),
+                ("Cancel".into(), String::new(), Action::Dismiss, true),
+            ],
+            scroll: 0.0,
+        }
+    }
     pub(super) fn navigation(&self, width: f32) -> Vec<([f32; 4], Action)> {
         self.choices
             .iter()

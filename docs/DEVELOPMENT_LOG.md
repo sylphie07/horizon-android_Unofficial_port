@@ -1207,3 +1207,12 @@ The user selected the uploaded Minecraft Rust Edition scene as the definitive la
 - [Pending] CapeLibrary already implements `rename` and `remove`, but Skin Studio currently exposes neither action. The delete API clears profile selections before removing the PNG and explicitly requires caller confirmation; add safe UI confirmation before invoking it. Rename needs a proper text-entry flow.
 - [Not verified] No Rust compilation, unit test, native CI job, APK build, or device visual/gameplay test was run in this change. The existing automated Android source-check workflow may run on the new commit; inspect its exact HEAD and job results before claiming validation.
 - [Not changed] No branch other than `android`; no workflow rerun; no APK or release; no LAN protocol changes.
+
+
+## 2026-11-06 — Cape library management controls
+- Preflight: verified branch `android`, starting HEAD `776603bb9b28d53cf9b3dcefadf9deb58a53425c`, read the latest continuity/development/design entries, and inspected `CapeLibrary::rename/remove`, launcher actions, chooser confirmation flow, and the Android text-input path.
+- [Confirmed] Cape import, selection, per-profile selection, and `None` already existed. `CapeLibrary::rename` persists a sanitized name; `remove` first saves removal of metadata and all profile selections, then removes the PNG. The UI had no controls invoking either method.
+- [Applied] Added per-cape Rename and Del controls to the Capes list. Rename opens the existing Android keyboard, restricts input to printable name characters (maximum 48), and persists through `CapeLibrary::rename`. Delete opens a dedicated confirmation chooser; only its explicit confirmation invokes `CapeLibrary::remove`. The library is reloaded after removal attempts so in-memory state reflects the persisted manifest even if PNG deletion reports an error.
+- [Applied] Added `pending_cape_delete`, `cape_rename_id`, and `cape_rename_text` state to Catalog, plus `RenameCape`, `DeleteCape`, and `ConfirmDeleteCape` actions. No change to import formats, account cape fallback, game launch arguments, remote-player handling, or Elytra rendering.
+- [Not verified] No Rust formatting, compilation, unit tests, native CI, APK build, or Android UI test has run for this change. Confirm keyboard behavior, list layout on narrow devices, rename persistence, delete confirmation/cancellation, and profile selection cleanup in a later device test.
+- [Not changed] No other branch, workflow rerun, APK, release, or LAN protocol change.

@@ -29,6 +29,9 @@ pub(super) enum Action {
     CapesTab,
     SelectSkin(usize),
     SelectCape(usize),
+    RenameCape(usize),
+    DeleteCape(usize),
+    ConfirmDeleteCape,
     NoCape,
     DefaultSkin,
     ToggleSkinModel,
@@ -1479,9 +1482,42 @@ impl Launcher {
                     let y = top + i as f32 * row_height - self.catalog.scroll;
                     if y < top || y + row_surface > bottom { continue; }
                     let active = self.catalog.cape_library.active_cape(&self.catalog.skin_library.active_profile).is_some_and(|current| current.id == cape.id);
-                    let label = format!("{}  ({}×{})", cape.name, cape.width, cape.height);
-                    let rect = [content_left, y, list_right - content_left, row_surface];
-                    button(&mut ui, &mut self.targets, rect, &label, Action::SelectCape(i), active);
+                    let row_width = (list_right - content_left).max(0.0);
+                    let delete_width = 42.0;
+                    let rename_width = 50.0;
+                    let gap = 4.0;
+                    let select_width = (row_width - delete_width - rename_width - gap * 2.0).max(72.0);
+                    let label = ui.fit_text(
+                        Face::Regular,
+                        14.0,
+                        &format!("{}  ({}×{})", cape.name, cape.width, cape.height),
+                        (select_width - 12.0).max(0.0),
+                    );
+                    button(
+                        &mut ui,
+                        &mut self.targets,
+                        [content_left, y, select_width, row_surface],
+                        &label,
+                        Action::SelectCape(i),
+                        active,
+                    );
+                    let rename_x = content_left + select_width + gap;
+                    button(
+                        &mut ui,
+                        &mut self.targets,
+                        [rename_x, y, rename_width, row_surface],
+                        "Rename",
+                        Action::RenameCape(i),
+                        false,
+                    );
+                    button(
+                        &mut ui,
+                        &mut self.targets,
+                        [rename_x + rename_width + gap, y, delete_width, row_surface],
+                        "Del",
+                        Action::DeleteCape(i),
+                        false,
+                    );
                 }
             } else {
             for (i, skin) in self.catalog.skin_library.skins.iter().enumerate() {
@@ -2395,6 +2431,35 @@ impl Launcher {
                         Err(error) => self.catalog.status = error,
                     }
                 }
+            }
+            Some(Action::RenameCape(index)) => {
+                if let Some(cape) = self.catalog.cape_library.capes.get(index) {
+                    self.catalog.cape_rename_id = Some(cape.id.clone());
+                    self.catalog.cape_rename_text = cape.name.clone();
+                    self.catalog.editing = Some("cape_name");
+                    crate::platform::show(&self.catalog.cape_rename_text);
+                }
+            }
+            Some(Action::DeleteCape(index)) => {
+                if let Some(cape) = self.catalog.cape_library.capes.get(index) {
+                    self.catalog.pending_cape_delete = Some(cape.id.clone());
+                    self.chooser = Some(super::chooser::Chooser::confirm_delete_cape(cape.name.clone()));
+                }
+            }
+            Some(Action::ConfirmDeleteCape) => {
+                if let Some(id) = self.catalog.pending_cape_delete.take() {
+                    match self.catalog.cape_library.remove(&id, &self.home) {
+                        Ok(()) => {
+                            self.catalog.status = "Cape removed from the library and all appearance profiles.".into();
+                            self.catalog.reload_cape_library(&self.home);
+                        }
+                        Err(error) => {
+                            self.catalog.status = format!("Could not completely remove cape: {error}");
+                            self.catalog.reload_cape_library(&self.home);
+                        }
+                    }
+                }
+                self.chooser = None;
             }
             Some(Action::NoCape) => {
                 let profile = self.catalog.skin_library.active_profile.clone();

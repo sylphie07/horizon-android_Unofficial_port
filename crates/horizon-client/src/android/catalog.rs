@@ -217,6 +217,9 @@ pub struct Catalog {
     pub skin_library_error: Option<String>,
     pub cape_library: cape_library::CapeLibrary,
     pub cape_library_error: Option<String>,
+    pub pending_cape_delete: Option<String>,
+    pub cape_rename_id: Option<String>,
+    pub cape_rename_text: String,
     skin_preview_cache: Option<(String, Vec<u8>)>,
     pub editing: Option<&'static str>,
     pub render_scale_text: String,
@@ -267,6 +270,9 @@ impl Catalog {
             skin_library_error,
             cape_library,
             cape_library_error,
+            pending_cape_delete: None,
+            cape_rename_id: None,
+            cape_rename_text: String::new(),
             skin_preview_cache: None,
             editing: None,
             render_scale_text: String::new(),
@@ -806,6 +812,37 @@ impl Catalog {
 
 pub fn edit(&mut self, out: horizon_client::osk::Output, home: &Path) {
         use horizon_client::osk::Output;
+        if self.editing == Some("cape_name") {
+            match out {
+                Output::Text(value) => {
+                    for character in value.chars() {
+                        if !character.is_control()
+                            && !matches!(character, '/' | '\\\\' | ':')
+                            && self.cape_rename_text.chars().count() < 48
+                        {
+                            self.cape_rename_text.push(character);
+                        }
+                    }
+                }
+                Output::Backspace => {
+                    self.cape_rename_text.pop();
+                }
+                Output::Enter | Output::Close => {
+                    self.editing = None;
+                    if let Some(id) = self.cape_rename_id.take() {
+                        match self.cape_library.rename(&id, &self.cape_rename_text, home) {
+                            Ok(()) => self.status = format!(
+                                "Cape renamed to: {}",
+                                self.cape_library.capes.iter().find(|cape| cape.id == id)
+                                    .map(|cape| cape.name.as_str()).unwrap_or("Imported cape")
+                            ),
+                            Err(error) => self.status = error,
+                        }
+                    }
+                }
+            }
+            return;
+        }
         let field = match self.editing {
             Some("name") => &mut self.config.name,
             Some("server") => &mut self.config.server,
