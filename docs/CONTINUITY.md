@@ -747,3 +747,14 @@ The remote branch was verified; a separate local working-tree state was not avai
 - [Not verified] No compile/CI/APK/device validation has run after this source change. Cape scale/length must not be guessed before seeing the corrected preview; the exact installed `player#cape` model definition is not versioned in this repository.
 - [Pending] Launcher background image. Current launcher still fills the base with solid `color::BG`. Need select a concrete image source (bundled Minecraft panorama vs user-provided image) before implementing texture loading and rendering.
 - [Next] Confirm preferred background source, implement the background independently from global HUD/game rendering, run source and four-ABI native checks, then request one combined arm64 test APK. No APK should be compiled yet.
+
+
+## 2026-11-06 — Launcher artwork integrated; waiting for native checks
+- User supplied the exact Minecraft Rust Edition artwork to use as Sylphra Launcher's background. The image has been integrated as a launcher-only background, preserving the visible logo and artwork.
+- Current authorized branch: `android`. Current HEAD: `d551f02aeb8dd7ade1ee7ebb88cddf68a3165cfc` (`feat(android): bundle custom launcher background artwork`).
+- Background asset: bundled 600x338 indexed PNG reconstructed from four binary source chunks in `crates/horizon-client/src/android/launcher_background/`; the chunks were verified byte-for-byte against the generated image. At startup the launcher assembles it into `home/installer/assets/minecraft/textures/gui/sylphra/background.png` before building `HudAtlas`.
+- `launcher_pages.rs` draws `sylphra/background` full-screen with aspect-cover cropping and a subtle dark overlay. The fallback remains the old solid background if the sprite is unavailable. This is isolated from gameplay rendering/HUD.
+- The cape preview correction remains in `crates/horizon-client/src/mobs/preview.rs` (commit `1a4d78ea194902a7ffc7c25dc3bc118a001e5238` in the preserved ancestry): local-Z offset 0.125 before rendering the preview cape. In-game cape rendering was not changed.
+- [Verified] GitHub Actions source run #42304527339 passed on HEAD `d551f02aeb8dd7ade1ee7ebb88cddf68a3165cfc`, including public-tree history, Python tests, diagnostics, performance, content, and workflow-export consistency.
+- [Not verified] The push-triggered workflow skipped native jobs. No Rust native checks for this exact HEAD, APK build, install, or device visual check has occurred. Do not ask user to compile an APK yet.
+- [Next] User action needed only for the manual workflow dispatch `.github/workflows/android-source.yml` with input `native_checks=true`; this performs four-ABI Rust `--check` and does not package an APK. After a successful result, request one combined arm64 test APK. User has already supplied the background artwork; no more image input is needed.
