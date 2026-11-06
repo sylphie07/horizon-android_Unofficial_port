@@ -599,9 +599,9 @@ impl Launcher {
             ui.rounded(left, h-104.0, right-left, 104.0, 0.0, base_color::hex(0x111112, 176));
 
             let top_y = 22.0;
-            button(&mut ui, &mut self.targets, [right-278.0, top_y, 112.0, 42.0],
+            button(&mut ui, &mut self.targets, [right-258.0, top_y, 112.0, 42.0],
                 "FILES", Action::Page(Page::Installed), false);
-            button(&mut ui, &mut self.targets, [right-154.0, top_y, 136.0, 42.0],
+            button(&mut ui, &mut self.targets, [right-135.0, top_y, 133.0, 42.0],
                 "MULTIPLAYER", Action::Field("server"), true);
 
             if installing {
@@ -620,21 +620,21 @@ impl Launcher {
                 // logo, so keep the hero center unobstructed like the user's mockup.
 
                 // Compact version selector; Horizon currently ships one engine version.
-                ui.rounded(left+24.0, bottom-82.0, 250.0, 58.0, 7.0, color::RAISED);
-                ui.border(left+24.0, bottom-82.0, 250.0, 58.0, 1.0, color::BORDER);
-                ui.text(Face::Regular, 13.0, left+42.0, bottom-70.0, color::MUTED, "CURRENT VERSION");
-                ui.text(Face::Medium, 17.0, left+42.0, bottom-43.0,
+                ui.rounded(left+12.0, bottom-82.0, 244.0, 72.0, 7.0, color::RAISED);
+                ui.border(left+12.0, bottom-82.0, 244.0, 72.0, 1.0, color::BORDER);
+                ui.text(Face::Regular, 13.0, left+28.0, bottom-70.0, color::MUTED, "CURRENT VERSION");
+                ui.text(Face::Medium, 17.0, left+28.0, bottom-43.0,
                     color::TEXT, &format!("Horizon {}", horizon_core::VANILLA_VERSION));
 
-                let play_w = (right-left-48.0).clamp(180.0, 330.0);
-                let play_x = right-play_w-24.0;
+                let play_w = (right-left-24.0).clamp(220.0, 410.0);
+                let play_x = right-play_w-12.0;
                 let play_y = bottom-82.0;
                 let play_label = if installed { "PLAY" } else if self.error.is_some() {
                     "RETRY INSTALLATION"
                 } else { "INSTALL & PLAY" };
-                button(&mut ui, &mut self.targets, [play_x, play_y, play_w, 58.0],
+                button(&mut ui, &mut self.targets, [play_x, play_y, play_w, 72.0],
                     play_label, Action::Play, true);
-                ui.border(play_x, play_y, play_w, 58.0, 2.0, base_color::hex(0x78ef4b, 255));
+                ui.border(play_x, play_y, play_w, 72.0, 2.0, base_color::hex(0x78ef4b, 255));
             }
         } else if page == Page::Play {
             use horizon_client::official_install::InstallStage;
