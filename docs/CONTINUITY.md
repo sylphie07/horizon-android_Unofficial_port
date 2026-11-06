@@ -728,3 +728,12 @@ The remote branch was verified; a separate local working-tree state was not avai
 - Combined commit statuses for the code fix and current HEAD are empty; no associated workflow run was returned. This is not a passing CI result and the connector's commit-run lookup only returns pull-request-triggered runs.
 - No post-fix Cargo compile, Rust unit tests, native ABI checks, APK build, installation, or device verification is claimed. No local working tree is available through the GitHub connector.
 - Next: obtain actual source/native validation on this corrected HEAD before requesting another user APK build. Do not start an APK build just to test whether the syntax correction compiles.
+
+
+## Native validation passed — Cape Studio batch (2026-11-06)
+- GitHub Actions run #438, ID `42296701332`, completed successfully on branch `android`, exact HEAD `1649d2d2612b3993002b15652bbf6d38f80f9daa`.
+- All five jobs passed: source plus native checks for arm64-v8a, armeabi-v7a, x86 and x86_64. The native jobs reached `Finished dev profile` using the workflow's `--check` mode.
+- Source tests passed, including 36 content tests (0 failures, 1 ignored). Native checks report two non-fatal dead-code warnings: `Action::Repository` and `Catalog::save_cape_library`.
+- This was not an APK build. No APK artifact, install, or device behavior is verified.
+- Next: run the separate manual arm64 test APK workflow, inspect its artifact/package metadata, then request physical-device testing of Cape Studio. Keep warnings recorded for cleanup review; they do not block the successful checks.
+- Detailed run and step evidence: `docs/DEVELOPMENT_LOG.md`.
