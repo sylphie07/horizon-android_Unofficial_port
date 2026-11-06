@@ -898,7 +898,7 @@ pub fn edit(&mut self, out: horizon_client::osk::Output, home: &Path) {
                 Output::Text(value) => {
                     for character in value.chars() {
                         if !character.is_control()
-                            && !matches!(character, '/' | '\\\\' | ':')
+                            && !matches!(character, '/' | '\\' | ':')
                             && self.cape_rename_text.chars().count() < 48
                         {
                             self.cape_rename_text.push(character);
