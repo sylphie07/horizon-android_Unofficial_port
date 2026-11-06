@@ -172,3 +172,13 @@ Solo documentación e inspección de código. No se ha modificado código de pro
 - The preview code calls the existing `render::cape()` geometry routine with the same player pose/root transform used for the mannequin body. UVs come from the installed `player#cape` model and the atlas rectangle; no guessed UV constants were added.
 - Changes: `mobs/preview.rs`, `horizon-client-render/src/hud.rs`, `android/launcher_pages.rs`; commits `48953f0`, `d087ee8`, `c7e0914`.
 - This is an implementation proposal applied to source, not a verified working feature. No build, APK, or device test has been run. Game-side application and account cape preview are still pending.
+
+
+## Local player runtime integration — audit result (2026-11-06)
+- The verified insertion point is `crates/horizon-client/src/game/remote.rs::Game::update_remote_skins()`.
+- The method builds a `HashMap<UUID, cape texture>` from server/player profile textures, merges the signed-in account's active cape only when server texture data lacks one, and optionally adds the offline cape only when no local cape exists. It then assigns cape texture IDs to player mobs and the local `player_model`.
+- The local player UUID is `Remote.profile`. Remote player UUIDs are distinct, so the custom override must be inserted only for that UUID; never replace the map globally or change remote mobs.
+- Recommended precedence: server/account texture resolution → account profile fallback → offline cape fallback → optional Sylphra local override. The Sylphra override exists only when a CapeLibrary selection is explicitly passed at launch. If absent (`None` in Cape Studio), leave the map untouched so the account cape remains visible. Keep the existing `modelPart_cape` visibility setting and atlas `again_skin()` lifecycle.
+- Launch chain to extend: `android/launcher.rs` constructs `LaunchRequest`; `android/game_launch.rs` emits CLI arguments; `game.rs` parses `--sylphra-cape`, validates and loads a bounded library-owned PNG; `remote.rs` applies the decoded 64x64 texture to local UUID only. Use `skins::process_cape()` for 64x32 / 22x17 normalization. Do not route through Elytra texture handling.
+- No code was changed by this audit. Required tests: selected path argument, absent path emits no argument, invalid path/symlink/oversized or unsupported PNG rejected, selected local cape takes precedence over account/offline cape, no selection preserves account cape, remote UUID entries remain unchanged.
+- Current source checks run `42187731379` passed on HEAD `a21cee999205bf28e1f3bb4e98fe299abd066ee3`; this is not compilation, APK, or device verification.
