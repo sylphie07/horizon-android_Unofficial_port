@@ -86,3 +86,11 @@ For wide landscape layouts, target an approximately 23% left navigation rail and
 - Existing Config persists android-launcher.json and can be extended compatibly with serde defaults if needed.
 - Existing Page set includes Play, News (development only), Mods, Packs, Shaders, Installed, Settings and SkinStudio. User-facing navigation labels may be adjusted without deleting functionality.
 - No source implementation or visual verification is implied by this specification.
+
+
+## User-selected launcher background (2026-11-06)
+- The user selected the uploaded Minecraft Rust Edition scene as the definitive Play-page background.
+- Inspected upload: 1536×864 pixels, RGB, JPEG-encoded image (despite the uploaded filename ending in `.png`). Preserve the artwork and embedded `MINECRAFT RUST EDITION` logo; do not regenerate or redraw it.
+- Rendering target: full-bleed background behind the Play content area, using aspect-fill/cover with centered crop; keep the sidebar as a separate opaque dark rail. Add only a subtle readability overlay where needed, not a large opaque card.
+- Asset import into the repository and runtime texture wiring are still pending. Before adding it, store it with the correct `.jpg` extension or deliberately transcode it to PNG; do not label JPEG bytes as PNG.
+- Latest branch check at this note: android HEAD `fe40b1c964d18e53943f42fc4e8a1f0cc5be1490`. Android Source Checks run `42169082001` completed successfully for that HEAD. This validates source checks only, not APK compilation, runtime rendering or device appearance.
