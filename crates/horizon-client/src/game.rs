@@ -20914,6 +20914,44 @@ mod startup_cpu_tests {
     }
 
     #[test]
+    fn sylphra_cape_loader_accepts_content_addressed_png_and_rejects_tampering() {
+        use std::io::Cursor;
+
+        let stamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!(
+            "sylphra-cape-loader-{}-{stamp}",
+            std::process::id()
+        ));
+        let directory = root.join("capes");
+        std::fs::create_dir_all(&directory).unwrap();
+
+        let mut bytes = Vec::new();
+        {
+            let mut encoder = png::Encoder::new(Cursor::new(&mut bytes), 64, 32);
+            encoder.set_color(png::ColorType::Rgba);
+            encoder.set_depth(png::BitDepth::Eight);
+            let mut writer = encoder.write_header().unwrap();
+            writer.write_image_data(&vec![255; 64 * 32 * 4]).unwrap();
+        }
+        let digest = format!("{:x}", <sha2::Sha256 as sha2::Digest>::digest(&bytes));
+        let path = directory.join(format!("{digest}.png"));
+        std::fs::write(&path, &bytes).unwrap();
+
+        let rgba = load_sylphra_cape(&path).expect("valid content-addressed cape loads");
+        assert_eq!(rgba.len(), 64 * 64 * 4);
+
+        let mut tampered = bytes;
+        tampered[24] ^= 1;
+        std::fs::write(&path, tampered).unwrap();
+        assert!(load_sylphra_cape(&path).is_none());
+
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
     fn worker_prepares_owned_models_and_inventory_before_handoff() {
         let root = std::env::temp_dir().join(format!("horizon-startup-cpu-{}", std::process::id()));
         std::fs::create_dir_all(&root).unwrap();

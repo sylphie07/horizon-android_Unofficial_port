@@ -629,3 +629,11 @@
 - [Applied] Fixed `clean_name` so only a PNG file extension is stripped. User-assigned names such as `Cape.v2` no longer lose their final dotted suffix during rename.
 - [Not verified] Tests were added but not executed; no formatter, Rust compiler, native CI job, APK build, or device test was run. The current source-check workflow is not a substitute for these checks.
 - [Not changed] No other branch, workflow rerun, APK, release, runtime protocol, account cape fallback, or LAN behavior.
+
+
+## 2026-11-06 — Runtime cape-loader regression test
+- Preflight: verified branch `android`, starting HEAD `93958c45faec7faad8c3211615a2fb2723c0db62`, reviewed the cape loader and its current caller, and checked the latest source workflow status.
+- [Confirmed] The game-side loader validates the `capes/<sha256>.png` location, rejects symlinks and oversized files, checks the filename digest against the PNG bytes, verifies the PNG header/dimensions, and normalizes with the existing cape processor. This critical path previously had no direct unit test.
+- [Applied] Added a focused unit test in `crates/horizon-client/src/game.rs` that creates a valid 64×32 content-addressed PNG, verifies normalization to a 64×64 RGBA texture, then tampers with the bytes while retaining the original digest filename and verifies rejection.
+- [Not verified] Test has not been executed; no Rust compiler, test runner, native CI job, APK build, or device test was run. The GitHub source workflow only checks its configured source-level tasks.
+- [Not changed] No launch precedence, remote-player handling, account fallback, Elytra behavior, other branch, workflow rerun, APK, or release.
