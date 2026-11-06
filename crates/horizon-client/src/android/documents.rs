@@ -100,6 +100,7 @@ fn imported(text: impl Into<String>, kind: Kind) {
         changed: true,
         kind: Some(kind),
         skin_changed: false,
+        cape_changed: false,
     });
 }
 fn imported_skin(text: impl Into<String>) {
