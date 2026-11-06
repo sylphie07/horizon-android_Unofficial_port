@@ -463,3 +463,12 @@
 - Destructive deletion API clears profile selections in the Cape manifest and saves before deleting the PNG; the eventual UI must require explicit confirmation.
 - User decisions: custom Cape replaces account Cape; choosing None preserves account Cape; hiding remains vanilla modelPart_cape; custom Cape must not retint Elytra; accept 64×32 and 22×17; 1 MiB maximum.
 - Next: independent read-only code review of the new module; confirm actual player#cape UV; integrate import, profile linkage, preview, local-only runtime and persistent Skins/Capes tabs. Keep remote-player capes unchanged.
+
+
+## Sylphra launcher visual redesign — 2026-11-06
+- User supplied a 1536×691 Minecraft Java Launcher screenshot as the target visual reference.
+- Created docs/SYLPHRA_LAUNCHER_REDESIGN.md on branch android (commit 0e59a312381768de5fc95f762ab20bf5f81508b7). It defines the wide-screen 23/77 sidebar/main-canvas composition, account/navigation rail, full-bleed Minecraft-themed background, compact top-right actions, bottom-left version selector, bottom-right green Play button, responsive behavior and non-regression constraints.
+- The current source still uses the older panel-based Play page; the redesign has not yet been implemented in product code.
+- No source changes, build, tests, CI, APK or device validation were performed in this documentation step.
+- Next: implement the shared shell/sidebar and Play-page composition in launcher_pages.rs, preserving all existing Action behavior and adaptive layouts. Then implement persisted background selection/import only after tracing the existing SAF and texture-atlas APIs. Static image first; GIF/video deferred.
+- Parallel task: Claudia is asked for a read-only Cape audit only. Do not let that investigation modify launcher_pages.rs or overlap the visual redesign.
