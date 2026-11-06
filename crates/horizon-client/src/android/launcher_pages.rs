@@ -1309,16 +1309,66 @@ impl Launcher {
                 crate::catalog::skin_library::SkinModel::Classic => "Classic",
                 crate::catalog::skin_library::SkinModel::Slim => "Slim",
             };
-            ui.text(Face::Regular, 16.0, content_left, profile_y, color::MUTED, &format!("Appearance profile: {profile}"));
-            if let Some(error) = &self.catalog.skin_library_error {
-                ui.text(Face::Regular, 14.0, content_left, profile_y + 18.0, color::MUTED, &ui.fit_text(Face::Regular, 14.0, &format!("Read-only: {error}"), control_width));
+            if compact_cape_split {
+                let profile_message = self
+                    .catalog
+                    .skin_library_error
+                    .as_ref()
+                    .map(|error| format!("Profile read-only: {error}"))
+                    .unwrap_or_else(|| format!("Profile: {profile}"));
+                let profile_message =
+                    ui.fit_text(Face::Regular, 12.0, &profile_message, control_width);
+                ui.text(
+                    Face::Regular,
+                    12.0,
+                    content_left,
+                    profile_y,
+                    color::MUTED,
+                    &profile_message,
+                );
+            } else {
+                ui.text(
+                    Face::Regular,
+                    16.0,
+                    content_left,
+                    profile_y,
+                    color::MUTED,
+                    &format!("Appearance profile: {profile}"),
+                );
+                if let Some(error) = &self.catalog.skin_library_error {
+                    let message = ui.fit_text(
+                        Face::Regular,
+                        14.0,
+                        &format!("Read-only: {error}"),
+                        control_width,
+                    );
+                    ui.text(
+                        Face::Regular,
+                        14.0,
+                        content_left,
+                        profile_y + 18.0,
+                        color::MUTED,
+                        &message,
+                    );
+                }
             }
             let half = (control_width - 8.0).max(0.0) * 0.5;
             let profile_button_height = if compact_cape_split { 28.0 } else { 42.0 };
             let import_button_height = if compact_cape_split { 30.0 } else { 42.0 };
             button(&mut ui, &mut self.targets, [content_left, profile_buttons_y, half, profile_button_height], "Next", Action::NextAppearanceProfile, false);
             button(&mut ui, &mut self.targets, [content_left + 8.0 + half, profile_buttons_y, half, profile_button_height], "New", Action::NewAppearanceProfile, false);
-            button(&mut ui, &mut self.targets, [content_left, import_y, half, import_button_height], if self.cape_tab { "Import cape" } else { "Import PNG" }, if self.cape_tab { Action::ImportCape } else { Action::ImportSkin }, true);
+            button(
+                &mut ui,
+                &mut self.targets,
+                [content_left, import_y, half, import_button_height],
+                if self.cape_tab {
+                    if compact_cape_split { "Import" } else { "Import cape" }
+                } else {
+                    "Import PNG"
+                },
+                if self.cape_tab { Action::ImportCape } else { Action::ImportSkin },
+                true,
+            );
             if compact_cape_split {
                 button(&mut ui, &mut self.targets, [content_left + 8.0 + half, import_y, half, import_button_height], "None", Action::NoCape, false);
             } else if !self.cape_tab {
@@ -1577,69 +1627,82 @@ impl Launcher {
             if self.cape_tab {
                 if !cape_read_only {
                     for (i, cape) in self.catalog.cape_library.capes.iter().enumerate() {
-                    let y = top + i as f32 * row_height - self.catalog.scroll;
-                    if y < top || y + row_surface > bottom { continue; }
-                    let active = self.catalog.cape_library.active_cape(&self.catalog.skin_library.active_profile).is_some_and(|current| current.id == cape.id);
-                    let row_width = (list_right - content_left).max(0.0);
-                    let (delete_width, rename_width, gap, minimum_select_width) =
-                        if compact_cape_split && control_width < 156.0 {
-                            (34.0, 38.0, 2.0, 64.0)
-                        } else if compact_cape_split {
-                            (38.0, 44.0, 3.0, 64.0)
-                        } else {
-                            (42.0, 50.0, 4.0, 72.0)
-                        };
-                    let select_width =
-                        (row_width - delete_width - rename_width - gap * 2.0)
-                            .max(minimum_select_width);
-                    let label = ui.fit_text(
-                        Face::Regular,
-                        14.0,
-                        &format!("{}  ({}×{})", cape.name, cape.width, cape.height),
-                        (select_width - 12.0).max(0.0),
-                    );
-                    button(
-                        &mut ui,
-                        &mut self.targets,
-                        [content_left, y, select_width, row_surface],
-                        &label,
-                        Action::SelectCape(i),
-                        active,
-                    );
-                    let rename_x = content_left + select_width + gap;
-                    button(
-                        &mut ui,
-                        &mut self.targets,
-                        [rename_x, y, rename_width, row_surface],
-                        if compact_cape_split && control_width < 156.0 { "Ren" } else { "Rename" },
-                        Action::RenameCape(i),
-                        false,
-                    );
-                    button(
-                        &mut ui,
-                        &mut self.targets,
-                        [rename_x + rename_width + gap, y, delete_width, row_surface],
-                        "Del",
-                        Action::DeleteCape(i),
-                        false,
-                    );
+                        let y = top + i as f32 * row_height - self.catalog.scroll;
+                        if y < top || y + row_surface > bottom {
+                            continue;
+                        }
+                        let active = self
+                            .catalog
+                            .cape_library
+                            .active_cape(&self.catalog.skin_library.active_profile)
+                            .is_some_and(|current| current.id == cape.id);
+                        let row_width = (list_right - content_left).max(0.0);
+                        let (delete_width, rename_width, gap, minimum_select_width) =
+                            if compact_cape_split && control_width < 156.0 {
+                                (34.0, 38.0, 2.0, 64.0)
+                            } else if compact_cape_split {
+                                (38.0, 44.0, 3.0, 64.0)
+                            } else {
+                                (42.0, 50.0, 4.0, 72.0)
+                            };
+                        let select_width =
+                            (row_width - delete_width - rename_width - gap * 2.0)
+                                .max(minimum_select_width);
+                        let label = ui.fit_text(
+                            Face::Regular,
+                            14.0,
+                            &format!("{}  ({}×{})", cape.name, cape.width, cape.height),
+                            (select_width - 12.0).max(0.0),
+                        );
+                        button(
+                            &mut ui,
+                            &mut self.targets,
+                            [content_left, y, select_width, row_surface],
+                            &label,
+                            Action::SelectCape(i),
+                            active,
+                        );
+                        let rename_x = content_left + select_width + gap;
+                        button(
+                            &mut ui,
+                            &mut self.targets,
+                            [rename_x, y, rename_width, row_surface],
+                            if compact_cape_split { "Ren" } else { "Rename" },
+                            Action::RenameCape(i),
+                            false,
+                        );
+                        button(
+                            &mut ui,
+                            &mut self.targets,
+                            [rename_x + rename_width + gap, y, delete_width, row_surface],
+                            "Del",
+                            Action::DeleteCape(i),
+                            false,
+                        );
                     }
                 }
             } else {
-            for (i, skin) in self.catalog.skin_library.skins.iter().enumerate() {
-                let y = top + i as f32 * row_height - self.catalog.scroll;
-                if y < top || y + row_surface > bottom { continue; }
-                let rect = [content_left, y, list_right - content_left, row_surface];
-                self.list_targets.push((rect, Action::SelectSkin(i)));
-                let active = self.catalog.skin_library.active_skin().is_some_and(|current| current.id == skin.id);
-                let raw_label = format!("{}  ({}×{})", skin.name, skin.width, skin.height);
-                let available_width = (control_width - 8.0).max(0.0);
-                let natural_width = ui.measure(Face::Medium, 15.0, &raw_label) + 36.0;
-                let row_width = natural_width.min(available_width).max(96.0);
-                let rect = [content_left, y, row_width, row_surface];
-                let label = ui.fit_text(Face::Regular, 15.0, &raw_label, (row_width - 24.0).max(0.0));
-                button(&mut ui, &mut self.targets, rect, &label, Action::SelectSkin(i), active);
-            }
+                for (i, skin) in self.catalog.skin_library.skins.iter().enumerate() {
+                    let y = top + i as f32 * row_height - self.catalog.scroll;
+                    if y < top || y + row_surface > bottom {
+                        continue;
+                    }
+                    let rect = [content_left, y, list_right - content_left, row_surface];
+                    self.list_targets.push((rect, Action::SelectSkin(i)));
+                    let active = self
+                        .catalog
+                        .skin_library
+                        .active_skin()
+                        .is_some_and(|current| current.id == skin.id);
+                    let raw_label = format!("{}  ({}×{})", skin.name, skin.width, skin.height);
+                    let available_width = (control_width - 8.0).max(0.0);
+                    let natural_width = ui.measure(Face::Medium, 15.0, &raw_label) + 36.0;
+                    let row_width = natural_width.min(available_width).max(96.0);
+                    let rect = [content_left, y, row_width, row_surface];
+                    let label =
+                        ui.fit_text(Face::Regular, 15.0, &raw_label, (row_width - 24.0).max(0.0));
+                    button(&mut ui, &mut self.targets, rect, &label, Action::SelectSkin(i), active);
+                }
             }
         } else if self.about_visible {
             let content_left = layout.content_rect[0] + 12.0;
