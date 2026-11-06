@@ -1341,3 +1341,12 @@ The code batch is ready for the user's APK compilation check. After installation
 - [Applied] Code commit: `dbbebe90994deef6c1387679067bb5601d325a21`, branch `android`.
 - [Not verified] No Rust compilation, unit tests, APK build, installation, or device test has run after the correction. The failed run was on prior HEAD `8e5236fe0c914eb74c6298d372d4e390890c50f5`.
 - [Next] Run source checks on the corrected HEAD and inspect their result. Only after checks pass should the next APK compilation be requested.
+
+
+## 2026-11-06 — Post-fix verification availability check
+- [Preflight] Re-read the continuity and development records on branch `android`; recent commit history confirms the documented HEAD remains `7ef82360f9a7d4ee0bc23d588d10db984bf8ad7b`, with code correction `dbbebe90994deef6c1387679067bb5601d325a21` in its ancestry.
+- [Confirmed] Fetched `crates/horizon-client/src/android/catalog.rs` from `android`, lines 875–925. The cape rename filter is present as `!matches!(character, '/' | '\\\\' | ':')`, the valid Rust backslash character literal.
+- [Confirmed] Queried combined commit statuses for both the code-fix commit and current HEAD; both returned empty status arrays. Queried commit-associated workflow runs; none were returned. The connector's commit-run wrapper is limited to pull-request-triggered runs, so this absence does not prove no push workflow ran.
+- [Not verified] No post-fix Rust compile, Rust unit-test execution, native ABI check, APK build, install, or device test is available to confirm the correction. No local checkout/working tree is exposed by the GitHub connector.
+- [Not changed] No source code, workflow, branch, APK, artifact, PR, or release was changed or created in this verification pass.
+- [Next] Obtain an actual source/native validation result for the corrected code before asking the user for another APK build. Do not dispatch a build merely to discover whether the source correction compiles.
