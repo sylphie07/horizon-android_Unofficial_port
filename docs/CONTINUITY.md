@@ -550,3 +550,9 @@
 - [Not yet verified] No Rust build, APK build, emulator/device test, cape 3D preview, in-game cape rendering, rename/delete controls, or LAN appearance exchange was run in this change batch. The preview still uses the existing skin mannequin; cape geometry is a separate next stage.
 - Commits: `5b33791` (studio tabs/list), `0df249c` (launcher tab state), `4a209f9` (tab placement correction).
 - Next: run source checks / compile checks, then implement cape preview geometry and launch-time cape injection only after verifying the actual player cape UV mapping.
+
+## 2026-11-06 — Cape Studio tab cleanup
+- Verified branch `android` at `ca03019d0db3b1d3d38994e578063bf22444a951`; Android Source Checks run `42185225542` completed `success` for that exact HEAD. This workflow is source validation only, not an APK build or device test.
+- Applied `crates/horizon-client/src/android/launcher_pages.rs` in commit `a4a2345afef942de6b1e9896f9d80661f28deffd`: hide the six skin-overlay visibility controls while the Capes tab is active and reclaim their vertical space for the cape list. The shared mannequin/preview remains visible.
+- This is a UI consistency correction only. Cape texture is still not rendered on the mannequin, selected cape is not passed to the game launch request, and rename/delete controls, build/runtime validation, and LAN appearance exchange remain pending.
+- Latest recorded source HEAD after this change: `a4a2345afef942de6b1e9896f9d80661f28deffd` (branch `android`). CI for this new commit is pending/not yet checked; no compilation or device test was run.
