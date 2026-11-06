@@ -737,3 +737,13 @@ The remote branch was verified; a separate local working-tree state was not avai
 - This was not an APK build. No APK artifact, install, or device behavior is verified.
 - Next: run the separate manual arm64 test APK workflow, inspect its artifact/package metadata, then request physical-device testing of Cape Studio. Keep warnings recorded for cleanup review; they do not block the successful checks.
 - Detailed run and step evidence: `docs/DEVELOPMENT_LOG.md`.
+
+
+## 2026-11-06 — Latest user device feedback: cape preview and launcher background
+- User tested the isolated Sylphra build and reports Cape Studio management/preview works, but the cape appears visually small/partly occluded in the mannequin. User also confirms the requested Minecraft launcher background image is still absent.
+- Preflight rechecked branch `android`, latest docs and current source. Branch HEAD before this fix: `f590ca1a1a4d4dc2c95722e21a9c3e0cb44b111c`; the code already had a four-ABI Rust `--check` pass on `1649d2d2612b3993002b15652bbf6d38f80f9daa`.
+- [Confirmed] `mobs/render.rs::cape` expects a player root transform already moved outward from the chest/back, matching the vanilla CapeLayer local translation. `PlayerPreview::draw` omitted that offset.
+- [Applied] Added a 0.125-unit local-Z offset to the cape preview root transform in `crates/horizon-client/src/mobs/preview.rs`. Commit: `1a4d78ea194902a7ffc7c25dc3bc118a001e5238`.
+- [Not verified] No compile/CI/APK/device validation has run after this source change. Cape scale/length must not be guessed before seeing the corrected preview; the exact installed `player#cape` model definition is not versioned in this repository.
+- [Pending] Launcher background image. Current launcher still fills the base with solid `color::BG`. Need select a concrete image source (bundled Minecraft panorama vs user-provided image) before implementing texture loading and rendering.
+- [Next] Confirm preferred background source, implement the background independently from global HUD/game rendering, run source and four-ABI native checks, then request one combined arm64 test APK. No APK should be compiled yet.
