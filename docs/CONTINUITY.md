@@ -766,3 +766,12 @@ The remote branch was verified; a separate local working-tree state was not avai
 - Current branch HEAD after this correction: `0db826f608497f231eddd112b950eaba7a0b96dc`.
 - [Not verified] The prior source run #42304527339 passed on the immediately preceding code HEAD, but this atlas registration change has not yet been checked. No four-ABI native check, APK build, or device visual validation has been performed for this HEAD.
 - [Next] Wait for source CI on current HEAD, then request manual `android-source.yml` dispatch with `native_checks=true` (four-ABI Rust `--check`, no APK). Do not request APK compilation until it passes.
+
+
+## 2026-11-06 — User mockup alignment update
+- User supplied the exact Minecraft Rust Edition artwork and a composite launcher mockup. Target: dark left sidebar with account/navigation; supplied artwork filling only the right hero canvas; Files and Multiplayer at top-right; current-version card bottom-left; large green Play button bottom-right. The artwork already contains its logo, so no duplicate centered launcher title should cover it.
+- Confirmed the image asset and private HUD atlas registration were already integrated in commits through `0b6fbb73f29ba22b952e2377a41821f71e91047e`. Root cause of the hidden background in Sidebar mode: `launcher_pages.rs` drew the image, then immediately painted an opaque full-width right-side hero rectangle over it. The background aspect ratio was also calculated against the entire device instead of the right canvas.
+- [Applied] Commit `899142c6a53d44acf84a0e08a14cd22815add2db` changes `crates/horizon-client/src/android/launcher_pages.rs`: background is now aspect-covered in the right-side content area in Sidebar mode; opaque hero fill and duplicate center title were removed; translucent lower control veil remains. Non-sidebar layout keeps full-screen image behavior.
+- Cape preview offset remains applied in `crates/horizon-client/src/mobs/preview.rs` at commit `1a4d78ea194902a7ffc7c25dc3bc118a001e5238`; game cape renderer was not modified.
+- [Not verified] No CI/native check or APK/device test has validated commit `899142c6a53d44acf84a0e08a14cd22815add2db`. The combined status endpoint returned no records; this is not a passing check.
+- [Next] Run source checks and four-ABI native `--check` for current branch, then one isolated arm64 test APK only after they pass. User explicitly asked to be told before compiling and has not been asked to compile this round.
