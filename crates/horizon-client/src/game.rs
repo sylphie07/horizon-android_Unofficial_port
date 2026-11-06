@@ -17983,7 +17983,7 @@ fn load_sylphra_cape(path: &std::path::Path) -> Option<Vec<u8>> {
     let bytes = std::fs::read(path).ok()?;
     if bytes.len() < 24
         || bytes.len() > 1024 * 1024
-        || &bytes[..8] != b"\\x89PNG\\r\\n\\x1a\\n"
+        || &bytes[..8] != b"\x89PNG\r\n\x1a\n"
         || &bytes[12..16] != b"IHDR"
     {
         return None;
