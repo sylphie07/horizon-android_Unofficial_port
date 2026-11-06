@@ -1359,3 +1359,12 @@ The code batch is ready for the user's APK compilation check. After installation
 - [Warnings] Native builds emit two non-fatal Rust dead-code warnings: `Action::Repository` in `launcher_pages.rs:72` and `Catalog::save_cape_library` in `catalog.rs:364`. No compilation errors were reported. These warnings are noted for later cleanup review, not treated as blockers.
 - [Not verified] This workflow uses `--check`; it does not link/package an APK. No APK build, artifact audit, installation, or physical-device test is claimed.
 - [Next] The corrected source has passed the four-ABI native checks. The next validation step is the separate manual arm64 test APK workflow, followed by artifact/package inspection and user device testing. Do not claim runtime behavior until device testing.
+
+
+## 2026-11-06 — Cape preview back-offset correction
+- [Preflight] Confirmed the authorized branch is `android`; latest branch documentation HEAD before this change was `f590ca1a1a4d4dc2c95722e21a9c3e0cb44b111c`. Reviewed continuity, development and Cape Studio design records, plus `mobs/preview.rs` and the shared `mobs/render.rs::cape` contract.
+- [Confirmed] The shared cape renderer documents that its root transform must already include the CapeLayer local-space translation that moves the cape outward from the player's back. The preview caller passed the raw player root transform, so the cape mesh intersected the mannequin torso and could be visually occluded.
+- [Applied] Added the vanilla CapeLayer-equivalent local offset of 0.125 model units along local Z before calling `render::cape` in `crates/horizon-client/src/mobs/preview.rs`. No guessed geometry dimensions or UV constants were introduced.
+- [Not verified] This is a source-level correction only. No Rust check, unit test, native CI, APK build, installation, or device visual test has run after commit `1a4d78ea194902a7ffc7c25dc3bc118a001e5238`.
+- [Still pending] The launcher background image is not implemented. The current renderer paints a solid `color::BG`; integrating a Minecraft panorama requires selecting/locating the actual image source and wiring a bounded background texture path without changing gameplay HUD assets.
+- [Next] Validate this cape transform in native checks, then combine the background image implementation into the next test build. Do not request an APK compile until both changes pass checks.
