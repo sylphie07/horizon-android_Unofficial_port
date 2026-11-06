@@ -452,3 +452,14 @@
 - Confirmed Android `LaunchRequest` currently has `skin_file` and `skin_slim`, and argument construction emits skin flags only. `Launcher` creates that request from the active skin. Adding `cape_file: Option<PathBuf>` plus a dedicated CLI argument is a small, explicit transport change, but the receiving game-side argument parser and texture initialization still must be traced before implementing it.
 - Confirmed `PlayerPreview::draw` already builds a body vertex buffer, then applies a GUI transform and clips it. The Cape helper `mobs::render::cape` needs a root transform and UV rectangle. The preview currently computes its GUI model transform after body vertex generation, while the renderer's root transform is internal/private; safe integration likely requires exposing/factoring the player root transform or a preview-specific renderer API rather than guessing matrix order.
 - No product source changes, tests, CI, APK or device validation were performed. The investigation remains read-only except for documentation.
+
+
+## Cape library foundation — 2026-11-06
+- Preflight verified the only authorized branch android, with starting HEAD fa01ad6289b80680d064c070f73cd071618b4a09; docs and the current skin-library/SAF/catalog implementation were reviewed first.
+- Added crates/horizon-client/src/android/cape_library.rs: separate cape-library.json, content-addressed private PNGs in capes/, supported dimensions 64×32 and 22×17, 1 MiB input limit, decoded-image bound, SHA-256 deduplication, per-profile cape selection, rename and remove.
+- Registered the module from android/catalog.rs.
+- Commits: 2a9102243b911b9d1f8b5c81523c89958c432f4f (library) and 7634ce5c38c1de1f70409f67a78163018bc240fe (module registration).
+- Applied, not verified: GitHub accepted the writes. No formatter, compiler, unit tests, CI, APK or device run has been performed. The module is registered but not yet connected to Catalog, SAF, profiles in the existing SkinLibrary, launcher UI, preview or game runtime.
+- Destructive deletion API clears profile selections in the Cape manifest and saves before deleting the PNG; the eventual UI must require explicit confirmation.
+- User decisions: custom Cape replaces account Cape; choosing None preserves account Cape; hiding remains vanilla modelPart_cape; custom Cape must not retint Elytra; accept 64×32 and 22×17; 1 MiB maximum.
+- Next: independent read-only code review of the new module; confirm actual player#cape UV; integrate import, profile linkage, preview, local-only runtime and persistent Skins/Capes tabs. Keep remote-player capes unchanged.
