@@ -1424,3 +1424,11 @@ The code batch is ready for the user's APK compilation check. After installation
 - [Cape audit] `render::cape` consumes the caller's root transform and applies the baked `player#cape` pose; it does not add a caller-space back offset. Preview currently appends local +Z 0.125 before the preview's GUI transform. The preview later mirrors Z in its GUI matrix, while the in-game path uses a different world transform. This confirms the preview-only transform differs from gameplay, but the sign/axis cannot be declared correct from the Rust call site alone without checking the baked cape model's local orientation/UV and a device screenshot. No additional geometry scale or UV changes were made.
 - [Not verified] The Cape Studio preview fix has not been device-verified. The latest source run is not a Rust native compile. The earlier four-ABI run #460 tested older HEAD `21282f95002e0ed99d592f256ace99f2e5d7c89b` and does not cover current changes.
 - [Next] Keep the user's no-compile-until-requested instruction. Before requesting a build, dispatch source workflow with `native_checks=true` on current branch, then build a fresh arm64 test APK only if all four ABI jobs pass. For cape, avoid speculative scale changes; validate the model-space direction and preview transform first.
+
+
+## 2026-11-06 — Cape preview atlas UV correction
+- [Confirmed] `process_cape()` stores 64×32 cape artwork in rows 0–31 of a 64×64 transparent texture slot. The in-game texture path retains the same upper-half layout.
+- [Confirmed] The Skin Studio preview passed the full 64×64 atlas rectangle to the baked `player#cape` model. Its model UV space is 64×32, so mapping the full slot compressed the cape artwork vertically into half of the expected preview UV range.
+- [Applied] Commit `89290b79cce0349fc4b38b9e91cd4274c7c12a4c` changes only `crates/horizon-client/src/mobs/preview.rs`: the cape preview now maps the model to the upper half of the dedicated atlas slot. No gameplay renderer, cape geometry, offset, or skin path was changed.
+- [Not verified] No Rust compilation, unit test, native ABI matrix, APK, or device screenshot has run after this change. Treat the visual correction as a source-level diagnosis until verified.
+- [Next] Validate current HEAD with source CI and four-ABI native `--check`; only then request a fresh ARM64 test APK for device confirmation.
