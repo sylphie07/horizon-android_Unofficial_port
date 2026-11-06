@@ -304,7 +304,7 @@ The implementation commit `a7c644100dcf928b7ccefeac5e852a0e9fc5b14d` passed sour
 ## 2026-11-06 — Cape preview transform audit (no speculative geometry change)
 - The shared `render::cape` function expects the caller to provide the cape root transform and applies the baked `player#cape` pose; it does not add the vanilla caller-space back offset itself.
 - Current Skin Studio preview appends local +Z 0.125 before converting model vertices through the GUI transform. That GUI transform mirrors Z, unlike the world/game render path. This means the preview offset must be evaluated in the complete transform chain, not by comparing the translation vector alone.
-- The current source evidence is insufficient to assert whether the preview offset's sign/axis is correct for the baked model. Do not increase cape scale or alter UVs without verifying the baked model's local orientation and a device image.
+- The current source evidence is insufficient to assert whether the preview offset's sign/axis is correct for the baked model; keep the offset unchanged until a device image confirms it. The earlier caution against UV changes was superseded by the subsequent atlas-layout comparison: `process_cape()` stores artwork in the upper half of a 64×64 slot, while the preview had supplied the full slot to the 64×32 cape model. The UV correction is applied, but remains pending native/device verification.
 - CI snapshot: source run #466 passed on HEAD `4f62829cf36f3fd02bfe0b35550f0be7b47927c1`; native matrix was skipped. Prior four-ABI run #460 and test APK run #21 refer to older commits. No device validation is claimed.
 
 
