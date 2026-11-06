@@ -302,10 +302,14 @@ fn valid_hash(value: &str) -> bool {
 }
 
 fn clean_name(value: &str) -> String {
-    let stem = Path::new(value)
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .unwrap_or("Imported cape");
+    let value = value.trim();
+    // Strip the imported file extension, but preserve dots in user-assigned
+    // names such as "Cape.v2".
+    let stem = value
+        .rsplit_once('.')
+        .filter(|(_, extension)| extension.eq_ignore_ascii_case("png"))
+        .map(|(stem, _)| stem)
+        .unwrap_or(value);
     let mut name: String = stem
         .chars()
         .filter(|c| !c.is_control() && !matches!(c, '/' | '\\' | ':'))
@@ -421,6 +425,53 @@ mod tests {
         library.remove(&cape.id, &path).unwrap();
         assert!(library.active_cape("default").is_none());
         assert!(!path.join("capes").join(cape.file).exists());
+        let _ = fs::remove_dir_all(path);
+    }
+
+    #[test]
+    fn rename_preserves_dotted_names_and_selection_persists_per_profile() {
+        let path = home();
+        let mut library = CapeLibrary::load(&path).unwrap();
+        let cape = library
+            .import_png(&path, "Cape.png", &png(64, 32, [255, 0, 0, 255]))
+            .unwrap();
+        library.select_cape("default", Some(&cape.id)).unwrap();
+        library.select_cape("builder", Some(&cape.id)).unwrap();
+
+        library.rename(&cape.id, "Cape.v2", &path).unwrap();
+        assert_eq!(library.capes[0].name, "Cape.v2");
+        let mut loaded = CapeLibrary::load(&path).unwrap();
+        assert_eq!(loaded.active_cape("default").unwrap().name, "Cape.v2");
+        assert_eq!(loaded.active_cape("builder").unwrap().id, cape.id);
+
+        loaded.select_cape("default", None).unwrap();
+        loaded.save(&path).unwrap();
+        let loaded = CapeLibrary::load(&path).unwrap();
+        assert!(loaded.active_cape("default").is_none());
+        assert_eq!(loaded.active_cape("builder").unwrap().id, cape.id);
+        let _ = fs::remove_dir_all(path);
+    }
+
+    #[test]
+    fn remove_clears_only_references_to_removed_cape() {
+        let path = home();
+        let mut library = CapeLibrary::load(&path).unwrap();
+        let first = library
+            .import_png(&path, "one.png", &png(64, 32, [255, 0, 0, 255]))
+            .unwrap();
+        let second = library
+            .import_png(&path, "two.png", &png(64, 32, [0, 0, 255, 255]))
+            .unwrap();
+        library.select_cape("default", Some(&first.id)).unwrap();
+        library.select_cape("builder", Some(&second.id)).unwrap();
+        library.save(&path).unwrap();
+
+        library.remove(&first.id, &path).unwrap();
+        let loaded = CapeLibrary::load(&path).unwrap();
+        assert!(loaded.active_cape("default").is_none());
+        assert_eq!(loaded.active_cape("builder").unwrap().id, second.id);
+        assert!(!path.join("capes").join(first.file).exists());
+        assert!(path.join("capes").join(second.file).is_file());
         let _ = fs::remove_dir_all(path);
     }
 

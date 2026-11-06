@@ -1216,3 +1216,12 @@ The user selected the uploaded Minecraft Rust Edition scene as the definitive la
 - [Applied] Added `pending_cape_delete`, `cape_rename_id`, and `cape_rename_text` state to Catalog, plus `RenameCape`, `DeleteCape`, and `ConfirmDeleteCape` actions. No change to import formats, account cape fallback, game launch arguments, remote-player handling, or Elytra rendering.
 - [Not verified] No Rust formatting, compilation, unit tests, native CI, APK build, or Android UI test has run for this change. Confirm keyboard behavior, list layout on narrow devices, rename persistence, delete confirmation/cancellation, and profile selection cleanup in a later device test.
 - [Not changed] No other branch, workflow rerun, APK, release, or LAN protocol change.
+
+
+## 2026-11-06 — Cape library persistence tests and dotted-name fix
+- Preflight: verified branch `android`, starting HEAD `62a628df8bd67521d0d8611a01f8b74e86e2a1aa`, read all three continuity/design documents, and inspected CapeLibrary import/rename/remove/select/save/load plus the current UI actions and workflow status.
+- [Confirmed] Existing library tests covered import/deduplication, supported dimensions, profile-local `None`, deletion and corrupt manifests, but did not assert that rename and profile selection survive a fresh manifest load or that deletion preserves other profiles' different cape selections.
+- [Applied] Added focused tests in `crates/horizon-client/src/android/cape_library.rs` for rename persistence (including a dotted custom name), independent profile selection persistence, `None` persistence, and deletion of one cape without disturbing another profile's different cape.
+- [Applied] Fixed `clean_name` so only a PNG file extension is stripped. User-assigned names such as `Cape.v2` no longer lose their final dotted suffix during rename.
+- [Not verified] Tests were added but not executed; no formatter, Rust compiler, native CI job, APK build, or device test was run. The current source-check workflow is not a substitute for these checks.
+- [Not changed] No other branch, workflow rerun, APK, release, runtime protocol, account cape fallback, or LAN behavior.
