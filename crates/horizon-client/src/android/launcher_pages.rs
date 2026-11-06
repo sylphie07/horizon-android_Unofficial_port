@@ -1420,17 +1420,24 @@ impl Launcher {
                 let skin_texture_ready = selected_texture.is_some();
                 const CAPE_TEXTURE: &str = "horizon/cape-preview";
                 let mut selected_cape_texture = None;
-                if let Some(cape) = self.catalog.cape_library.active_cape(
-                        &self.catalog.skin_library.active_profile,
-                    )
-                {
-                    let cape_path = self.home.join("capes").join(&cape.file);
-                    let cape_pixels = std::fs::read(&cape_path)
-                        .ok()
-                        .and_then(|bytes| horizon_client::hud::decode_bytes(&bytes).ok())
-                        .and_then(|(width, height, rgba)| {
-                            horizon_client::skins::process_cape(width, height, &rgba)
-                        });
+                let selected_cape_name = self
+                    .catalog
+                    .cape_library
+                    .active_cape(&self.catalog.skin_library.active_profile)
+                    .map(|cape| cape.name.clone());
+                if let Some(cape_name) = selected_cape_name {
+                    let cape_pixels = match self.catalog.cape_preview_rgba(&self.home) {
+                        Ok(Some(pixels)) => Some(pixels.to_vec()),
+                        Ok(None) => {
+                            self.catalog.status =
+                                format!("Selected cape is unavailable: {cape_name}");
+                            None
+                        }
+                        Err(error) => {
+                            self.catalog.status = format!("Cape preview unavailable: {error}");
+                            None
+                        }
+                    };
                     if let Some(pixels) = cape_pixels {
                         if let Some(slot) = gui.atlas.sprites.get(CAPE_TEXTURE).copied() {
                             ui.batch.patches.push(horizon_client::font::Patch {
@@ -1448,8 +1455,6 @@ impl Launcher {
                                 self.catalog.status = message;
                             }
                         }
-                    } else {
-                        self.catalog.status = format!("Could not load selected cape: {}", cape.name);
                     }
                 }
                 let atlas_patch_count = ui.batch.patches.len();

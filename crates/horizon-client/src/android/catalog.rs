@@ -221,6 +221,7 @@ pub struct Catalog {
     pub cape_rename_id: Option<String>,
     pub cape_rename_text: String,
     skin_preview_cache: Option<(String, Vec<u8>)>,
+    cape_preview_cache: Option<(String, Vec<u8>)>,
     pub editing: Option<&'static str>,
     pub render_scale_text: String,
     worker: Option<mpsc::Receiver<Result<Reply, String>>>,
@@ -274,6 +275,7 @@ impl Catalog {
             cape_rename_id: None,
             cape_rename_text: String::new(),
             skin_preview_cache: None,
+            cape_preview_cache: None,
             editing: None,
             render_scale_text: String::new(),
             worker: None,
@@ -347,6 +349,7 @@ impl Catalog {
         Ok(())
     }
     pub fn reload_cape_library(&mut self, home: &Path) {
+        self.cape_preview_cache = None;
         match cape_library::CapeLibrary::load(home) {
             Ok(library) => {
                 self.cape_library = library;
@@ -412,24 +415,53 @@ impl Catalog {
         self.prepare_cape_library_write(home)?;
         self.cape_library.remove(cape_id, home)
     }
+    /// Decode the selected cape once and reuse its RGBA texture until the
+    /// library is reloaded or the active profile selection changes.
+    pub fn cape_preview_rgba(&mut self, home: &Path) -> Result<Option<&[u8]>, String> {
+        if let Some(error) = &self.cape_library_error {
+            return Err(format!("Cape library is unavailable: {error}"));
+        }
+        let Some(record) = self
+            .cape_library
+            .active_cape(&self.skin_library.active_profile)
+            .cloned()
+        else {
+            self.cape_preview_cache = None;
+            return Ok(None);
+        };
+        let cached = self
+            .cape_preview_cache
+            .as_ref()
+            .is_some_and(|(id, _)| id == &record.id);
+        if !cached {
+            let (_, bytes) = self.cape_library.read_validated_file(home, &record.id)?;
+            let (width, height, rgba) =
+                horizon_client::hud::decode_bytes(&bytes).map_err(|error| error.to_string())?;
+            let rgba = horizon_client::skins::process_cape(width, height, &rgba)
+                .ok_or("Selected cape is not 64×32 or 22×17")?;
+            self.cape_preview_cache = Some((record.id, rgba));
+        }
+        Ok(self
+            .cape_preview_cache
+            .as_ref()
+            .map(|(_, rgba)| rgba.as_slice()))
+    }
+
     /// Resolve the active profile's cape to a validated app-private file path.
     /// The game receives this path only for the current launch.
     pub fn active_cape_file(&self, home: &Path) -> Result<Option<PathBuf>, String> {
         if let Some(error) = &self.cape_library_error {
             return Err(format!("Cape library is unavailable: {error}"));
         }
-        let Some(record) = self.cape_library.active_cape(&self.skin_library.active_profile).cloned() else {
+        let Some(record) = self
+            .cape_library
+            .active_cape(&self.skin_library.active_profile)
+        else {
             return Ok(None);
         };
-        let path = home.join("capes").join(&record.file);
-        let metadata = std::fs::symlink_metadata(&path).map_err(|error| error.to_string())?;
-        if metadata.file_type().is_symlink() || !metadata.is_file() {
-            return Err("Selected cape is not a regular app-private PNG file".into());
-        }
-        if metadata.len() == 0 || metadata.len() > cape_library::MAX_CAPE_BYTES as u64 {
-            return Err("Selected cape is empty or exceeds the 1 MiB limit".into());
-        }
-        Ok(Some(path))
+        self.cape_library
+            .read_validated_file(home, &record.id)
+            .map(|(path, _)| Some(path))
     }
     pub fn refresh(&mut self, home: &Path) {
         self.reload_skin_library(home);
@@ -925,7 +957,7 @@ pub fn edit(&mut self, out: horizon_client::osk::Output, home: &Path) {
 #[cfg(test)]
 mod tests {
     use super::{Catalog, Config};
-    use std::{fs, path::PathBuf, time::{SystemTime, UNIX_EPOCH}};
+    use std::{fs, time::{SystemTime, UNIX_EPOCH}};
 
     #[test]
     fn cape_mutations_refuse_corrupt_manifest_without_replacing_it() {

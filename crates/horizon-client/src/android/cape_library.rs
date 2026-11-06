@@ -4,7 +4,7 @@ use sha2::{Digest, Sha256};
 use std::{
     fs::{self, OpenOptions},
     io::{Cursor, Write},
-    path::Path,
+    path::{Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -216,6 +216,40 @@ impl CapeLibrary {
             .cape
             .as_str();
         self.capes.iter().find(|cape| cape.id == id)
+    }
+
+    /// Read a cape only after verifying its app-private path, content hash,
+    /// PNG structure, and dimensions against the manifest record.
+    pub fn read_validated_file(
+        &self,
+        home: &Path,
+        cape_id: &str,
+    ) -> Result<(PathBuf, Vec<u8>), String> {
+        let record = self
+            .capes
+            .iter()
+            .find(|cape| cape.id == cape_id)
+            .ok_or("Cape does not exist in the library")?;
+        let path = home.join(CAPE_DIR).join(&record.file);
+        let metadata = fs::symlink_metadata(&path).map_err(|error| error.to_string())?;
+        if metadata.file_type().is_symlink() || !metadata.is_file() {
+            return Err("Cape file is not a regular app-private PNG file".into());
+        }
+        if metadata.len() == 0 || metadata.len() > MAX_CAPE_BYTES as u64 {
+            return Err("Cape file is empty or exceeds the 1 MiB limit".into());
+        }
+        let bytes = fs::read(&path).map_err(|error| error.to_string())?;
+        if bytes.is_empty() || bytes.len() > MAX_CAPE_BYTES {
+            return Err("Cape file is empty or exceeds the 1 MiB limit".into());
+        }
+        if format!("{:x}", Sha256::digest(&bytes)) != record.id {
+            return Err("Cape file content does not match its library hash".into());
+        }
+        let dimensions = validate_png(&bytes)?;
+        if dimensions != (record.width, record.height) {
+            return Err("Cape file dimensions do not match its library record".into());
+        }
+        Ok((path, bytes))
     }
 
     /// Persist a profile selection atomically from the caller's perspective.
@@ -531,6 +565,26 @@ mod tests {
         assert_eq!(loaded.active_cape("builder").unwrap().id, second.id);
         assert!(!path.join("capes").join(first.file).exists());
         assert!(path.join("capes").join(second.file).is_file());
+        let _ = fs::remove_dir_all(path);
+    }
+
+    #[test]
+    fn validated_file_reader_rejects_tampered_content() {
+        let path = home();
+        let mut library = CapeLibrary::load(&path).unwrap();
+        let cape = library
+            .import_png(&path, "cape.png", &png(64, 32, [255, 0, 0, 255]))
+            .unwrap();
+
+        let (resolved, bytes) = library.read_validated_file(&path, &cape.id).unwrap();
+        assert_eq!(resolved, path.join(CAPE_DIR).join(&cape.file));
+        assert_eq!(bytes.len(), fs::metadata(&resolved).unwrap().len() as usize);
+
+        fs::write(&resolved, png(64, 32, [0, 0, 255, 255])).unwrap();
+        assert!(library
+            .read_validated_file(&path, &cape.id)
+            .unwrap_err()
+            .contains("hash"));
         let _ = fs::remove_dir_all(path);
     }
 
