@@ -775,3 +775,11 @@ The remote branch was verified; a separate local working-tree state was not avai
 - Cape preview offset remains applied in `crates/horizon-client/src/mobs/preview.rs` at commit `1a4d78ea194902a7ffc7c25dc3bc118a001e5238`; game cape renderer was not modified.
 - [Not verified] No CI/native check or APK/device test has validated commit `899142c6a53d44acf84a0e08a14cd22815add2db`. The combined status endpoint returned no records; this is not a passing check.
 - [Next] Run source checks and four-ABI native `--check` for current branch, then one isolated arm64 test APK only after they pass. User explicitly asked to be told before compiling and has not been asked to compile this round.
+
+
+## 2026-11-06 — Native CI green; ready for isolated APK build
+- Latest verified branch HEAD: `21282f95002e0ed99d592f256ace99f2e5d7c89b` on authorized branch `android`.
+- GitHub Actions run #460 / ID `42305608723`: conclusion `success`; all five jobs passed (`source` plus native Rust checks for arm64-v8a, armeabi-v7a, x86 and x86_64). Native step explicitly ran in check mode without building an APK. Source tests and workflow consistency also passed.
+- No artifacts were produced by this check run. Link: https://github.com/sylphie07/horizon-android_Unofficial_port/actions/runs/42305608723
+- [Authorized next step] User can now dispatch `.github/workflows/sylphra-test-apk.yml` on branch `android`. It builds only ARM64 with test package ID `dev.sylphra.android.test`, display name `Sylphra Launcher`, development channel, and uploads `sylphra-launcher-arm64-test` as a 7-day Actions artifact. No GitHub Release is published.
+- [Not verified] Neither cape-preview offset nor launcher hero background has been device-verified yet. After APK completion, inspect job logs/artifact, then user installs and supplies screenshots. Do not claim runtime visual success until confirmed by user.
