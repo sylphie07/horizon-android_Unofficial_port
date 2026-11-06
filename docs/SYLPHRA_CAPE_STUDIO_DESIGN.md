@@ -154,3 +154,8 @@ Solo documentación e inspección de código. No se ha modificado código de pro
 - [Not yet verified] No Rust build, APK build, emulator/device test, cape 3D preview, in-game cape rendering, rename/delete controls, or LAN appearance exchange was run in this change batch. The preview still uses the existing skin mannequin; cape geometry is a separate next stage.
 - Commits: `5b33791` (studio tabs/list), `0df249c` (launcher tab state), `4a209f9` (tab placement correction).
 - Next: run source checks / compile checks, then implement cape preview geometry and launch-time cape injection only after verifying the actual player cape UV mapping.
+
+## 2026-11-06 — Cape Studio tab cleanup
+- The Capes tab no longer displays the skin-only overlay toggles; its list starts higher to use the available space. The Skins tab retains all six overlay controls.
+- Applied in commit `a4a2345afef942de6b1e9896f9d80661f28deffd`.
+- Source checks passed for the previous HEAD `ca03019`; this new commit still requires CI validation. The actual cape 3D preview and launch-time application remain unimplemented.
