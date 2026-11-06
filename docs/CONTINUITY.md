@@ -490,3 +490,10 @@
 - Design spec updated in commit 71339263a6264b10598bfbc8c151417c32237e86. Binary asset is not yet in the repository and runtime texture loading is not implemented.
 - Latest source-check run 42169082001 passed for source HEAD fe40b1c964d18e53943f42fc4e8a1f0cc5be1490. This does not establish APK build or device rendering.
 - Next: add the actual image asset to the authorized android branch, then trace/use the existing atlas texture update path to render it in the Play background. Do not claim background is integrated until the binary and runtime path are committed and verified.
+
+
+## 2026-11-06 — Sidebar icon pass
+- Preflight: branch `android` at `6c440043bb2d00dda76d9ea8049f143a81db4efb`; the selected-background metadata is already documented. The preceding Android Source Checks run `42170897755` succeeded for the documentation-only commit `6c44004`; it does not cover the new UI source change.
+- Applied `crates/horizon-client/src/android/launcher_pages.rs` in commit `69067bca2a47dcd569cecfb13c1aea778a886ef7`: wide sidebar navigation rows now use item-atlas icons (grass block, crafting table, player head, writable book, iron pickaxe, chest, glass bottle), a dark-green selected fill, bright-green outline, and left-aligned labels. The original action targets and compact/expanded layouts remain intact.
+- Source re-fetch confirms the icon mapping and `sprite_scaled` calls are present. Commit status was pending when this note was prepared. No local Rust compilation, APK build, or device visual check has been performed.
+- Background asset is still not in the repository/runtime. The chat upload is JPEG-encoded (1536x864) despite its `.png` display name. Static background import/rendering remains the next major milestone; do not claim it is integrated yet.
