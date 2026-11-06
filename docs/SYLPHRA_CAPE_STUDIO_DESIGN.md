@@ -277,3 +277,12 @@ The implementation commit `a7c644100dcf928b7ccefeac5e852a0e9fc5b14d` passed sour
 - The final source CI run `42292366825` passed for code commit `5e43ff7cf928cc41c8f2af1af89f7b9e594a4f43`.
 - Source CI is not a Rust compile. Rust unit tests, APK build, installation, and on-device rendering are still pending.
 - Next action: user compiles the latest `android` branch, then verifies the launcher and in-game cape behavior.
+
+
+## 2026-11-06 — Cape rename Rust compile correction
+- [Confirmed] User-provided APK workflow run `42292873918` failed in job `build-arm64`, step `Build and audit isolated arm64 test APK`. Toolchain setup and engine-table preparation completed successfully.
+- [Confirmed] Cargo stopped compiling `horizon-android` because `crates/horizon-client/src/android/catalog.rs:901` used a multi-codepoint Rust character literal for the backslash filter in cape rename input: `'\\\\'`.
+- [Applied] Corrected the literal to the valid single-backslash character literal `'\\'`. No behavior or validation rule changed.
+- [Applied] Code commit: `dbbebe90994deef6c1387679067bb5601d325a21`, branch `android`.
+- [Not verified] No Rust compilation, unit tests, APK build, installation, or device test has run after the correction. The failed run was on prior HEAD `8e5236fe0c914eb74c6298d372d4e390890c50f5`.
+- [Next] Run source checks on the corrected HEAD and inspect their result. Only after checks pass should the next APK compilation be requested.
