@@ -960,7 +960,64 @@ pub fn edit(&mut self, out: horizon_client::osk::Output, home: &Path) {
 #[cfg(test)]
 mod tests {
     use super::{Catalog, Config};
-    use std::{fs, time::{SystemTime, UNIX_EPOCH}};
+    use std::{fs, io::Cursor, time::{SystemTime, UNIX_EPOCH}};
+
+    #[test]
+    fn cape_preview_cache_revalidates_after_library_reload() {
+        fn png(color: [u8; 4]) -> Vec<u8> {
+            let mut bytes = Vec::new();
+            {
+                let mut encoder = png::Encoder::new(Cursor::new(&mut bytes), 64, 32);
+                encoder.set_color(png::ColorType::Rgba);
+                encoder.set_depth(png::BitDepth::Eight);
+                let mut writer = encoder.write_header().unwrap();
+                writer
+                    .write_image_data(&color.repeat(64 * 32))
+                    .unwrap();
+            }
+            bytes
+        }
+
+        let stamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let home = std::env::temp_dir().join(format!(
+            "sylphra-catalog-preview-{}-{stamp}",
+            std::process::id()
+        ));
+        fs::create_dir_all(&home).unwrap();
+        let original = png([255, 0, 0, 255]);
+        let tampered = png([0, 0, 255, 255]);
+        let mut catalog = Catalog::new(&home);
+        let cape = catalog
+            .cape_library
+            .import_png(&home, "Preview.png", &original)
+            .unwrap();
+        catalog
+            .select_cape_and_save("default", Some(&cape.id), &home)
+            .unwrap();
+
+        let first = catalog.cape_preview_rgba(&home).unwrap().unwrap().to_vec();
+        assert_eq!(first.len(), 64 * 64 * 4);
+        let file = home.join("capes").join(&cape.file);
+        fs::write(&file, &tampered).unwrap();
+
+        catalog.reload_cape_library(&home);
+        assert!(catalog
+            .cape_preview_rgba(&home)
+            .unwrap_err()
+            .contains("hash"));
+        fs::write(&file, &original).unwrap();
+        assert!(catalog.cape_preview_rgba(&home).is_err());
+
+        catalog.reload_cape_library(&home);
+        assert_eq!(
+            catalog.cape_preview_rgba(&home).unwrap().unwrap(),
+            first.as_slice()
+        );
+        let _ = fs::remove_dir_all(home);
+    }
 
     #[test]
     fn cape_mutations_refuse_corrupt_manifest_without_replacing_it() {
