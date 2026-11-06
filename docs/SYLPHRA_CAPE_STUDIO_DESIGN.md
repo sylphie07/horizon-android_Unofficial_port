@@ -286,3 +286,11 @@ The implementation commit `a7c644100dcf928b7ccefeac5e852a0e9fc5b14d` passed sour
 - [Applied] Code commit: `dbbebe90994deef6c1387679067bb5601d325a21`, branch `android`.
 - [Not verified] No Rust compilation, unit tests, APK build, installation, or device test has run after the correction. The failed run was on prior HEAD `8e5236fe0c914eb74c6298d372d4e390890c50f5`.
 - [Next] Run source checks on the corrected HEAD and inspect their result. Only after checks pass should the next APK compilation be requested.
+
+
+## 2026-11-06 — Home screen background mockup
+- The user-provided target is a wide landscape launcher: left dark navigation/account rail; supplied Minecraft Rust Edition artwork fills the right hero canvas; Files and Multiplayer controls at top-right; current-version card at bottom-left; green Play action at bottom-right.
+- The background image includes its own Minecraft Rust Edition logo. Do not add a duplicate center title over it.
+- Keep the background confined to the right hero canvas when `NavigationMode::Sidebar` is active. Calculate aspect-cover using that canvas width, not the full screen width, so the artwork/logo are not unnecessarily zoomed/cropped behind the sidebar.
+- Use translucent overlays only where controls need contrast; never paint an opaque hero rectangle over the artwork.
+- Implementation applied in `crates/horizon-client/src/android/launcher_pages.rs`, commit `899142c6a53d44acf84a0e08a14cd22815add2db`. Pending CI and device verification.
