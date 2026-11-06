@@ -33,10 +33,14 @@ fn ensure_sylphra_background(home: &PathBuf) -> Result<()> {
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)?;
         }
-        std::fs::write(
-            &path,
-            include_bytes!("../../../../assets/sylphra-launcher-background.png"),
-        )?;
+        // The PNG is split into small binary blobs for GitHub's file
+        // transport; concatenate them byte-for-byte before writing the asset.
+        let mut image = Vec::with_capacity(38_138);
+        image.extend_from_slice(include_bytes!("launcher_background/part-0.bin"));
+        image.extend_from_slice(include_bytes!("launcher_background/part-1.bin"));
+        image.extend_from_slice(include_bytes!("launcher_background/part-2.bin"));
+        image.extend_from_slice(include_bytes!("launcher_background/part-3.bin"));
+        std::fs::write(&path, image)?;
     }
     Ok(())
 }
