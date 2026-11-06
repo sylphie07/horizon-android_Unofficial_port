@@ -971,9 +971,8 @@ mod tests {
                 encoder.set_color(png::ColorType::Rgba);
                 encoder.set_depth(png::BitDepth::Eight);
                 let mut writer = encoder.write_header().unwrap();
-                writer
-                    .write_image_data(&color.repeat(64 * 32))
-                    .unwrap();
+                let pixels: Vec<u8> = (0..64 * 32).flat_map(|_| color).collect();
+                writer.write_image_data(&pixels).unwrap();
             }
             bytes
         }

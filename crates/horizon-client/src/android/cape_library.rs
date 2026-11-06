@@ -225,6 +225,7 @@ impl CapeLibrary {
         home: &Path,
         cape_id: &str,
     ) -> Result<(PathBuf, Vec<u8>), String> {
+        self.validate()?;
         let record = self
             .capes
             .iter()

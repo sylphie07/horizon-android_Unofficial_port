@@ -1581,11 +1581,17 @@ impl Launcher {
                     if y < top || y + row_surface > bottom { continue; }
                     let active = self.catalog.cape_library.active_cape(&self.catalog.skin_library.active_profile).is_some_and(|current| current.id == cape.id);
                     let row_width = (list_right - content_left).max(0.0);
-                    let delete_width = if compact_cape_split { 38.0 } else { 42.0 };
-                    let rename_width = if compact_cape_split { 44.0 } else { 50.0 };
-                    let gap = if compact_cape_split { 3.0 } else { 4.0 };
-                    let select_width = (row_width - delete_width - rename_width - gap * 2.0)
-                        .max(if compact_cape_split { 64.0 } else { 72.0 });
+                    let (delete_width, rename_width, gap, minimum_select_width) =
+                        if compact_cape_split && control_width < 156.0 {
+                            (34.0, 38.0, 2.0, 64.0)
+                        } else if compact_cape_split {
+                            (38.0, 44.0, 3.0, 64.0)
+                        } else {
+                            (42.0, 50.0, 4.0, 72.0)
+                        };
+                    let select_width =
+                        (row_width - delete_width - rename_width - gap * 2.0)
+                            .max(minimum_select_width);
                     let label = ui.fit_text(
                         Face::Regular,
                         14.0,
@@ -1605,7 +1611,7 @@ impl Launcher {
                         &mut ui,
                         &mut self.targets,
                         [rename_x, y, rename_width, row_surface],
-                        "Rename",
+                        if compact_cape_split && control_width < 156.0 { "Ren" } else { "Rename" },
                         Action::RenameCape(i),
                         false,
                     );
@@ -2955,7 +2961,12 @@ mod launcher_layout_tests {
 
     #[test]
     fn short_phone_cape_split_keeps_preview_and_controls_inside_viewport() {
-        for (width, height) in [(393.0, 460.0), (360.0, 460.0), (393.0, 600.0)] {
+        for (width, height) in [
+            (393.0, 460.0),
+            (360.0, 460.0),
+            (344.0, 460.0),
+            (393.0, 600.0),
+        ] {
             let shell = LauncherLayout::new(width, height);
             let content_bottom = shell.content_rect[1] + shell.content_rect[3];
             let studio_bottom = content_bottom - 10.0;
@@ -2966,10 +2977,15 @@ mod launcher_layout_tests {
             let preview_top = title_y + 52.0;
             let preview_height = compact_cape_preview_height(studio_bottom, preview_top, preview_width);
             let list_top = title_y + 116.0 + 24.0;
-            let delete_width = 38.0;
-            let rename_width = 44.0;
-            let gap = 3.0;
-            let select_width = (control_width - delete_width - rename_width - gap * 2.0).max(64.0);
+            let (delete_width, rename_width, gap, minimum_select_width) =
+                if control_width < 156.0 {
+                    (34.0, 38.0, 2.0, 64.0)
+                } else {
+                    (38.0, 44.0, 3.0, 64.0)
+                };
+            let select_width =
+                (control_width - delete_width - rename_width - gap * 2.0)
+                    .max(minimum_select_width);
 
             assert!(preview_top >= shell.content_rect[1]);
             assert!(preview_top + preview_height <= studio_bottom + 0.1);
