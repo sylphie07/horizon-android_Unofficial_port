@@ -306,3 +306,11 @@ The implementation commit `a7c644100dcf928b7ccefeac5e852a0e9fc5b14d` passed sour
 - Current Skin Studio preview appends local +Z 0.125 before converting model vertices through the GUI transform. That GUI transform mirrors Z, unlike the world/game render path. This means the preview offset must be evaluated in the complete transform chain, not by comparing the translation vector alone.
 - The current source evidence is insufficient to assert whether the preview offset's sign/axis is correct for the baked model. Do not increase cape scale or alter UVs without verifying the baked model's local orientation and a device image.
 - CI snapshot: source run #466 passed on HEAD `4f62829cf36f3fd02bfe0b35550f0be7b47927c1`; native matrix was skipped. Prior four-ABI run #460 and test APK run #21 refer to older commits. No device validation is claimed.
+
+
+## 2026-11-06 — Cape preview atlas UV correction
+- [Confirmed] `process_cape()` stores 64×32 cape artwork in rows 0–31 of a 64×64 transparent texture slot. The in-game texture path retains the same upper-half layout.
+- [Confirmed] The Skin Studio preview passed the full 64×64 atlas rectangle to the baked `player#cape` model. Its model UV space is 64×32, so mapping the full slot compressed the cape artwork vertically into half of the expected preview UV range.
+- [Applied] Commit `89290b79cce0349fc4b38b9e91cd4274c7c12a4c` changes only `crates/horizon-client/src/mobs/preview.rs`: the cape preview now maps the model to the upper half of the dedicated atlas slot. No gameplay renderer, cape geometry, offset, or skin path was changed.
+- [Not verified] No Rust compilation, unit test, native ABI matrix, APK, or device screenshot has run after this change. Treat the visual correction as a source-level diagnosis until verified.
+- [Next] Validate current HEAD with source CI and four-ABI native `--check`; only then request a fresh ARM64 test APK for device confirmation.
