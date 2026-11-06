@@ -215,6 +215,8 @@ pub struct Catalog {
     pub config: Config,
     pub skin_library: skin_library::SkinLibrary,
     pub skin_library_error: Option<String>,
+    pub cape_library: cape_library::CapeLibrary,
+    pub cape_library_error: Option<String>,
     skin_preview_cache: Option<(String, Vec<u8>)>,
     pub editing: Option<&'static str>,
     pub render_scale_text: String,
@@ -236,6 +238,15 @@ impl Catalog {
             Ok(library) => (library, None),
             Err(error) => (skin_library::SkinLibrary::default(), Some(error)),
         };
+        let (cape_library, cape_library_error) = match cape_library::CapeLibrary::load(home) {
+            Ok(library) => (library, None),
+            Err(error) => (cape_library::CapeLibrary::default(), Some(error)),
+        };
+        let initial_status = skin_library_error
+            .as_ref()
+            .map(|error| format!("Skin library unavailable: {error}"))
+            .or_else(|| cape_library_error.as_ref().map(|error| format!("Cape library unavailable: {error}")))
+            .unwrap_or_default();
         let mut result = Self {
             local: vec![],
             bundled_enabled: Default::default(),
@@ -248,12 +259,14 @@ impl Catalog {
             page: Page::Play,
             query: String::new(),
             results: vec![],
-            status: skin_library_error.as_ref().map_or_else(String::new, |error| format!("Skin library unavailable: {error}")),
+            status: initial_status,
             offset: 0,
             scroll: 0.0,
             config,
             skin_library,
             skin_library_error,
+            cape_library,
+            cape_library_error,
             skin_preview_cache: None,
             editing: None,
             render_scale_text: String::new(),
@@ -327,8 +340,48 @@ impl Catalog {
         self.skin_library_error = None;
         Ok(())
     }
+    pub fn reload_cape_library(&mut self, home: &Path) {
+        match cape_library::CapeLibrary::load(home) {
+            Ok(library) => {
+                self.cape_library = library;
+                self.cape_library_error = None;
+            }
+            Err(error) => {
+                self.cape_library_error = Some(error.clone());
+                self.status = format!("Cape library unavailable: {error}");
+            }
+        }
+    }
+    pub fn save_cape_library(&mut self, home: &Path) -> Result<(), String> {
+        if let Some(error) = &self.cape_library_error {
+            return Err(format!("Cape library is read-only until its metadata is repaired: {error}"));
+        }
+        self.cape_library.save(home)?;
+        self.cape_library_error = None;
+        Ok(())
+    }
+    /// Resolve the active profile's cape to a validated app-private file path.
+    /// The game receives this path only for the current launch.
+    pub fn active_cape_file(&self, home: &Path) -> Result<Option<PathBuf>, String> {
+        if let Some(error) = &self.cape_library_error {
+            return Err(format!("Cape library is unavailable: {error}"));
+        }
+        let Some(record) = self.cape_library.active_cape(&self.skin_library.active_profile).cloned() else {
+            return Ok(None);
+        };
+        let path = home.join("capes").join(&record.file);
+        let metadata = std::fs::symlink_metadata(&path).map_err(|error| error.to_string())?;
+        if metadata.file_type().is_symlink() || !metadata.is_file() {
+            return Err("Selected cape is not a regular app-private PNG file".into());
+        }
+        if metadata.len() == 0 || metadata.len() > cape_library::MAX_CAPE_BYTES as u64 {
+            return Err("Selected cape is empty or exceeds the 1 MiB limit".into());
+        }
+        Ok(Some(path))
+    }
     pub fn refresh(&mut self, home: &Path) {
         self.reload_skin_library(home);
+        self.reload_cape_library(home);
         let game = self.config.game_home(home);
         let installed = Installed::load(&game);
         self.downloaded = installed
