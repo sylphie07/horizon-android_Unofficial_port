@@ -1379,3 +1379,10 @@ The code batch is ready for the user's APK compilation check. After installation
 - [Verified] GitHub Actions source run #42304527339 passed on exact HEAD `d551f02aeb8dd7ade1ee7ebb88cddf68a3165cfc`: diff check, public-tree history, Android Python unit tests, diagnostics, performance, content tests, and workflow-export consistency all succeeded.
 - [Not verified] Native Rust `--check` jobs were skipped in this push-triggered run. No compile for this latest code, APK build, artifact audit, installation, or device rendering has been verified. The cape preview back-offset correction is also still awaiting native/device confirmation.
 - [Next] Trigger `.github/workflows/android-source.yml` manually with `native_checks=true` to check all four Android ABIs (this does not build an APK). If all pass, request one combined arm64 Sylphra test APK for cape-preview and launcher-background visual verification. Do not ask for an APK build before the native checks pass.
+
+
+## 2026-11-06 — Register Sylphra background in the HUD atlas
+- [Confirmed] Further source audit showed that `HudAtlas` only packs sprites declared by an atlas JSON source. Merely writing the PNG into `textures/gui/sylphra/` would leave `sylphra/background` absent from `gui.atlas.sprites`.
+- [Applied] Extended `ensure_sylphra_background` in `crates/horizon-client/src/android/launcher.rs` to create a separate `assets/minecraft/atlases/sylphra.json` with a directory source for `gui/sylphra/` and sprite prefix `sylphra/`. The existing Minecraft GUI atlas is not modified.
+- [Not verified] The registration change is source-only so far. The previous source workflow passed on `d551f02aeb8dd7ade1ee7ebb88cddf68a3165cfc`, before this final atlas registration commit. A new source run and native `--check` are still required.
+- [Next] Confirm source checks on the current HEAD, then dispatch four-ABI native checks. Only after both pass should the combined arm64 APK be requested.
