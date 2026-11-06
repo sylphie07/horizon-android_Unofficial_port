@@ -1241,3 +1241,12 @@ The user selected the uploaded Minecraft Rust Edition scene as the definitive la
 - [Applied] `crates/horizon-client/src/android/launcher_pages.rs`: clear `pending_cape_delete` whenever the chooser is dismissed. A later confirmation can only act on a freshly selected cape.
 - [Not verified] No Rust formatting, compilation, unit tests, native CI, APK build, or device test was run for this edit.
 - [Not changed] No cape data, manifest, import, launch precedence, remote-player texture, Elytra, account fallback, other branch, workflow rerun, APK, or release.
+
+
+## 2026-11-06 — CI completion and native-check workflow audit
+- Preflight: verified branch `android`, HEAD `8ea56916e2141bebfc6f473035392d0d45fe783f`, and inspected both active Android workflow definitions plus the completed run `42192899277`.
+- [Confirmed] Run `42192899277` completed successfully for this HEAD. Its `source` job passed `git diff --check`, public-tree history validation, Android Python unit tests, diagnostics, performance, content checks, and workflow-export consistency.
+- [Confirmed] The `native` job was skipped by design: `.github/workflows/android-source.yml` permits it only for `workflow_dispatch` with input `native_checks: true`; that input defaults to false. Push-triggered source checks do not type-check the four Android Rust ABIs.
+- [Confirmed] `.github/workflows/sylphra-test-apk.yml` is a separate manual-only workflow. It builds an isolated arm64 test APK and is not triggered by source-check completion.
+- [Not executed] No manual workflow dispatch, native check, APK build, artifact upload, Rust test, or device validation was started. This preserves the existing instruction not to launch builds/workflows without explicit authorization.
+- [Next] Continue static review and focused regression-test coverage. Before the first native verification, request explicit authorization for the opt-in native checks; request separate authorization before the test APK workflow.
