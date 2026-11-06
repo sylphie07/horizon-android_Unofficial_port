@@ -2514,8 +2514,15 @@ impl Launcher {
             Some(Action::SkinsTab) => { self.cape_tab = false; self.catalog.scroll = 0.0; }
             Some(Action::CapesTab) => { self.cape_tab = true; self.catalog.reload_cape_library(&self.home); self.catalog.scroll = 0.0; }
             Some(Action::ImportCape) => {
-                crate::platform::hide();
-                if let Err(error) = crate::documents::begin_cape(self.home.clone()) { self.catalog.status = error; }
+                self.catalog.reload_cape_library(&self.home);
+                if let Some(error) = &self.catalog.cape_library_error {
+                    self.catalog.status = format!("Cape library is read-only: {error}");
+                } else {
+                    crate::platform::hide();
+                    if let Err(error) = crate::documents::begin_cape(self.home.clone()) {
+                        self.catalog.status = error;
+                    }
+                }
             }
             Some(Action::SelectCape(index)) => {
                 if let Some(cape) = self.catalog.cape_library.capes.get(index) {

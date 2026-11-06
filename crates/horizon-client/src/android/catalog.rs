@@ -924,7 +924,36 @@ pub fn edit(&mut self, out: horizon_client::osk::Output, home: &Path) {
 
 #[cfg(test)]
 mod tests {
-    use super::Config;
+    use super::{Catalog, Config};
+    use std::{fs, path::PathBuf, time::{SystemTime, UNIX_EPOCH}};
+
+    #[test]
+    fn cape_mutations_refuse_corrupt_manifest_without_replacing_it() {
+        let stamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let home = std::env::temp_dir().join(format!(
+            "sylphra-catalog-cape-{}-{stamp}",
+            std::process::id()
+        ));
+        fs::create_dir_all(&home).unwrap();
+        let manifest = home.join("cape-library.json");
+        let original = b"{broken";
+        fs::write(&manifest, original).unwrap();
+
+        let mut catalog = Catalog::new(&home);
+        assert!(catalog
+            .select_cape_and_save("default", None, &home)
+            .unwrap_err()
+            .contains("read-only"));
+        let id = "0".repeat(64);
+        assert!(catalog.rename_cape(&id, "Renamed", &home).is_err());
+        assert!(catalog.remove_cape(&id, &home).is_err());
+        assert_eq!(fs::read(&manifest).unwrap(), original);
+
+        let _ = fs::remove_dir_all(home);
+    }
 
     #[test]
     fn old_config_defaults_welcome_acknowledgement_to_zero() {
