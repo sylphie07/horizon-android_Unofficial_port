@@ -1080,3 +1080,7 @@ Preview rendering generates body vertices, applies its GUI transform, then clips
 **Verification:** GitHub source re-fetch and compare confirm the committed source edit (one file, 120 additions / 77 deletions). Android source checks run 42169014756 was queued at note time. No local cargo fmt/build/test, APK, install or device visual validation has been performed. Source compile status remains pending.
 
 **Next:** review source-check run and fix any failure; then trace SAF URI loading, image decode and atlas patching to implement persistent static backgrounds safely. GIF/video remain deferred. Keep Cape audit isolated and preserve existing verified Skin Studio behavior.
+
+
+## 2026-11-06 — User selected final Play background
+The user selected the uploaded Minecraft Rust Edition scene as the definitive launcher background. Inspected asset is 1536×864 RGB and JPEG-encoded despite the `.png` upload filename. Preserve image/logo unchanged; store with `.jpg` extension or explicitly transcode. Intended rendering is centered aspect-fill over the Play content region, with the dark sidebar above it and only subtle readability shading. Updated `docs/SYLPHRA_LAUNCHER_REDESIGN.md` in commit `71339263a6264b10598bfbc8c151417c32237e86`. Asset binary and runtime background integration are not yet committed. Source-check run `42169082001` passed for source HEAD `fe40b1c964d18e53943f42fc4e8a1f0cc5be1490`; APK build and device appearance remain unverified.
