@@ -250,3 +250,22 @@ Solo documentación e inspección de código. No se ha modificado código de pro
 - [Applied] Added `CapeLibrary::select_cape_and_save` with snapshot/rollback on manifest write failure and switched both UI actions to it.
 - [Applied] Added a failure-path unit test covering failed deselection and failed selection. Test source added; execution remains pending.
 - [Not verified] No Rust compile, test, native workflow, APK, or device test.
+
+
+## Implementation update — 2026-11-06
+
+### Data integrity and preview path
+- Saving the cape manifest now inspects the existing manifest first and refuses to replace malformed JSON, unsupported versions, symlinks, or non-regular files.
+- Selection, account-cape fallback (`None`), rename, and delete go through Catalog methods that reload and validate the on-disk manifest before writing.
+- Import checks the library before opening the document picker; import rollback still removes a newly copied PNG if persistence fails.
+- `read_validated_file` validates the manifest record, cape storage directory, regular file type, size bound, SHA-256 content ID, PNG validity, and dimensions. Game-launch path resolution uses the same check.
+- Cape preview decode results are cached by content ID, including failures. Reloading the library invalidates the cache, avoiding repeated PNG reads and decoding during frame rendering.
+
+### Portrait phone layout
+- When a stacked layout can preserve both preview and list, reserve 92 dp for two complete list rows.
+- When the stacked layout would clip the preview or list, use a compact two-column layout: controls and list on the left, visible 3D preview on the right.
+- Compact controls use fitted labels and narrower action widths; the list retains at least one complete touch row on the tested short-phone geometries.
+- Regression geometry cases cover 393×820, 393×600, 393×460, 360×460, and 344×460 dp.
+
+### Verification boundary
+The implementation commit `a7c644100dcf928b7ccefeac5e852a0e9fc5b14d` passed source CI run `42291629518`. This is not a Rust build: Cargo tests, APK compilation, installation, and visual/gameplay verification remain pending.

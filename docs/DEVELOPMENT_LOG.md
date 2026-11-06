@@ -1271,3 +1271,41 @@ The user selected the uploaded Minecraft Rust Edition scene as the definitive la
 - [Not verified] Rust formatting, compilation, unit tests, native CI, APK build, and device behavior have not been run. This source edit is not yet verified by CI.
 - [Not changed] Import format, cape PNG validation, account/offline cape fallback, remote UUID assignment, Elytra behavior, workflows, APKs, releases, and branches.
 - [Next] Continue auditing import error recovery and narrow-screen layout. After static review, request authorization for native checks before any test APK build.
+
+
+## 2026-11-06 — Cape Studio integrity and mobile layout batch
+
+### Investigation
+- Re-read repository documentation, the `android` branch head, recent commits, and Actions state before editing.
+- Confirmed that `Catalog::save_cape_library` already had a read-only guard, but selection, rename, and removal UI paths called `CapeLibrary` mutation methods directly and bypassed it.
+- Confirmed that `CapeLibrary::save` previously checked for a redirected manifest path but did not parse and validate an existing manifest before replacing it.
+- Measured the portrait Cape Studio geometry: at 393×820 dp the original stacked layout left approximately 1 dp for the cape list. Shorter screens also placed content outside the post-inset content rectangle.
+- Found that cape preview PNG reading and decoding occurred in the draw path every frame.
+
+### Applied changes
+- `crates/horizon-client/src/android/cape_library.rs`
+  - Validate existing manifest metadata before atomic replacement.
+  - Add a validated file reader checking the library record, storage-directory and file symlinks/types, file-size limit, SHA-256 ID, PNG structure, and dimensions.
+  - Add regression tests for corrupt/unsupported manifests, import rollback, tampered PNG content, and symlinked cape storage.
+- `crates/horizon-client/src/android/catalog.rs`
+  - Add guarded Catalog APIs for select, rename, and remove that reload the manifest before mutation.
+  - Add a per-content-ID cape preview cache, including cached errors; clear it on library reload.
+  - Route game-launch cape path resolution through the validated file reader.
+  - Add tests for refusing corrupt-manifest mutations and preview-cache revalidation.
+- `crates/horizon-client/src/android/launcher_pages.rs`
+  - Route Cape Studio actions through the guarded Catalog APIs.
+  - Prevent opening the import picker when the library is read-only.
+  - Hide stale cape rows and display the read-only error.
+  - Add adaptive stacked/split portrait geometry, compact controls, and layout regression tests.
+  - Use the cached validated preview texture instead of decoding the PNG each frame.
+
+### Verification and limits
+- Implementation commit: `a7c644100dcf928b7ccefeac5e852a0e9fc5b14d`.
+- Source CI run `42291629518`: **SUCCESS**. `git diff --check`, public-tree history, Android Python tests, diagnostics, performance, content, and workflow export checks passed.
+- The source workflow does not execute Cargo/Rust compilation. The newly added Rust tests have not been executed.
+- No native compile workflow, APK build, installation, or on-device test was started.
+- Intermediate automatic source runs were cancelled when subsequent commits superseded them; the final implementation run above completed successfully.
+- No files outside the authorized `android` branch were changed.
+
+### Next step
+The batch is ready for the user's APK compilation check. If compilation fails, capture the complete failing job log and repair the exact compiler errors before another APK build. After installation, verify import, selection, None/account-cape fallback, rename, delete, persistence after restart, preview cache/rotation, and in-game cape rendering.

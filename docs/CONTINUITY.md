@@ -675,3 +675,22 @@
 - [Not verified] Rust formatting, compilation, unit tests, native CI, APK build, and device behavior have not been run. This source edit is not yet verified by CI.
 - [Not changed] Import format, cape PNG validation, account/offline cape fallback, remote UUID assignment, Elytra behavior, workflows, APKs, releases, and branches.
 - [Next] Continue auditing import error recovery and narrow-screen layout. After static review, request authorization for native checks before any test APK build.
+
+
+## 2026-11-06 — Cape Studio integrity, preview cache, and phone layout
+
+**Implementation code commit:** `a7c644100dcf928b7ccefeac5e852a0e9fc5b14d` on branch `android`.
+
+- Cape manifest writes now validate the existing on-disk manifest before replacement. Corrupt JSON, unsupported format versions, symlinks, and non-regular manifest paths are rejected instead of being overwritten by an empty/stale in-memory library.
+- Catalog selection, `None`, rename, and removal now reload the manifest before mutation and refuse writes while metadata is invalid. Cape import checks the library before opening the picker.
+- The Cape Studio list hides stale records in read-only mode and displays the actual metadata error.
+- Cape file resolution validates the library record, cape storage directory and file types, 1 MiB bound, SHA-256 content ID, PNG structure, and recorded dimensions. The game launch path uses the same validated-file reader.
+- Preview RGBA is cached by content ID, including decode failures, and invalidated on library reload. This avoids reading and decoding the cape PNG on every frame.
+- Portrait phone layout reserves a 92 dp list viewport beneath the stacked preview when possible. Shorter viewports use a compact two-column cape layout with fitted controls and a visible list row.
+- Added Rust tests for corrupt/unknown manifest preservation, import rollback, guarded Catalog mutations, content-hash tampering, symlinked cape storage, preview-cache invalidation, and phone geometry at 393×820, 393×600, 393×460, 360×460, and 344×460 dp.
+
+**Verification:** GitHub Actions source run `42291629518` passed on the implementation commit. The run covered `git diff --check`, public-tree history validation, Android Python unit tests, diagnostics, performance, content, and workflow-export consistency. It did **not** compile Rust, run the new Rust tests, build an APK, or test on a device.
+
+**Not verified / pending:** Rust compilation, Rust unit-test execution, APK installation, Cape Studio visual behavior on-device, preview rotation, and in-game cape rendering. These are intentionally left for the user's next APK build and device check.
+
+**Repository scope:** only `android` was modified. No other branch, PR, release, or APK was created. The GitHub connector exposes remote repository state; a separate local working-tree state was not available to inspect in this session.
