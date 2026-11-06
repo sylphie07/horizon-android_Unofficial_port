@@ -1246,10 +1246,11 @@ impl Launcher {
             let selected_y = title_y + 160.0;
             let default_y = title_y + 184.0;
             ui.text(Face::Medium, 24.0, content_left, title_y, color::TEXT, "Skin Studio");
-            let tab_y = profile_buttons_y + 48.0;
-            let tab_half = (control_width - 8.0) * 0.5;
-            button(&mut ui, &mut self.targets, [content_left, tab_y, tab_half, 36.0], "Skins", Action::SkinsTab, !self.cape_tab);
-            button(&mut ui, &mut self.targets, [content_left + tab_half + 8.0, tab_y, tab_half, 36.0], "Capes", Action::CapesTab, self.cape_tab);
+            let tab_y = title_y - 4.0;
+            let tab_width = ((control_width - 150.0) * 0.5).clamp(52.0, 84.0);
+            let tab_left = content_left + control_width - tab_width * 2.0 - 6.0;
+            button(&mut ui, &mut self.targets, [tab_left, tab_y, tab_width, 32.0], "Skins", Action::SkinsTab, !self.cape_tab);
+            button(&mut ui, &mut self.targets, [tab_left + tab_width + 6.0, tab_y, tab_width, 32.0], "Capes", Action::CapesTab, self.cape_tab);
             let profile = self.catalog.skin_library.profiles
                 .iter()
                 .find(|p| p.id == self.catalog.skin_library.active_profile)
