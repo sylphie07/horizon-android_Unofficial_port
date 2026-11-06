@@ -1150,3 +1150,11 @@ The user selected the uploaded Minecraft Rust Edition scene as the definitive la
 - Commit: `a4a2345afef942de6b1e9896f9d80661f28deffd`.
 - [Verified] Prior HEAD `ca03019d0db3b1d3d38994e578063bf22444a951` passed Android Source Checks run `42185225542`. The new cleanup commit has not yet been checked by CI.
 - [Not verified] No Rust compile, APK build, device test, cape preview geometry, or in-game local cape application.
+
+## 2026-11-06 — Renderer/atlas integration audit
+- [Confirmed] `PlayerPreview::draw()` currently renders only player-body geometry; the engine already exposes `mobs::render::cape()` and loads `player#cape` when present in installed model data.
+- [Confirmed] Existing `skins::process_cape()` creates a 64x64 RGBA canvas with supported 64x32 / 22x17 cape images in the upper half. HUD atlas has a `horizon/skin-preview` slot but no dedicated cape-preview slot.
+- [Confirmed] Android `LaunchRequest` supports skin file/model args only. Cape file is not currently part of launch request.
+- [Applied] No code changes in this audit; documented implementation prerequisites and safe order in `CONTINUITY.md` and `SYLPHRA_CAPE_STUDIO_DESIGN.md`.
+- [Not applied / not verified] Cape 3D preview, game launch integration, build, APK, and device test.
+- Prior source checks run `42186164124` passed for HEAD `8d976154a8708b00f4d434f598e5e41a214904c6` before this documentation update.
