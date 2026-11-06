@@ -366,6 +366,52 @@ impl Catalog {
         self.cape_library_error = None;
         Ok(())
     }
+
+    /// Reload from disk before every selection or destructive mutation. This
+    /// catches metadata that became corrupt after Catalog was constructed and
+    /// prevents stale in-memory state from replacing the on-disk manifest.
+    fn prepare_cape_library_write(&mut self, home: &Path) -> Result<(), String> {
+        self.reload_cape_library(home);
+        if let Some(error) = &self.cape_library_error {
+            return Err(format!(
+                "Cape library is read-only until its metadata is repaired: {error}"
+            ));
+        }
+        Ok(())
+    }
+
+    pub fn select_cape_and_save(
+        &mut self,
+        profile_id: &str,
+        cape_id: Option<&str>,
+        home: &Path,
+    ) -> Result<(), String> {
+        self.prepare_cape_library_write(home)?;
+        self.cape_library
+            .select_cape_and_save(profile_id, cape_id, home)
+    }
+
+    pub fn rename_cape(
+        &mut self,
+        cape_id: &str,
+        name: &str,
+        home: &Path,
+    ) -> Result<String, String> {
+        self.prepare_cape_library_write(home)?;
+        self.cape_library.rename(cape_id, name, home)?;
+        Ok(self
+            .cape_library
+            .capes
+            .iter()
+            .find(|cape| cape.id == cape_id)
+            .map(|cape| cape.name.clone())
+            .unwrap_or_else(|| "Imported cape".into()))
+    }
+
+    pub fn remove_cape(&mut self, cape_id: &str, home: &Path) -> Result<(), String> {
+        self.prepare_cape_library_write(home)?;
+        self.cape_library.remove(cape_id, home)
+    }
     /// Resolve the active profile's cape to a validated app-private file path.
     /// The game receives this path only for the current launch.
     pub fn active_cape_file(&self, home: &Path) -> Result<Option<PathBuf>, String> {
@@ -830,12 +876,9 @@ pub fn edit(&mut self, out: horizon_client::osk::Output, home: &Path) {
                 Output::Enter | Output::Close => {
                     self.editing = None;
                     if let Some(id) = self.cape_rename_id.take() {
-                        match self.cape_library.rename(&id, &self.cape_rename_text, home) {
-                            Ok(()) => self.status = format!(
-                                "Cape renamed to: {}",
-                                self.cape_library.capes.iter().find(|cape| cape.id == id)
-                                    .map(|cape| cape.name.as_str()).unwrap_or("Imported cape")
-                            ),
+                        let requested_name = self.cape_rename_text.clone();
+                        match self.rename_cape(&id, &requested_name, home) {
+                            Ok(name) => self.status = format!("Cape renamed to: {name}"),
                             Err(error) => self.status = error,
                         }
                     }

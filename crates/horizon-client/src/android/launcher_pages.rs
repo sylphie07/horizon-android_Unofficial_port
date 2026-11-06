@@ -151,6 +151,18 @@ enum NavigationMode {
     Sidebar,
 }
 
+/// Compute a stacked phone cape preview while reserving two complete list rows.
+fn stacked_cape_preview_height(list_bottom: f32, preview_top: f32, minimum_list: f32) -> f32 {
+    (list_bottom - preview_top - 8.0 - minimum_list).clamp(120.0, 260.0)
+}
+
+/// Keep a short-phone split preview near-square without exceeding the content.
+fn compact_cape_preview_height(studio_bottom: f32, preview_top: f32, preview_width: f32) -> f32 {
+    (studio_bottom - preview_top)
+        .max(0.0)
+        .min((preview_width * 1.15).max(72.0))
+}
+
 /// Shared geometry for the launcher shell and all page content.
 #[derive(Clone, Copy)]
 struct LauncherLayout {
@@ -1232,26 +1244,46 @@ impl Launcher {
             let content_left = layout.content_rect[0] + 12.0;
             let content_right = layout.content_rect[0] + layout.content_rect[2] - 12.0;
             let content_width = (content_right - content_left).max(0.0);
-            // Reserve a true 40% preview column only when both columns remain
-            // comfortable. Narrow phones use a full-width stacked preview.
-            let wide_preview = w >= 640.0 && content_width >= 560.0;
+            let content_bottom = layout.content_rect[1] + layout.content_rect[3];
+            let studio_bottom = (h - 12.0)
+                .min(content_bottom - 10.0)
+                .max(layout.content_rect[1] + 120.0)
+                .min(content_bottom - 10.0);
+            let desktop_wide_preview = w >= 640.0 && content_width >= 560.0;
+            let base_title_y = if studio_compact { 128.0 } else { 156.0 };
+            let base_default_y = base_title_y + 184.0;
+            let stacked_cape_top = base_default_y + 42.0;
+            let stacked_cape_bottom = content_bottom - 10.0;
+            // If the normal phone stack cannot preserve a visible preview and
+            // two complete list rows, use a compact split view instead.
+            let compact_cape_split = self.cape_tab
+                && !desktop_wide_preview
+                && w < 640.0
+                && content_width >= 280.0
+                && stacked_cape_bottom - stacked_cape_top - 8.0 - 92.0 < 120.0;
+            let wide_preview = desktop_wide_preview || compact_cape_split;
             let preview_width = if wide_preview { content_width * 0.42 } else { content_width };
-            let column_gap = if wide_preview { 16.0 } else { 0.0 };
+            let column_gap = if wide_preview { 12.0 } else { 0.0 };
             let control_width = if wide_preview {
-                (content_width - preview_width - column_gap).max(240.0)
+                (content_width - preview_width - column_gap).max(120.0)
             } else {
                 content_width
             };
-            let title_y = if studio_compact { 128.0 } else { 156.0 };
-            let profile_y = title_y + 30.0;
-            let profile_buttons_y = title_y + 66.0;
-            let import_y = title_y + 112.0;
-            let selected_y = title_y + 160.0;
-            let default_y = title_y + 184.0;
+            let title_y = if compact_cape_split {
+                layout.content_rect[1] + 2.0
+            } else {
+                base_title_y
+            };
+            let profile_y = title_y + if compact_cape_split { 28.0 } else { 30.0 };
+            let profile_buttons_y = title_y + if compact_cape_split { 48.0 } else { 66.0 };
+            let import_y = title_y + if compact_cape_split { 80.0 } else { 112.0 };
+            let selected_y = title_y + if compact_cape_split { 114.0 } else { 160.0 };
+            let default_y = title_y + if compact_cape_split { 134.0 } else { 184.0 };
             ui.text(Face::Medium, 24.0, content_left, title_y, color::TEXT, "Skin Studio");
             let tab_y = title_y - 4.0;
-            let tab_width = ((control_width - 150.0) * 0.5).clamp(52.0, 84.0);
-            let tab_left = content_left + control_width - tab_width * 2.0 - 6.0;
+            let tab_area_width = if compact_cape_split { content_width } else { control_width };
+            let tab_width = ((tab_area_width - 150.0) * 0.5).clamp(52.0, 84.0);
+            let tab_left = content_left + tab_area_width - tab_width * 2.0 - 6.0;
             button(&mut ui, &mut self.targets, [tab_left, tab_y, tab_width, 32.0], "Skins", Action::SkinsTab, !self.cape_tab);
             button(&mut ui, &mut self.targets, [tab_left + tab_width + 6.0, tab_y, tab_width, 32.0], "Capes", Action::CapesTab, self.cape_tab);
             let profile = self.catalog.skin_library.profiles
@@ -1259,7 +1291,20 @@ impl Launcher {
                 .find(|p| p.id == self.catalog.skin_library.active_profile)
                 .map(|p| p.name.clone())
                 .unwrap_or_else(|| "Default".into());
-            let selected = if self.cape_tab { self.catalog.cape_library.active_cape(&self.catalog.skin_library.active_profile).map(|cape| cape.name.clone()).unwrap_or_else(|| "None · account cape unchanged".into()) } else { self.catalog.skin_library.active_skin().map(|skin| skin.name.clone()).unwrap_or_else(|| "Minecraft default".into()) };
+            let selected = if self.cape_tab {
+                if self.catalog.cape_library_error.is_some() {
+                    "Unavailable · read-only".into()
+                } else {
+                    self.catalog.cape_library
+                        .active_cape(&self.catalog.skin_library.active_profile)
+                        .map(|cape| cape.name.clone())
+                        .unwrap_or_else(|| "None · account cape unchanged".into())
+                }
+            } else {
+                self.catalog.skin_library.active_skin()
+                    .map(|skin| skin.name.clone())
+                    .unwrap_or_else(|| "Minecraft default".into())
+            };
             let model = match self.catalog.skin_library.active_model().unwrap_or_default() {
                 crate::catalog::skin_library::SkinModel::Classic => "Classic",
                 crate::catalog::skin_library::SkinModel::Slim => "Slim",
@@ -1269,25 +1314,48 @@ impl Launcher {
                 ui.text(Face::Regular, 14.0, content_left, profile_y + 18.0, color::MUTED, &ui.fit_text(Face::Regular, 14.0, &format!("Read-only: {error}"), control_width));
             }
             let half = (control_width - 8.0).max(0.0) * 0.5;
-            button(&mut ui, &mut self.targets, [content_left, profile_buttons_y, half, 42.0], "Next", Action::NextAppearanceProfile, false);
-            button(&mut ui, &mut self.targets, [content_left + 8.0 + half, profile_buttons_y, half, 42.0], "New", Action::NewAppearanceProfile, false);
-            button(&mut ui, &mut self.targets, [content_left, import_y, half, 42.0], if self.cape_tab { "Import cape" } else { "Import PNG" }, if self.cape_tab { Action::ImportCape } else { Action::ImportSkin }, true);
-            if !self.cape_tab { button(&mut ui, &mut self.targets, [content_left + 8.0 + half, import_y, half, 42.0], model, Action::ToggleSkinModel, false); }
+            let profile_button_height = if compact_cape_split { 28.0 } else { 42.0 };
+            let import_button_height = if compact_cape_split { 30.0 } else { 42.0 };
+            button(&mut ui, &mut self.targets, [content_left, profile_buttons_y, half, profile_button_height], "Next", Action::NextAppearanceProfile, false);
+            button(&mut ui, &mut self.targets, [content_left + 8.0 + half, profile_buttons_y, half, profile_button_height], "New", Action::NewAppearanceProfile, false);
+            button(&mut ui, &mut self.targets, [content_left, import_y, half, import_button_height], if self.cape_tab { "Import cape" } else { "Import PNG" }, if self.cape_tab { Action::ImportCape } else { Action::ImportSkin }, true);
+            if compact_cape_split {
+                button(&mut ui, &mut self.targets, [content_left + 8.0 + half, import_y, half, import_button_height], "None", Action::NoCape, false);
+            } else if !self.cape_tab {
+                button(&mut ui, &mut self.targets, [content_left + 8.0 + half, import_y, half, import_button_height], model, Action::ToggleSkinModel, false);
+            }
             let selected_text = ui.fit_text(Face::Regular, 15.0, &format!("Selected: {selected}"), control_width);
             ui.text(Face::Regular, 15.0, content_left, selected_y, color::MUTED, &selected_text);
-            if self.cape_tab { button(&mut ui, &mut self.targets, [content_left, default_y, control_width, 34.0], "None · keep account cape", Action::NoCape, false); } else { button(&mut ui, &mut self.targets, [content_left, default_y, control_width, 34.0], "Use default skin", Action::DefaultSkin, false); }
-            let studio_bottom = (h - 12.0).max(layout.content_rect[1] + 180.0);
-            let preview_height = if wide_preview {
+            if !compact_cape_split {
+                if self.cape_tab {
+                    button(&mut ui, &mut self.targets, [content_left, default_y, control_width, 34.0], "None · keep account cape", Action::NoCape, false);
+                } else {
+                    button(&mut ui, &mut self.targets, [content_left, default_y, control_width, 34.0], "Use default skin", Action::DefaultSkin, false);
+                }
+            }
+            let preview_top = if compact_cape_split {
+                title_y + 52.0
+            } else if wide_preview {
+                layout.content_rect[1] + 4.0
+            } else if self.cape_tab {
+                default_y + 42.0
+            } else {
+                default_y + 118.0
+            };
+            let preview_height = if compact_cape_split {
+                compact_cape_preview_height(studio_bottom, preview_top, preview_width)
+            } else if wide_preview {
                 (studio_bottom - (layout.content_rect[1] + 4.0)).max(180.0)
+            } else if self.cape_tab {
+                stacked_cape_preview_height(stacked_cape_bottom, preview_top, 92.0)
             } else {
                 (h * 0.30).clamp(180.0, 260.0)
             };
             let preview_rect = if wide_preview {
                 let left = content_left + control_width + column_gap;
-                let top = layout.content_rect[1] + 4.0;
+                let top = preview_top;
                 [left, top, content_right, top + preview_height]
             } else {
-                let preview_top = default_y + 118.0;
                 let width = preview_width.min(300.0);
                 let left = content_left + (content_width - width) * 0.5;
                 [left, preview_top, left + width, preview_top + preview_height]
@@ -1424,7 +1492,13 @@ impl Launcher {
             // reuses the mannequin, but must not show controls that cannot
             // affect a cape and should reclaim their space for the cape list.
             let top = if self.cape_tab {
-                if wide_preview { default_y + 42.0 } else { preview_rect[3] + 8.0 }
+                if compact_cape_split {
+                    selected_y + 20.0
+                } else if wide_preview {
+                    default_y + 42.0
+                } else {
+                    preview_rect[3] + 8.0
+                }
             } else {
                 let layer_top = if wide_preview { default_y + 40.0 } else { preview_rect[3] + 5.0 };
                 ui.text(Face::Regular, 12.0, content_left, layer_top, color::MUTED, "Visible skin layers");
@@ -1465,7 +1539,14 @@ impl Launcher {
             let row_height = 48.0;
             let row_gap = 4.0;
             let row_surface = row_height - row_gap;
-            let count = if self.cape_tab { self.catalog.cape_library.capes.len() } else { self.catalog.skin_library.skins.len() };
+            let cape_read_only = self.cape_tab && self.catalog.cape_library_error.is_some();
+            let count = if cape_read_only {
+                0
+            } else if self.cape_tab {
+                self.catalog.cape_library.capes.len()
+            } else {
+                self.catalog.skin_library.skins.len()
+            };
             let maximum = (count as f32 * row_height - (bottom - top).max(0.0)).max(0.0);
             self.catalog.scroll = self.catalog.scroll.clamp(0.0, maximum);
             let list_right = if wide_preview {
@@ -1475,18 +1556,31 @@ impl Launcher {
             };
             self.list_view = Some([content_left, top, list_right, bottom, maximum]);
             if count == 0 {
-                ui.text(Face::Regular, 16.0, content_left, top + 16.0, color::MUTED, if self.cape_tab { "No capes imported yet. Choose Import cape." } else { "No imported skins yet. Choose Import PNG skin." });
+                let message = if cape_read_only {
+                    format!(
+                        "Cape library read-only: {}",
+                        self.catalog.cape_library_error.as_deref().unwrap_or("metadata unavailable")
+                    )
+                } else if self.cape_tab {
+                    "No capes imported yet. Choose Import cape.".into()
+                } else {
+                    "No imported skins yet. Choose Import PNG skin.".into()
+                };
+                let message = ui.fit_text(Face::Regular, 14.0, &message, (list_right - content_left).max(0.0));
+                ui.text(Face::Regular, 14.0, content_left, top + 16.0, color::MUTED, &message);
             }
             if self.cape_tab {
-                for (i, cape) in self.catalog.cape_library.capes.iter().enumerate() {
+                if !cape_read_only {
+                    for (i, cape) in self.catalog.cape_library.capes.iter().enumerate() {
                     let y = top + i as f32 * row_height - self.catalog.scroll;
                     if y < top || y + row_surface > bottom { continue; }
                     let active = self.catalog.cape_library.active_cape(&self.catalog.skin_library.active_profile).is_some_and(|current| current.id == cape.id);
                     let row_width = (list_right - content_left).max(0.0);
-                    let delete_width = 42.0;
-                    let rename_width = 50.0;
-                    let gap = 4.0;
-                    let select_width = (row_width - delete_width - rename_width - gap * 2.0).max(72.0);
+                    let delete_width = if compact_cape_split { 38.0 } else { 42.0 };
+                    let rename_width = if compact_cape_split { 44.0 } else { 50.0 };
+                    let gap = if compact_cape_split { 3.0 } else { 4.0 };
+                    let select_width = (row_width - delete_width - rename_width - gap * 2.0)
+                        .max(if compact_cape_split { 64.0 } else { 72.0 });
                     let label = ui.fit_text(
                         Face::Regular,
                         14.0,
@@ -1518,6 +1612,7 @@ impl Launcher {
                         Action::DeleteCape(i),
                         false,
                     );
+                    }
                 }
             } else {
             for (i, skin) in self.catalog.skin_library.skins.iter().enumerate() {
@@ -2424,16 +2519,20 @@ impl Launcher {
             }
             Some(Action::SelectCape(index)) => {
                 if let Some(cape) = self.catalog.cape_library.capes.get(index) {
-                    let id = cape.id.clone(); let name = cape.name.clone();
+                    let id = cape.id.clone();
+                    let name = cape.name.clone();
                     let profile = self.catalog.skin_library.active_profile.clone();
-                    match self.catalog.cape_library.select_cape_and_save(&profile, Some(&id), &self.home) {
+                    match self.catalog.select_cape_and_save(&profile, Some(&id), &self.home) {
                         Ok(()) => self.catalog.status = format!("Selected cape: {name}"),
                         Err(error) => self.catalog.status = error,
                     }
                 }
             }
             Some(Action::RenameCape(index)) => {
-                if let Some(cape) = self.catalog.cape_library.capes.get(index) {
+                self.catalog.reload_cape_library(&self.home);
+                if let Some(error) = &self.catalog.cape_library_error {
+                    self.catalog.status = format!("Cape library is read-only: {error}");
+                } else if let Some(cape) = self.catalog.cape_library.capes.get(index) {
                     self.catalog.cape_rename_id = Some(cape.id.clone());
                     self.catalog.cape_rename_text = cape.name.clone();
                     self.catalog.editing = Some("cape_name");
@@ -2441,14 +2540,17 @@ impl Launcher {
                 }
             }
             Some(Action::DeleteCape(index)) => {
-                if let Some(cape) = self.catalog.cape_library.capes.get(index) {
+                self.catalog.reload_cape_library(&self.home);
+                if let Some(error) = &self.catalog.cape_library_error {
+                    self.catalog.status = format!("Cape library is read-only: {error}");
+                } else if let Some(cape) = self.catalog.cape_library.capes.get(index) {
                     self.catalog.pending_cape_delete = Some(cape.id.clone());
                     self.chooser = Some(super::chooser::Chooser::confirm_delete_cape(cape.name.clone()));
                 }
             }
             Some(Action::ConfirmDeleteCape) => {
                 if let Some(id) = self.catalog.pending_cape_delete.take() {
-                    match self.catalog.cape_library.remove(&id, &self.home) {
+                    match self.catalog.remove_cape(&id, &self.home) {
                         Ok(()) => {
                             self.catalog.status = "Cape removed from the library and all appearance profiles.".into();
                             self.catalog.reload_cape_library(&self.home);
@@ -2463,7 +2565,7 @@ impl Launcher {
             }
             Some(Action::NoCape) => {
                 let profile = self.catalog.skin_library.active_profile.clone();
-                match self.catalog.cape_library.select_cape_and_save(&profile, None, &self.home) {
+                match self.catalog.select_cape_and_save(&profile, None, &self.home) {
                     Ok(()) => self.catalog.status = "Sylphra cape disabled; account cape remains unchanged.".into(),
                     Err(error) => self.catalog.status = error,
                 }
@@ -2825,6 +2927,43 @@ mod launcher_layout_tests {
             LauncherLayout::new(393.0, 460.0).navigation_mode,
             NavigationMode::Compact
         );
+    }
+
+    #[test]
+    fn tall_phone_cape_preview_reserves_two_library_rows() {
+        let shell = LauncherLayout::new(393.0, 820.0);
+        let content_bottom = shell.content_rect[1] + shell.content_rect[3];
+        let studio_bottom = content_bottom - 10.0;
+        let preview_top = 340.0 + 42.0;
+        let preview_height = stacked_cape_preview_height(studio_bottom, preview_top, 92.0);
+        let list_top = preview_top + preview_height + 8.0;
+        assert_eq!(preview_height, 228.0);
+        assert_eq!(studio_bottom - list_top, 92.0);
+    }
+
+    #[test]
+    fn short_phone_cape_split_keeps_preview_and_controls_inside_viewport() {
+        for (width, height) in [(393.0, 460.0), (360.0, 460.0), (393.0, 600.0)] {
+            let shell = LauncherLayout::new(width, height);
+            let content_bottom = shell.content_rect[1] + shell.content_rect[3];
+            let studio_bottom = content_bottom - 10.0;
+            let content_width = shell.content_rect[2] - 24.0;
+            let preview_width = content_width * 0.42;
+            let control_width = content_width - preview_width - 12.0;
+            let title_y = shell.content_rect[1] + 2.0;
+            let preview_top = title_y + 52.0;
+            let preview_height = compact_cape_preview_height(studio_bottom, preview_top, preview_width);
+            let list_top = title_y + 114.0 + 20.0;
+            let delete_width = 38.0;
+            let rename_width = 44.0;
+            let gap = 3.0;
+            let select_width = (control_width - delete_width - rename_width - gap * 2.0).max(64.0);
+
+            assert!(preview_top >= shell.content_rect[1]);
+            assert!(preview_top + preview_height <= studio_bottom + 0.1);
+            assert!(studio_bottom - list_top >= 44.0);
+            assert!(select_width + rename_width + delete_width + gap * 2.0 <= control_width + 0.1);
+        }
     }
 
     #[test]

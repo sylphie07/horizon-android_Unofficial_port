@@ -72,8 +72,24 @@ impl CapeLibrary {
         self.validate()?;
         ensure_home(home)?;
         let path = home.join(MANIFEST);
-        if fs::symlink_metadata(&path).is_ok_and(|m| m.file_type().is_symlink()) {
-            return Err("Refusing to replace redirected cape metadata".into());
+        match fs::symlink_metadata(&path) {
+            Ok(meta) if meta.file_type().is_symlink() || !meta.is_file() => {
+                return Err("Refusing to replace non-regular cape metadata".into());
+            }
+            Ok(_) => {
+                // Validate the on-disk manifest before replacing it. A caller
+                // holding a default or stale in-memory library must never turn
+                // corrupt/unknown metadata into an empty library on save.
+                let existing_bytes = fs::read(&path).map_err(|error| error.to_string())?;
+                let existing: Self = serde_json::from_slice(&existing_bytes).map_err(|error| {
+                    format!("Existing cape library metadata is invalid; refusing to overwrite: {error}")
+                })?;
+                existing.validate().map_err(|error| {
+                    format!("Existing cape library metadata is invalid; refusing to overwrite: {error}")
+                })?;
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => return Err(error.to_string()),
         }
         let stamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -526,7 +542,39 @@ mod tests {
         let manifest = path.join(MANIFEST);
         fs::write(&manifest, b"{broken").unwrap();
         assert!(CapeLibrary::load(&path).is_err());
+        assert!(CapeLibrary::default().save(&path).is_err());
         assert_eq!(fs::read(&manifest).unwrap(), b"{broken");
+        let _ = fs::remove_dir_all(path);
+    }
+
+    #[test]
+    fn save_refuses_unknown_manifest_versions_without_replacing_them() {
+        let path = home();
+        fs::create_dir_all(&path).unwrap();
+        let manifest = path.join(MANIFEST);
+        let original = br#"{"format_version":99,"capes":[],"selections":[]}"#;
+        fs::write(&manifest, original).unwrap();
+
+        assert!(CapeLibrary::default().save(&path).is_err());
+        assert_eq!(fs::read(&manifest).unwrap(), original);
+        let _ = fs::remove_dir_all(path);
+    }
+
+    #[test]
+    fn import_rolls_back_new_png_when_existing_manifest_is_corrupt() {
+        let path = home();
+        fs::create_dir_all(&path).unwrap();
+        let manifest = path.join(MANIFEST);
+        let original = b"{broken";
+        fs::write(&manifest, original).unwrap();
+        let mut library = CapeLibrary::default();
+
+        assert!(library
+            .import_png(&path, "cape.png", &png(64, 32, [255, 0, 0, 255]))
+            .is_err());
+        assert!(library.capes.is_empty());
+        assert_eq!(fs::read(&manifest).unwrap(), original);
+        assert_eq!(fs::read_dir(path.join(CAPE_DIR)).unwrap().count(), 0);
         let _ = fs::remove_dir_all(path);
     }
 }
