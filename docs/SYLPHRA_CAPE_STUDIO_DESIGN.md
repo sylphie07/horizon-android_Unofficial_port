@@ -314,3 +314,13 @@ The implementation commit `a7c644100dcf928b7ccefeac5e852a0e9fc5b14d` passed sour
 - [Applied] Commit `89290b79cce0349fc4b38b9e91cd4274c7c12a4c` changes only `crates/horizon-client/src/mobs/preview.rs`: the cape preview now maps the model to the upper half of the dedicated atlas slot. No gameplay renderer, cape geometry, offset, or skin path was changed.
 - [Not verified] No Rust compilation, unit test, native ABI matrix, APK, or device screenshot has run after this change. Treat the visual correction as a source-level diagnosis until verified.
 - [Next] Validate current HEAD with source CI and four-ABI native `--check`; only then request a fresh ARM64 test APK for device confirmation.
+
+
+
+## 2026-11-06 — Cape library and preview validation boundary
+- [Audited] CapeLibrary import and persistence support 64×32 and legacy 22×17 PNG files, SHA-256 deduplication, per-profile selection, rename, remove, manifest validation, and guarded file reads. Source tests cover save rollback, profile isolation, tampering, symlinks and invalid manifests.
+- [Confirmed] The current push CI #479 passed all source checks on HEAD `a799a6d84be8b1ecf7fd87c37e7da303439133c1`. Its native matrix was skipped; the 36 passing `android_content_tests` are not Rust CapeLibrary tests.
+- [Confirmed] `process_cape()` writes imported pixels to the top 64×32 area of a 64×64 texture slot; preview passes the corresponding upper-half atlas rectangle.
+- [Hypothesis] The baked `player#cape` model's UV domain is 64×32. No source asset containing the baked model UV metadata was found in the checked-in tree. The preview UV correction therefore still requires native/device visual verification.
+- [Not verified] No current-HEAD Rust test, four-ABI native check, APK, installation, or screenshot. The workflow requires manual `workflow_dispatch(native_checks=true)`; the available connector cannot dispatch it.
+- [Decision] Do not change cape geometry, preview offset, gameplay renderer, or import conversion speculatively. The user's in-game cape already renders correctly; the remaining target is the Cape Studio preview.
