@@ -27,6 +27,22 @@ use winit::{
     window::{Window, WindowId},
 };
 
+fn cape_file_or_account_fallback(
+    result: std::result::Result<Option<PathBuf>, String>,
+    status: &mut String,
+) -> Option<PathBuf> {
+    match result {
+        Ok(file) => file,
+        Err(error) => {
+            let message =
+                format!("Custom cape unavailable; continuing with account cape: {error}");
+            log::warn!("{message}");
+            *status = message;
+            None
+        }
+    }
+}
+
 pub(super) struct Launcher {
     home: PathBuf,
     controller_edges: horizon_client::gamepad::Edges,
@@ -373,10 +389,9 @@ impl Launcher {
             horizon_client::android_runtime::clear_gamepads();
             self.controller_edges = Default::default();
             self.controller_repeat = None;
-            let cape_file = self
-                .catalog
-                .active_cape_file(&self.home)
-                .map_err(std::io::Error::other)?;
+            let cape_result = self.catalog.active_cape_file(&self.home);
+            let cape_file =
+                cape_file_or_account_fallback(cape_result, &mut self.catalog.status);
             let request = crate::game_launch::LaunchRequest {
                 resources: self
                     .home
@@ -696,6 +711,44 @@ impl ApplicationHandler for Launcher {
         if let Some(game) = &mut self.game {
             game.exiting(events);
         }
+    }
+}
+
+#[cfg(test)]
+mod cape_launch_tests {
+    use super::cape_file_or_account_fallback;
+    use std::path::PathBuf;
+
+    #[test]
+    fn invalid_custom_cape_falls_back_without_blocking_launch() {
+        let mut status = String::new();
+        let result = cape_file_or_account_fallback(
+            Err("manifest is corrupt".into()),
+            &mut status,
+        );
+
+        assert_eq!(result, None);
+        assert!(status.contains("continuing with account cape"));
+        assert!(status.contains("manifest is corrupt"));
+    }
+
+    #[test]
+    fn absent_custom_cape_keeps_account_fallback_without_warning() {
+        let mut status = String::from("Existing status");
+        let result = cape_file_or_account_fallback(Ok(None), &mut status);
+
+        assert_eq!(result, None);
+        assert_eq!(status, "Existing status");
+    }
+
+    #[test]
+    fn valid_custom_cape_path_is_preserved() {
+        let mut status = String::new();
+        let path = PathBuf::from("/private/capes/valid.png");
+        let result = cape_file_or_account_fallback(Ok(Some(path.clone())), &mut status);
+
+        assert_eq!(result, Some(path));
+        assert!(status.is_empty());
     }
 }
 
