@@ -191,3 +191,9 @@ Solo documentación e inspección de código. No se ha modificado código de pro
 - Source commits: `678aa23`, `38f0b26`, `e9985d1`, `4282427`, `2d06b12`.
 - Added launch-argument tests, but they have not yet been run. No Rust compile, APK build, or device/gameplay validation has been performed. Source-check run `42189848848` was pending for code HEAD `2d06b12` when this entry was written.
 - Remaining verification: compile the Rust workspace; test loader rejection/normalization; verify explicit cape overrides only the local player; verify None retains an official account cape; verify `modelPart_cape` still hides cape as before; inspect mannequin preview and in-game cape visually on device. LAN sharing remains separate.
+
+
+## 2026-11-06 — Atlas UV integration correction
+- `Game::store_skin()` applies cape-specific half-height atlas UVs only when the atlas key starts with `capes/`. Since `process_cape()` stores 64x32 cape pixels in the upper half of a 64x64 RGBA buffer, the custom cape must use the same namespace.
+- Applied: `crates/horizon-client/src/game/remote.rs` now stores the selected local cape as `capes/sylphra-local` instead of `sylphra/local_cape` (commit `e1d5e2472f06c968f849216fe9a8cf134dc5accc`).
+- This corrects the atlas-key/UV contract by inspection; visual rendering is not yet verified. No native compile, APK, or device test has been run for this change.
