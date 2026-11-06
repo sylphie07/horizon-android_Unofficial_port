@@ -2,6 +2,8 @@
 use crate::browser::{self, Kind, Project, Query, Source, installed::Installed};
 #[path = "skin_library.rs"]
 pub mod skin_library;
+#[path = "cape_library.rs"]
+pub mod cape_library;
 use serde::{Deserialize, Serialize};
 use std::{
     path::{Path, PathBuf},
