@@ -822,3 +822,16 @@ The remote branch was verified; a separate local working-tree state was not avai
 - Confirmed source data flow: `process_cape()` fills rows 0–31 of a 64×64 buffer; preview supplies the sprite's upper-half UV rectangle; `render::cape()` forwards the UV rectangle unchanged to `draw()`.
 - The assumption that baked `player#cape` UVs span 64×32 is plausible and consistent with the layout, but original baked UV metadata was not found in the accessible source tree. Keep this as a hypothesis until native rendering/device screenshot verifies the visual result.
 - GitHub connector has no workflow-dispatch action. Existing Actions operations can inspect or rerun existing jobs but cannot create the required `workflow_dispatch(native_checks=true)` run. Current-HEAD four-ABI check remains pending; do not request APK compilation yet.
+
+
+
+## 2026-11-06 — Cape Studio integration audit and CI #479
+- Authorized branch: `android`. Latest verified HEAD before this documentation commit: `a799a6d84be8b1ecf7fd87c37e7da303439133c1`.
+- Source workflow #479 / run ID `42313150715` completed with conclusion `success` on that exact HEAD. Source job passed `git diff --check`, public-tree history validation, Android Python unit tests, diagnostics/performance/content checks, and workflow-export consistency. Native matrix was `skipped`, not failed.
+- The CI log includes 36 passing `android_content_tests` tests (0 failed, 1 ignored). These are not the Rust CapeLibrary unit tests and do not count as a Rust/Android compile.
+- [Confirmed] CapeLibrary source includes tests for 64×32 and 22×17 PNG import, hash deduplication, profile-specific selections, rollback on save failure, rename, remove, tamper detection, symlink rejection, and corrupt/unknown manifests. These Rust tests have not been executed on current HEAD.
+- [Confirmed] `process_cape()` maps cape pixels into rows 0–31 of a 64×64 slot; preview maps the atlas rectangle to its upper half. `render::cape()` forwards UVs unchanged. The baked model's original UV metadata is not present in the checked-in asset tree, so the 64×32 model-domain assumption remains a hypothesis pending native render/device evidence.
+- [Confirmed] The cape library validates dimensions, file hash, manifest references and paths; destructive removal is documented as requiring caller confirmation. No gameplay cape rendering changes were made during this audit.
+- [Not available] The current GitHub connector has no workflow-dispatch action. The active workflow only runs the four-ABI native matrix for manual `workflow_dispatch` with `native_checks=true`; a push-triggered run cannot validate native Rust compilation.
+- [Not verified] No current-HEAD Rust tests, four-ABI native checks, fresh APK, installation, or screenshot exist. Do not ask the user to compile yet.
+- [Next] Obtain a manual four-ABI native check on current `android` HEAD. Only after all four pass, build/request one ARM64 test APK and have the user visually compare Cape Studio with the already-confirmed in-game cape.
