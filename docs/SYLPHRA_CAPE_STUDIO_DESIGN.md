@@ -294,3 +294,8 @@ The implementation commit `a7c644100dcf928b7ccefeac5e852a0e9fc5b14d` passed sour
 - Keep the background confined to the right hero canvas when `NavigationMode::Sidebar` is active. Calculate aspect-cover using that canvas width, not the full screen width, so the artwork/logo are not unnecessarily zoomed/cropped behind the sidebar.
 - Use translucent overlays only where controls need contrast; never paint an opaque hero rectangle over the artwork.
 - Implementation applied in `crates/horizon-client/src/android/launcher_pages.rs`, commit `899142c6a53d44acf84a0e08a14cd22815add2db`. Pending CI and device verification.
+
+
+## 2026-11-06 — Launcher home control sizing refinement
+- Reference mockup uses a bottom version tile around 244x72 and a wide Play control around 410x72, both close to the bottom edge. The top Files/Multiplayer controls sit closer to the right edge than the first implementation.
+- Applied in `crates/horizon-client/src/android/launcher_pages.rs`, commit `ff9686a9dbee5c6adf3dba8e27dd9b88a7e31f19`: version tile 244x72; Play height 72 and width responsive up to 410; 12px horizontal edge inset; top controls shifted right. Pending CI and device verification.
