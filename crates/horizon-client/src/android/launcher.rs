@@ -373,6 +373,10 @@ impl Launcher {
             horizon_client::android_runtime::clear_gamepads();
             self.controller_edges = Default::default();
             self.controller_repeat = None;
+            let cape_file = self
+                .catalog
+                .active_cape_file(&self.home)
+                .map_err(std::io::Error::other)?;
             let request = crate::game_launch::LaunchRequest {
                 resources: self
                     .home
@@ -392,6 +396,7 @@ impl Launcher {
                     self.catalog.skin_library.active_model(),
                     Some(crate::catalog::skin_library::SkinModel::Slim)
                 ),
+                cape_file,
                 extra_arguments,
                 open_gl: self.catalog.config.renderer == crate::catalog::RendererMode::OpenGl,
                 gpu_batching: self.catalog.config.renderer == crate::catalog::RendererMode::Vulkan,
