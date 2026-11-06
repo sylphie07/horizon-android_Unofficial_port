@@ -651,6 +651,10 @@ impl ApplicationHandler for Launcher {
                 self.catalog.page = Page::SkinStudio;
                 self.skin_preview_error = None;
                 self.catalog.scroll = 0.0;
+            } else if notice.cape_changed {
+                self.catalog.reload_cape_library(&self.home);
+                self.catalog.page = Page::SkinStudio;
+                self.catalog.scroll = 0.0;
             } else if notice.changed {
                 self.catalog.refresh(&self.home);
                 self.catalog.show_installed(notice.kind);
