@@ -2679,4 +2679,28 @@ mod launcher_layout_tests {
             NavigationMode::Compact
         );
     }
+
+    #[test]
+    fn sidebar_catalog_controls_do_not_overlap_results() {
+        let shell = LauncherLayout::new(1536.0, 691.0);
+        let page = CatalogPageLayout::for_launcher(&shell);
+        assert_eq!(shell.navigation_mode, NavigationMode::Sidebar);
+        assert!(page.source_y + 32.0 <= page.search_y);
+        assert!(page.search_y + 44.0 <= page.folder_y);
+        assert!(page.folder_y + 38.0 <= page.hint_y);
+        assert!(page.hint_y + 18.0 < page.list_top);
+        assert!(page.list_top < shell.content_rect[3]);
+    }
+
+    #[test]
+    fn compact_catalog_geometry_preserves_existing_offsets() {
+        let shell = LauncherLayout::new(393.0, 820.0);
+        let page = CatalogPageLayout::for_launcher(&shell);
+        assert_eq!(shell.navigation_mode, NavigationMode::Expanded);
+        assert_eq!(page.title_y, 142.0);
+        assert_eq!(page.search_y, 174.0);
+        assert_eq!(page.folder_y, 222.0);
+        assert_eq!(page.hint_y, 270.0);
+        assert_eq!(page.list_top, shell.content_rect[1] + 152.0);
+    }
 }
