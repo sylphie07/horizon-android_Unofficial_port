@@ -1450,3 +1450,16 @@ The code batch is ready for the user's APK compilation check. After installation
 - [Hypothesis] The baked `player#cape` model uses a 64×32 UV domain. The source path does not expose the baked model's original UV metadata directly, so this remains to be confirmed by native rendering and device screenshot. The UV fix remains pending visual verification.
 - [Not available] No GitHub connector action can dispatch `.github/workflows/android-source.yml` with `native_checks=true`; available Actions operations are read-only fetches and reruns of existing jobs. No current-HEAD four-ABI check was started.
 - [Next] Keep the APK build on hold until a dispatch-capable route can run all four native ABI checks on current source HEAD.
+
+
+
+## 2026-11-06 — Cape Studio integration audit and CI #479
+- [Confirmed] Inspected current branch `android`, HEAD `a799a6d84be8b1ecf7fd87c37e7da303439133c1`, and the three project continuity/design documents before further work.
+- [Confirmed] CI #479 / `42313150715` passed on exact HEAD `a799a6d...`. Source steps passed: diff whitespace check, public-tree history check, Android Python unit tests, diagnostics, performance, content checks, and workflow-export consistency. Native matrix status was `skipped`.
+- [Confirmed] CI log reports `android_content_tests`: 36 passed, 0 failed, 1 ignored. This does not execute the Rust CapeLibrary tests.
+- [Audited] `crates/horizon-client/src/android/cape_library.rs`: import supports 64×32 and 22×17 PNG, deduplicates by SHA-256, validates metadata and paths, persists profile-specific selections, rolls back in-memory state on failed saves, and tests rename/remove/tamper/symlink/corrupt-manifest behavior. These Rust tests remain unexecuted on current HEAD.
+- [Audited] `crates/horizon-client-render/src/skins.rs::process_cape` copies cape artwork into the upper 64×32 area of a 64×64 slot. Preview now passes the upper-half atlas rect. `render::cape` forwards UV unchanged. Original baked `player#cape` model UV metadata was not found in tracked asset files; keep the model-domain claim as a hypothesis.
+- [No source changes] This pass found no evidence justifying speculative geometry, offset, gameplay renderer, or library behavior changes. The in-game cape was already reported visually correct by the user.
+- [Blocker] `.github/workflows/android-source.yml` gates native checks behind manual dispatch with `native_checks=true`. The available GitHub connector exposes no workflow-dispatch action; run #479 was push-triggered and therefore skipped native jobs.
+- [Not verified] No Rust compile/test, four-ABI matrix, fresh APK, install, or Cape Studio preview screenshot on current HEAD.
+- [Next] Need a dispatch-capable route to run all four native ABIs on current branch HEAD. After all pass, request one ARM64 test APK for visual confirmation; do not request user compilation before then.
