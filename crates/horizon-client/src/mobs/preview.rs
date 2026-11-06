@@ -158,10 +158,15 @@ impl PlayerPreview {
         if let Some(texture) = cape
             && let Some(rect) = atlas.sprites.get(texture)
         {
+            // CapeLayer translates the cape 1/8 block away from the
+            // player's back before rendering. Without this local-space offset,
+            // the cape intersects the torso and is hidden/clipped by the body.
+            let cape_root = super::render::base_transform(&mob, 1.0, camera)
+                * glam::Mat4::from_translation(glam::Vec3::new(0.0, 0.0, 0.125));
             super::render::cape(
                 &mob,
                 1.0,
-                super::render::base_transform(&mob, 1.0, camera),
+                cape_root,
                 [rect.u0, rect.v0, rect.u1, rect.v1],
                 240 | 240 << 8,
                 &self.data,
