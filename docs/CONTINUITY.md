@@ -791,3 +791,12 @@ The remote branch was verified; a separate local working-tree state was not avai
 - Previous four-ABI CI run #460 succeeded on earlier HEAD `21282f95002e0ed99d592f256ace99f2e5d7c89b`. It does not validate this new sizing change.
 - [Not verified] Current latest code commit has no CI/native validation, APK build, installation, or device screenshot yet. User asked assistant to continue development and notify them only when another build is needed; do not ask them to compile at this stage.
 - [Next] Validate latest HEAD with source tests and four-ABI Rust checks. After any further code changes, rerun checks before asking for one test APK.
+
+
+## 2026-11-06 — Latest CI snapshot and Cape Studio transform audit
+- Authorized branch only: `android`. Verified exact remote HEAD `4f62829cf36f3fd02bfe0b35550f0be7b47927c1`, commit message `docs: note launcher mockup control sizing`.
+- Current source workflow #466 / `42310033858` on exact HEAD: `success`. Source job passed all listed steps. Native matrix job was `skipped` (push trigger; `native_checks=true` is required via manual dispatch). Runs #463, #464 and #465 were `cancelled` by concurrency as newer commits arrived; #466 is the completed source validation.
+- Latest test APK run #21 / `42306986618`: `success` on older commit `1b2edf2ce291`; artifact `sylphra-launcher-arm64-test` (36,519,883 bytes) remains available until 2026-11-13T22:58:43Z. It is not built from current HEAD and must not be treated as validation of the newer layout sizing.
+- Cape audit: preview caller supplies local +Z 0.125 to the engine's cape layer; preview GUI transform mirrors Z. In-game rendering uses another transform path. The model renderer itself does not apply an extra offset. The correct sign/axis still needs confirmation against the baked `player#cape` model orientation and a visual test. No speculative geometry edits made.
+- [Not verified] Latest current HEAD has source CI success only; no four-ABI native check, fresh APK, install, or screenshot. Previous four-ABI run #460 was on older HEAD `21282f95002e0ed99d592f256ace99f2e5d7c89b`.
+- [Next] Continue source-level audit and layout robustness review. Do not ask user to compile until current-HEAD four-ABI checks pass and the build is actually needed.
