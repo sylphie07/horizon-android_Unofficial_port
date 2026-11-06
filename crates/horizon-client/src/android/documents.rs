@@ -22,6 +22,7 @@ use std::{
 enum ImportKind {
     Content(Kind),
     Skin,
+    Cape,
 }
 struct Request {
     kind: ImportKind,
@@ -39,6 +40,7 @@ pub struct Notice {
     pub changed: bool,
     pub kind: Option<Kind>,
     pub skin_changed: bool,
+    pub cape_changed: bool,
 }
 #[derive(Default)]
 struct State {
@@ -86,6 +88,7 @@ fn notice(text: impl Into<String>, changed: bool) {
         changed,
         kind: None,
         skin_changed: false,
+        cape_changed: false,
     });
 }
 fn imported(text: impl Into<String>, kind: Kind) {
@@ -108,6 +111,19 @@ fn imported_skin(text: impl Into<String>) {
         changed: true,
         kind: None,
         skin_changed: true,
+        cape_changed: false,
+    });
+}
+fn imported_cape(text: impl Into<String>) {
+    let text = text.into();
+    let mut s = STATE.lock().unwrap_or_else(|e| e.into_inner());
+    s.toast = Some((text.clone(), std::time::Instant::now()));
+    s.notice = Some(Notice {
+        text,
+        changed: true,
+        kind: None,
+        skin_changed: false,
+        cape_changed: true,
     });
 }
 pub fn poll() -> Option<Notice> {
@@ -117,6 +133,7 @@ pub fn poll() -> Option<Notice> {
             changed: true,
             kind: None,
             skin_changed: false,
+            cape_changed: false,
         });
     }
     STATE
@@ -131,6 +148,10 @@ pub fn begin(kind: Kind, home: PathBuf) -> std::result::Result<(), String> {
 
 pub fn begin_skin(home: PathBuf) -> std::result::Result<(), String> {
     begin_request(ImportKind::Skin, home, "Choose a 64×64 PNG skin (legacy 64×32 is also supported)".into())
+}
+
+pub fn begin_cape(home: PathBuf) -> std::result::Result<(), String> {
+    begin_request(ImportKind::Cape, home, "Choose a Minecraft cape PNG (64×32 or legacy 22×17)".into())
 }
 
 fn begin_request(kind: ImportKind, home: PathBuf, prompt: String) -> std::result::Result<(), String> {
@@ -204,7 +225,7 @@ pub extern "system" fn document_result(
                 let fallback = match pending.kind {
                     ImportKind::Content(Kind::Mods) => "import.hmod",
                     ImportKind::Content(_) => "import.zip",
-                    ImportKind::Skin => "import.png",
+                    ImportKind::Skin | ImportKind::Cape => "import.png",
                 };
                 let opened =
                     crate::document_bridge::open(&mut env, activity.as_obj(), &uri, fallback);
@@ -225,6 +246,25 @@ pub extern "system" fn document_result(
     }
 }
 fn stage(request: Request, mut input: std::fs::File, name: String) -> Result<()> {
+    if matches!(request.kind, ImportKind::Cape) {
+        use std::io::Read;
+        let limit = crate::catalog::cape_library::MAX_CAPE_BYTES as u64 + 1;
+        let mut bytes = Vec::new();
+        input.take(limit).read_to_end(&mut bytes)?;
+        if bytes.len() > crate::catalog::cape_library::MAX_CAPE_BYTES {
+            return Err("Cape PNG exceeds the 1 MiB import limit".into());
+        }
+        if CANCEL.load(Ordering::Relaxed) {
+            return Err("Import cancelled".into());
+        }
+        let mut library = crate::catalog::cape_library::CapeLibrary::load(&request.home)
+            .map_err(|e| format!("Cape library unavailable: {e}"))?;
+        let record = library
+            .import_png(&request.home, &name, &bytes)
+            .map_err(|e| format!("Cape import failed: {e}"))?;
+        imported_cape(format!("Imported cape: {}", record.name));
+        return Ok(());
+    }
     if matches!(request.kind, ImportKind::Skin) {
         use std::io::Read;
         let limit = crate::catalog::skin_library::MAX_SKIN_BYTES as u64 + 1;
