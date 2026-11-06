@@ -393,6 +393,14 @@ impl HudAtlas {
             64,
             vec![0; 64 * 64 * 4],
         ));
+        // Dedicated cape texture for Skin Studio's mannequin. Cape images
+        // are normalized to 64x64 by process_cape(), with content in rows 0..32.
+        images.push((
+            "horizon/cape-preview".into(),
+            64,
+            64,
+            vec![0; 64 * 64 * 4],
+        ));
         for i in 0..TRIM_SLOTS {
             images.push((
                 format!("horizon/trim{i}"),
