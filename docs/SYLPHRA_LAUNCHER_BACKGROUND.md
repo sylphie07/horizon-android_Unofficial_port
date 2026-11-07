@@ -21,3 +21,11 @@ Use the user-supplied Minecraft Rust Edition artwork as the launcher background 
 - Atlas-registration correction commit: `0db826f608497f231eddd112b950eaba7a0b96dc`.
 - Pending: source CI on the latest commit, native Rust checks for all four Android ABIs, then one arm64 test APK and physical-device visual verification.
 - No APK build or device verification is claimed yet.
+
+
+
+## 2026-11-07 — Play panel occlusion correction
+- [Confirmed root cause] The background image was bundled, installed and registered with the private Sylphra atlas, and the Play renderer drew it. The image was then hidden by a full-content panel painted with opaque `color::RAISED`.
+- [Applied] Commit `db995e8ea15ca0376a854dbb3de1dad9a92a846d` changes the Play panel fill to translucent dark `base_color::hex(0x101810, 88)`. Its border and geometry remain unchanged. This lets the artwork show through the panel while retaining a dark readability veil.
+- [Not visually verified] No new APK/device screenshot after this correction. The source change must pass source CI and current-HEAD four-ABI native checks before a fresh ARM64 test APK is requested.
+- [Previous baseline] Four-ABI native run #483 and ARM64 test APK run #22 passed on prior HEAD `266bc38da10dc64d836422d0c469972498d0c903`, before this panel change.
