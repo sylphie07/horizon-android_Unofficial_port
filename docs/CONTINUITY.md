@@ -835,3 +835,13 @@ The remote branch was verified; a separate local working-tree state was not avai
 - [Not available] The current GitHub connector has no workflow-dispatch action. The active workflow only runs the four-ABI native matrix for manual `workflow_dispatch` with `native_checks=true`; a push-triggered run cannot validate native Rust compilation.
 - [Not verified] No current-HEAD Rust tests, four-ABI native checks, fresh APK, installation, or screenshot exist. Do not ask the user to compile yet.
 - [Next] Obtain a manual four-ABI native check on current `android` HEAD. Only after all four pass, build/request one ARM64 test APK and have the user visually compare Cape Studio with the already-confirmed in-game cape.
+
+
+
+## 2026-11-07 — Play background occlusion fix
+- [Confirmed] The bundled background helper is called before the launcher atlas is built; the atlas registers `sylphra/background`; the Play page renderer draws that sprite behind the UI.
+- [Root cause confirmed] The Play page then painted its entire content panel with opaque `color::RAISED`, covering the background in the hero/content region. This was a rendering-layer occlusion, not a missing image asset or atlas registration failure.
+- [Applied] Commit `db995e8ea15ca0376a854dbb3de1dad9a92a846d` changes only `crates/horizon-client/src/android/launcher_pages.rs`: the Play panel fill is now a translucent dark overlay (`base_color::hex(0x101810, 88)`) and retains its existing border and layout. The intent is to reveal the existing Minecraft Rust Edition artwork while preserving contrast.
+- [Not visually verified] No fresh APK/device screenshot after this UI correction yet. The change is source-level; do not claim the device result until tested.
+- [Previously verified baseline] Four-ABI native workflow run #483 on prior source-equivalent HEAD `266bc38da10dc64d836422d0c469972498d0c903` passed source plus arm64-v8a, armeabi-v7a, x86 and x86_64 checks. ARM64 test APK workflow run #22 on that same prior HEAD succeeded and uploaded a test-only artifact. Neither validates the new translucent panel change.
+- [Next] Verify source CI on the new code commit, then run the four-ABI native matrix again on the updated source. After native checks pass, produce a fresh ARM64 test APK and ask the user for one visual confirmation. Do not ask the user to compile before then.
