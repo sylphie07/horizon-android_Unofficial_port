@@ -647,13 +647,16 @@ impl Launcher {
             let content_right = layout.content_rect[0] + layout.content_rect[2] - 12.0;
             let content_width = (layout.content_rect[2] - 24.0).max(0.0);
             let panel = [layout.content_rect[0], layout.content_top, layout.content_rect[2].max(0.0), (h - layout.content_top - 24.0).max(0.0)];
+            // Keep the Play panel translucent: the launcher artwork is
+            // rendered behind this content area, and an opaque RAISED fill
+            // would hide it completely on both phone and sidebar layouts.
             ui.rounded(
                 panel[0],
                 panel[1],
                 panel[2],
                 panel[3],
                 4.0,
-                color::RAISED,
+                base_color::hex(0x101810, 88),
             );
             ui.border(
                 panel[0],
