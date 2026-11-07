@@ -1463,3 +1463,14 @@ The code batch is ready for the user's APK compilation check. After installation
 - [Blocker] `.github/workflows/android-source.yml` gates native checks behind manual dispatch with `native_checks=true`. The available GitHub connector exposes no workflow-dispatch action; run #479 was push-triggered and therefore skipped native jobs.
 - [Not verified] No Rust compile/test, four-ABI matrix, fresh APK, install, or Cape Studio preview screenshot on current HEAD.
 - [Next] Need a dispatch-capable route to run all four native ABIs on current branch HEAD. After all pass, request one ARM64 test APK for visual confirmation; do not request user compilation before then.
+
+
+
+## 2026-11-07 — Play background occlusion fix
+- [Confirmed] Inspected branch `android`, current docs and CI state before source modification. Prior HEAD: `266bc38da10dc64d836422d0c469972498d0c903`.
+- [Confirmed] `ensure_sylphra_background(&self.home)` runs before `HudAtlas::build`; the atlas is built after registering the bundled background and atlas JSON.
+- [Confirmed] `launcher_pages.rs` draws the `sylphra/background` sprite over the Play viewport, but the Play branch subsequently drew an opaque `color::RAISED` rectangle over the entire content panel. This later draw fully occluded the artwork.
+- [Applied] Commit `db995e8ea15ca0376a854dbb3de1dad9a92a846d` changes only `crates/horizon-client/src/android/launcher_pages.rs`: replace the opaque panel fill with `base_color::hex(0x101810, 88)`; retain the border, dimensions and child controls. No artwork, atlas, gameplay, cape or skin code changed.
+- [Verified baseline only] Workflow run #483 passed source and all four native ABI jobs on prior source-equivalent HEAD `266bc38da10dc64d836422d0c469972498d0c903`. Workflow run #22 completed the ARM64 test APK build on that prior HEAD. These runs do not validate commit `db995e8...`.
+- [Not verified] No CI result, fresh ARM64 APK or device screenshot for the translucent panel change at the time of this entry.
+- [Next] Wait for source CI on the new code commit; then repeat the four-ABI native check on current source. Once it passes, build a fresh ARM64 test APK and request one device screenshot/visual check. User should not compile before this gate.
